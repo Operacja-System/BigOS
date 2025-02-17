@@ -1,0 +1,81 @@
+IndentWidth: 4
+TabWidth: 4
+# ColumnLimit: 0
+UseTab: Always
+SortIncludes: true
+IncludeCategories:
+  - Regex:      '^\<.*\>'          # stdlib
+    Priority:   1
+    SortPriority: 1
+  - Regex:      '^\<.*\.h\>'        # third-party
+    Priority:   2
+    SortPriority: 2
+  - Regex:      '\".*\"'            # project-specific
+    Priority:   3
+    SortPriority: 3
+MaxEmptyLinesToKeep: 1
+SpacesBeforeTrailingComments: 1
+# ---
+AllowShortEnumsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortBlocksOnASingleLine: true
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortLoopsOnASingleLine: true
+# ---
+AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: false
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCaseColons: false
+AlignEscapedNewlines: LeftWithLastLine
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 2
+AlignArrayOfStructures: Right
+# ---
+BreakBeforeBraces: Attach
+BinPackParameters: true
+BinPackArguments: true
+BreakFunctionDefinitionParameters: false
+Cpp11BracedListStyle: true
+IncludeBlocks: Regroup
+IndentCaseLabels: false
+IndentGotoLabels: true
+IndentPPDirectives: BeforeHash
+IndentWrappedFunctionNames: false
+InsertBraces: false
+InsertNewlineAtEOF: true
+KeepEmptyLines:
+  AtEndOfFile: true 
+  AtStartOfBlock: false
+  AtStartOfFile: false
+LineEnding: LF
+PointerAlignment: Left
+QualifierAlignment: Custom
+QualifierOrder: [volatile, static, inline, const, type]
+# ReflowComments: IndentOnly
+# RemoveEmptyLinesInUnwrappedLines: true
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: false
+  AfterForeachMacros: false
+  AfterFunctionDeclarationName: false
+  AfterIfMacros: false
+  BeforeNonEmptyParentheses: false
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpacesInParens: Never
+SpacesInSquareBrackets: false

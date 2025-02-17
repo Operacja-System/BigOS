@@ -50,3 +50,17 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Debug files and memory dumps
+*.debug
+*.mem
+
+# Build
+build/
+
+# Disk images
+*.img
+*.iso
+
+# Compiler commands
+compile_commands.json
