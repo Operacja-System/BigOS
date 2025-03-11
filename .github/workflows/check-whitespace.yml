@@ -9,8 +9,6 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-# Avoid unnecessary builds. Unlike the main CI jobs, these are not
-# ci-configurable (but could be).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
