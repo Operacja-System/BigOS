@@ -1,3 +1,5 @@
+include $(MAKE_INCLUDE_PATH)/toolchain.mk
+
 $(if $(value BUILD_DIR),,$(error "BUILD_DIR is not set"))
 TPATH := $(DPATH)/$(NAME)
 BPATH := $(DPATH)/$(NAME)/obj
