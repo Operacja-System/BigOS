@@ -28,11 +28,8 @@
 ### Git
 - No Warnings, TODOs, Bugs, Fixes, Hacks and Tests on the main branch
 - Keep the Git history clean.  
-- Each commit should be atomic (one logical change).  
 - Write meaningful commit messages.  
 - All code must be reviewed before merging.  
 - Use pull requests, no direct pushes to main.  
 - At least 2 approvals required before merging.  
 - Code must be tested before merging.  
-- Write unit tests for every new feature.  
-- Run tests before pushing changes.  
