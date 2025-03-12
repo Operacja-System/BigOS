@@ -20,12 +20,12 @@ clean:
 	rm -rf $(TPATH)
 
 $(NAME): $(OBJ_C) $(OBJ_S)
-	$(LD) $(LDFLAGS) $(OBJ_S) $(OBJ_C)
+	$(RV_LD) $(LDFLAGS) $(OBJ_S) $(OBJ_C)
 
 $(BPATH)/%.c.o : %.c always
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(RV_CC) $(CFLAGS) -c $< -o $@
 
 $(BPATH)/%.s.o : %.s always
-	$(AS) $(AFLAGS) -c $< -o $@
+	$(RV_AS) $(AFLAGS) -c $< -o $@
 
 .PHONY: all clean always

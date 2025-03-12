@@ -1,8 +1,18 @@
-export CC := $(shell find / -type f -name 'riscv64-*-gcc' -print -quit 2>/dev/null)
-export AS := $(shell find / -type f -name 'riscv64-*-as' -print -quit 2>/dev/null)
-export LD := $(shell find / -type f -name 'riscv64-*-ld' -print -quit 2>/dev/null)
-export OBJDUMP := $(shell find / -type f -name 'riscv64-*-objdump' -print -quit 2>/dev/null)
-export OBJCOPY := $(shell find / -type f -name 'riscv64-*-objcopy' -print -quit 2>/dev/null)
+find_tool = $(shell (command -v riscv64-unknown-elf-$(1) 2>/dev/null) || \
+                    (command -v riscv64-elf-$(1) 2>/dev/null) || \
+                    (command -v riscv64-none-elf-$(1) 2>/dev/null) || \
+                    (echo ""))
+
+export RV_CC      := $(call find_tool,gcc)
+export RV_AS      := $(call find_tool,as)
+export RV_LD      := $(call find_tool,ld)
+export RV_OBJDUMP := $(call find_tool,objdump)
+export RV_OBJCOPY := $(call find_tool,objcopy)
+export RV_GDB     := $(call find_tool,gdb)
+
+ifeq ($(CC),)
+  $(error "No valid RISC-V compiler found! Please install one or set CC manually.")
+endif
 
 INCLUDES := lib
 DEFINES := DEBUG
