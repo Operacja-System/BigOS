@@ -1,9 +1,9 @@
-NAME := debug
+$(if $(value BUILD_DIR),,$(error "BUILD_DIR is not set"))
+TPATH := $(BUILD_DIR)/$(NAME)
+BPATH := $(BUILD_DIR)/$(NAME)/obj
 
-TPATH := $(DPATH)/$(NAME)
-BPATH := $(DPATH)/$(NAME)/obj
-
-LDFLAGS := -r -o $(TPATH)/$(NAME).o
+LIB_OBJS := $(foreach l, $(DEPS), $(BUILD_DIR)/lib/$(l)/$(l).o)
+LDFLAGS := -o $(TPATH)/$(NAME).elf $(OBJ_C) $(OBJ_S) $(LIB_OBJS)
 
 SRC_C := $(shell find . -name '*.c')
 SRC_S := $(shell find . -name '*.s')
