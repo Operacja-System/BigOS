@@ -22,8 +22,8 @@ clean:
 	rm -rf $(BPATH)
 	rm -rf $(TPATH)
 
-$(NAME): $(OBJ_C) $(OBJ_S) $(LIB_DEPS)
-	$(RV_LD) $(LDFLAGS) $(OBJ_S) $(OBJ_C) $(LIB_DEPS)
+$(NAME): $(OBJ_C) $(OBJ_S) $(LIB_OBJS)
+	$(RV_LD) $(LDFLAGS) $(OBJ_S) $(OBJ_C) $(LIB_OBJS)
 
 $(BPATH)/%.c.o : %.c always
 	$(RV_CC) $(CFLAGS) -c $< -o $@
