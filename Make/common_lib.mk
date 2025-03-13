@@ -4,7 +4,8 @@ $(if $(value BUILD_DIR),,$(error "BUILD_DIR is not set"))
 TPATH := $(DPATH)/$(NAME)
 BPATH := $(DPATH)/$(NAME)/obj
 
-LDFLAGS := -o $(TPATH)/$(NAME).o
+LIB_OBJS := $(foreach l, $(DEPS), $(BUILD_DIR)/lib/$(l)/$(l).o)
+LDFLAGS := -o $(TPATH)/$(NAME).o $(LIB_OBJS)
 
 SRC_C := $(shell find . -name '*.c')
 SRC_S := $(shell find . -name '*.s')
