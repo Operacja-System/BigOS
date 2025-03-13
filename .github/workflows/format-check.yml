@@ -1,0 +1,20 @@
+name: Check clang-format
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-clang-format:
+    name: Check clang-format
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: jidicula/clang-format-action@v4.14.0
+      with:
+        clang-format-version: '19'
+        check-path: './src'
