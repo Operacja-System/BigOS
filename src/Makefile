@@ -15,4 +15,3 @@ all:
 	@for dir in $(SRC_DIRS); do make -C $$dir SRC_DIR=$(SRC_DIR) BUILD_DIR=$(BUILD_DIR); done
 
 .PHONY: all
-

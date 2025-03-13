@@ -1,7 +1,7 @@
 ENTRY(start);
- 
+
 . = 0x80000000;
- 
+
 SECTIONS {
 	/* Include entry point at start of binary */
 	.text : ALIGN(4K) {

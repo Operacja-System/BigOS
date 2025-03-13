@@ -5,7 +5,7 @@ TPATH := $(BUILD_DIR)/$(NAME)
 BPATH := $(BUILD_DIR)/$(NAME)/obj
 
 LIB_OBJS := $(foreach l, $(DEPS), $(BUILD_DIR)/lib/$(l)/$(l).o)
-LDFLAGS := -o $(TPATH)/$(NAME).elf 
+LDFLAGS := -o $(TPATH)/$(NAME).elf
 
 SRC_C := $(shell find . -name '*.c')
 SRC_S := $(shell find . -name '*.s')
