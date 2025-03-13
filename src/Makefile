@@ -1,9 +1,11 @@
 INCLUDES := lib
+SYS_INCLUDES := ../external
 DEFINES := DEBUG
 
 export CFLAGS := -Wall -Wextra -Werror -mcmodel=medany -g -O0 -Wno-ignored-qualifiers -ffreestanding -march=rv64g -std=c23
 CFLAGS += $(addprefix -D__, $(addsuffix __,$(DEFINES)))
 CFLAGS += $(patsubst %, -I$(SRC_DIR)/%, $(INCLUDES))
+CFLAGS += $(patsubst %, -isystem$(SRC_DIR)/%, $(SYS_INCLUDES))
 export AFLAGS := -march=rv64g
 export LDFLAGS := -nostdlib
 
