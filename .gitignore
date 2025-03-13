@@ -57,6 +57,7 @@ dkms.conf
 
 # Build
 build/
+.cache/
 
 # Disk images
 *.img

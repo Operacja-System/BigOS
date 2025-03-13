@@ -22,7 +22,7 @@ AllowShortIfStatementsOnASingleLine: true
 AllowShortBlocksOnASingleLine: true
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: true
 # ---
 AlignConsecutiveDeclarations: false
@@ -61,7 +61,7 @@ KeepEmptyLines:
 LineEnding: LF
 PointerAlignment: Left
 QualifierAlignment: Custom
-QualifierOrder: [volatile, static, inline, const, type]
+QualifierOrder: [static, inline, const, volatile, type]
 # ReflowComments: IndentOnly
 # RemoveEmptyLinesInUnwrappedLines: true
 SpaceAfterCStyleCast: false
