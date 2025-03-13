@@ -27,14 +27,14 @@ def add_acronym(file_path, acronym, definition=""):
     """Adds a new acronym with an optional definition to the Markdown file."""
     sections = load_acronyms(file_path)
     section_key = acronym[0].upper()  # Determine the correct section (A, B, C, etc.)
-    
+
     # Create a formatted entry
     entry = f"{acronym} - {definition}" if definition else acronym
 
     # Ensure the section exists
     if section_key not in sections:
         sections[section_key] = []
-    
+
     # Avoid duplicates before adding
     if entry not in sections[section_key]:
         sections[section_key].append(entry)
@@ -53,4 +53,3 @@ if __name__ == "__main__":
     definition = " ".join(sys.argv[3:]) if len(sys.argv) > 3 else ""
 
     add_acronym(file_path, acronym, definition)
-

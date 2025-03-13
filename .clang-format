@@ -55,7 +55,7 @@ IndentWrappedFunctionNames: false
 InsertBraces: false
 InsertNewlineAtEOF: true
 KeepEmptyLines:
-  AtEndOfFile: true 
+  AtEndOfFile: true
   AtStartOfBlock: false
   AtStartOfFile: false
 LineEnding: LF

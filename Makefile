@@ -27,8 +27,7 @@ format $(FILES_C) $(FILES_H):
 clean:
 	rm -rf build
 
-image: 
+image:
 	dd if=/dev/zero of=$(BUILD_DIR)/$(OS).img bs=1M count=10
 
-.PHONY: all clean always image run format 
-
+.PHONY: all clean always image run format
