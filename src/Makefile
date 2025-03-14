@@ -1,7 +1,7 @@
 INCLUDES := lib
 DEFINES := DEBUG
 
-export CFLAGS := -Wall -Wextra -Werror -mcmodel=medany -g -O0 -Wno-ignored-qualifiers -ffreestanding -march=rv64g -std=c23
+export CFLAGS := -Wall -Wextra -Werror -mcmodel=medany -g -O0 -Wno-ignored-qualifiers -ffreestanding -march=rv64g -std=c2x
 CFLAGS += $(addprefix -D__, $(addsuffix __,$(DEFINES)))
 CFLAGS += $(patsubst %, -I$(SRC_DIR)/%, $(INCLUDES))
 export AFLAGS := -march=rv64g
