@@ -18,7 +18,7 @@ static char* uart_output_handler(const char* buf, void* user, int len) {
 	return (char*)user;
 }
 
-void debug_printf([[maybe_unused]] const char* fmt, ...) {
+void debug_printf(const char* fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	char buf[STB_SPRINTF_MIN];

@@ -3,6 +3,9 @@
 
 #include <stddef.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+
 [[reproducible, gnu::nonnull]]
 void* memcpy(void* restrict dest, const void* restrict src, size_t n);
 
@@ -66,5 +69,7 @@ char* strpbrk(const char* dest, const char* breakset);
 
 [[unsequenced, gnu::nonnull, gnu::pure]]
 char* strstr(const char* src, const char* dst);
+
+#pragma GCC diagnostic pop
 
 #endif
