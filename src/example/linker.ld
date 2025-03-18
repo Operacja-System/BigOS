@@ -1,4 +1,4 @@
-ENTRY(start);
+ENTRY(_start);
 
 . = 0x80000000;
 

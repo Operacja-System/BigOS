@@ -71,4 +71,6 @@ char* strstr(const char* str, const char* substr);
 
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic pop
+
 #endif
