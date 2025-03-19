@@ -20,7 +20,7 @@ void main() {
 
 [[gnu::interrupt("machine")]]
 void int_handler() {
-	reg_t cause = READ_CSR(mcause);
+	reg_t cause = CSR_READ(mcause);
 	if(is_interrupt(cause)) {
 		// interrupt
 		reg_t int_no = get_interrupt_code(cause);
@@ -33,35 +33,35 @@ void int_handler() {
 		default: DEBUG_PRINTF("\n\tunknown interrupt (%ld)\n", int_no); break;
 		}
 
-		CLR_CSR(mip, (reg_t)1 << int_no);
+		CSR_CLEAR(mip, (reg_t)1 << int_no);
 		return;
 	}
 }
 
+[[noreturn]]
 void start() {
 	memset(&bss_start, '\0', &bss_end - &bss_start);
 
 	// register handler
-	WRITE_CSR(mtvec, int_handler);
+	CSR_WRITE(mtvec, int_handler);
 
 	// request a timer interrupt
 	*mtimecmp = *mtime + quant;
 
 	// set MIE in mstatus
-	SET_CSR(mstatus, 8);
+	CSR_SET(mstatus, 8);
 
 	// set TIMER in mie
-	SET_CSR(mie, 1lu << IntMTimer);
+	CSR_SET(mie, 1lu << IntMTimer);
 
 	main();
+
+	while(true) wfi();
 }
 
 [[gnu::section(".init"), gnu::naked]]
 void _start() {
 	__asm__("la gp, global_pointer\n\t"
 			"la sp, stack_top\n\t"
-			"jal ra, start\n\t"
-			"halt:\n\t"
-			"wfi\n\t"
-			"j halt\n\t");
+			"jal ra, start");
 }
