@@ -28,7 +28,7 @@ void int_handler() {
 		switch(int_no) {
 		case IntMTimer:
 			DEBUG_PUTS("\n\tgot timer interrupt\n");
-			*mtimecmp = *mtime + quant;
+			mtimecmp[hartid()] = *mtime + quant;
 			break;
 		default: DEBUG_PRINTF("\n\tunknown interrupt (%ld)\n", int_no); break;
 		}
@@ -46,7 +46,7 @@ void start() {
 	CSR_WRITE(mtvec, int_handler);
 
 	// request a timer interrupt
-	*mtimecmp = *mtime + quant;
+	mtimecmp[hartid()] = *mtime + quant;
 
 	// set MIE in mstatus
 	CSR_SET(mstatus, 8);
