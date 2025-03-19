@@ -14,8 +14,8 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
-typedef uintmax_t reg_t;
-typedef intmax_t ireg_t;
+typedef unsigned long reg_t;
+typedef signed long ireg_t;
 static_assert(sizeof(reg_t) * 8 == __riscv_xlen);
 
 #endif
