@@ -1,6 +1,7 @@
 #include <debug/debug_stdio.h>
 #include <stdbigos/csr.h>
 #include <stdbigos/string.h>
+#include <stdbigos/trap.h>
 #include <stdbigos/types.h>
 
 extern u8 bss_start;
@@ -12,7 +13,6 @@ static volatile u64* mtime = (u64*)(clint_base + 0xBFF8);
 static volatile u64* mtimecmp = (u64*)(clint_base + 0x4000);
 
 static const u64 quant = 50000llu;
-static const reg_t interrupt_mask = (reg_t)1 << (__riscv_xlen - 1);
 
 void main() {
 	for(u32 i = 0;; ++i) DEBUG_PRINTF("hello OS %u\n", i);
@@ -21,19 +21,16 @@ void main() {
 [[gnu::interrupt("machine")]]
 void int_handler() {
 	reg_t cause = READ_CSR(mcause);
-	if(cause & interrupt_mask) {
+	if(is_interrupt(cause)) {
 		// interrupt
-		reg_t int_no = cause & ~interrupt_mask;
+		reg_t int_no = get_interrupt_code(cause);
 
 		switch(int_no) {
-		case 4:
-		case 5:
-		case 6:
-		case 7: // TIMER
+		case IntMTimer:
 			DEBUG_PUTS("\n\tgot timer interrupt\n");
 			*mtimecmp = *mtime + quant;
 			break;
-		default: DEBUG_PUTS("\n\tunknown interrupt\n"); break;
+		default: DEBUG_PRINTF("\n\tunknown interrupt (%ld)\n", int_no); break;
 		}
 
 		CLR_CSR(mip, (reg_t)1 << int_no);
@@ -54,7 +51,7 @@ void start() {
 	SET_CSR(mstatus, 8);
 
 	// set TIMER in mie
-	SET_CSR(mie, 0x80);
+	SET_CSR(mie, 1lu << IntMTimer);
 
 	main();
 }
