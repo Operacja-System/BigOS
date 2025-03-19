@@ -14,7 +14,8 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
-typedef u64 reg_t;
-static_assert(sizeof(reg_t) * 8 == __riscv_xlen); // assuming CHAR_BIT == 8
+typedef uintmax_t reg_t;
+typedef intmax_t ireg_t;
+static_assert(sizeof(reg_t) * 8 == __riscv_xlen);
 
 #endif
