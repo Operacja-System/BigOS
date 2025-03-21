@@ -18,7 +18,8 @@ void dprintf(const char* fmt, ...);
 #else
 
 // for argument checking
-[[gnu::format(printf, 1, 2)]] static inline void noop_printf(const char*, ...) {}
+[[gnu::format(printf, 1, 2)]] static inline void noop_printf(const char*, ...) {
+}
 
 	#define DEBUG_PUTC(c)
 	#define DEBUG_PUTS(s)
