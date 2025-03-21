@@ -1,7 +1,5 @@
 #include <stdbigos/string.h>
-
 #include <stdbigos/types.h>
-
 #include <stddef.h>
 
 /* This file contains low level library functions such as memcpy. As such it is
@@ -31,7 +29,7 @@ void* memccpy(void* restrict dest, const void* restrict src, int ch, size_t n) {
 
 void* memset(void* dest, int val, size_t n) {
 	u8* d = dest;
-	while(--n) *d++ = val;
+	while(n--) *d++ = val;
 	return dest;
 }
 
@@ -54,7 +52,7 @@ size_t strlen(const char* str) {
 
 size_t strnlen(const char* str, size_t n) {
 	size_t l = 0;
-	while(--n && *str++) l++;
+	while(n-- && *str++) l++;
 	return l;
 }
 
