@@ -1,5 +1,3 @@
-#ifdef __DEBUG__
-
 static volatile unsigned char* uart = (volatile unsigned char*)0x10000000;
 
 void debug_putc(char c) {
@@ -11,5 +9,3 @@ void debug_puts(const char* s) {
 }
 
 void debug_printf([[maybe_unused]] const char* fmt, ...) {}
-
-#endif // !__DEBUG__

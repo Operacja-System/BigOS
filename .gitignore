@@ -54,6 +54,7 @@ dkms.conf
 # Debug files and memory dumps
 *.debug
 *.mem
+.gdb_history
 
 # Build
 build/
@@ -65,3 +66,6 @@ build/
 
 # Compiler commands
 compile_commands.json
+
+# Installation dir
+install/
