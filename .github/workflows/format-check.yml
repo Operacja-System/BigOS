@@ -9,8 +9,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-clang-format:
-    name: Check clang-format
+  formatting-check:
+    name: Formatting Check
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,7 +20,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: jidicula/clang-format-action@v4.14.0
+    - name: Run clang-format style check for C/C++/Protobuf programs.
+      uses: jidicula/clang-format-action@v4.14.0
       with:
         clang-format-version: '19'
-        check-path: './src'
+        check-path: ${{ matrix.path }}
