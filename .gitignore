@@ -69,3 +69,6 @@ compile_commands.json
 
 # Installation dir
 install/
+
+# CMake info
+CMakeUserPresets.json
