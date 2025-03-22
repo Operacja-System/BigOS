@@ -1,8 +1,8 @@
 {
-  "version": 4,
+  "version": 5,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 21,
+    "minor": 24,
     "patch": 0
   },
   "configurePresets": [
@@ -34,16 +34,33 @@
       "environment": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "ninja",
+      "inherits": "base",
+      "generator": "Ninja"
+    },
+    {
+      "name": "ci-ninja",
+      "inherits": "ninja",
+      "environment": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "OFF"
+      },
+      "cacheVariables": {
+        "BIGOS_WARNINGS_AS_ERRORS": "ON"
+      }
     }
   ],
   "buildPresets": [
     {
-      "name": "debug",
-      "configurePreset": "debug"
-    },
+      "name": "ci-ninja",
+      "configurePreset": "ci-ninja"
+    }
+  ],
+  "testPresets": [
     {
-      "name": "release",
-      "configurePreset": "release"
+      "name": "ci-ninja",
+      "configurePreset": "ci-ninja"
     }
   ]
 }

@@ -12,6 +12,12 @@ jobs:
   check-clang-format:
     name: Check clang-format
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path:
+          - 'src'
+          - 'include'
+
     steps:
     - uses: actions/checkout@v4
     - uses: jidicula/clang-format-action@v4.14.0

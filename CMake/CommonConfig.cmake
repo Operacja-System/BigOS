@@ -1,9 +1,13 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.24)
+
+set(BIGOS_WARNINGS_AS_ERRORS OFF CACHE BOOL "Treat warnings as errors")
 
 function(SETUP_COMMON name)
     target_compile_features( ${name} PUBLIC c_std_23 )
     set_target_properties( ${name} PROPERTIES
-         VISIBILITY_INLINES_HIDDEN true
+        VISIBILITY_INLINES_HIDDEN true
+        C_EXTENSIONS ON
+        COMPILE_WARNING_AS_ERROR ${BIGOS_WARNINGS_AS_ERRORS}
     )
 
     target_compile_options(${name} PRIVATE -Wall -Wextra -Wno-ignored-qualifiers)
@@ -50,6 +54,7 @@ endfunction()
 function(COMPILE_BINARY name)
     add_custom_command(
         TARGET ${name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "./$<CONFIG>"
         COMMAND ${CMAKE_OBJCOPY}
                     -O binary
                     "$<TARGET_FILE:${name}>"
