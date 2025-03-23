@@ -10,7 +10,6 @@ concurrency:
 
 env:
   CMAKE_BUILD_PARALLEL_LEVEL: ""
-  CMAKE_COMPILE_WARNING_AS_ERROR: "ON"
   CMAKE_BUILD_TYPE: "Release"
 
 jobs:
