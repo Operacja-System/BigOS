@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.24)
 
+find_program(QEMU_FOUND_PATH "qemu-system-riscv64")
+
 set(BIGOS_WARNINGS_AS_ERRORS OFF CACHE BOOL "Treat warnings as errors")
+set(BIGOS_QEMU_PATH "${QEMU_FOUND_PATH}" CACHE PATH "path to qemu")
+set(BIGOS_QEMU_OPTIONS "-machine virt -serial mon:stdio" CACHE STRING "options for qemu")
+
+separate_arguments(BIGOS_QEMU_OPTIONS_LIST UNIX_COMMAND "${BIGOS_QEMU_OPTIONS}")
 
 function(SETUP_COMMON name)
     target_compile_features( ${name} PUBLIC c_std_23 )
@@ -54,14 +60,41 @@ endfunction()
 function(COMPILE_BINARY name)
     add_custom_command(
         TARGET ${name} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "./$<CONFIG>"
         COMMAND ${CMAKE_OBJCOPY}
                     -O binary
                     "$<TARGET_FILE:${name}>"
-                    "./$<CONFIG>/${name}.bin"
-        BYPRODUCTS "./$<CONFIG>/${name}.bin"
+                    "$<TARGET_FILE:${name}>.bin"
         VERBATIM
     )
 
     install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${name}.bin" TYPE BIN)
+endfunction()
+
+function(ADD_QEMU_TARGET name)
+    cmake_parse_arguments(
+        arg
+        "BIOS_IMAGE"
+        ""
+        ""
+        ${ARGN}
+    )
+
+    set(CMD "${BIGOS_QEMU_PATH}" ${BIGOS_QEMU_OPTIONS_LIST}
+            $<IF:$<BOOL:${arg_BIOS_IMAGE}>,-bios,-kernel>
+            "$<TARGET_FILE:${name}>.bin"
+        )
+
+    add_custom_target(run-${name}
+        COMMAND ${CMD}
+        DEPENDS ${name}
+        VERBATIM
+        USES_TERMINAL
+    )
+
+    add_custom_target(debug-${name}
+        COMMAND ${CMD} -S -s
+        DEPENDS ${name}
+        VERBATIM
+        USES_TERMINAL
+    )
 endfunction()
