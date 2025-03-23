@@ -60,7 +60,6 @@ endfunction()
 function(COMPILE_BINARY name)
     add_custom_command(
         TARGET ${name} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "./$<CONFIG>"
         COMMAND ${CMAKE_OBJCOPY}
                     -O binary
                     "$<TARGET_FILE:${name}>"
