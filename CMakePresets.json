@@ -1,0 +1,66 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build",
+      "installDir": "${sourceDir}/build/install",
+      "toolchainFile": "${sourceDir}/CMake/riscv64-cmake-toolchain.cmake",
+      "environment": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "ninja-multi",
+      "inherits": "base",
+      "generator": "Ninja Multi-Config"
+    },
+    {
+      "name": "debug",
+      "inherits": "base",
+      "environment": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "base",
+      "environment": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ninja",
+      "inherits": "base",
+      "generator": "Ninja"
+    },
+    {
+      "name": "ci-ninja",
+      "inherits": "ninja",
+      "environment": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "OFF"
+      },
+      "cacheVariables": {
+        "BIGOS_WARNINGS_AS_ERRORS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ci-ninja",
+      "configurePreset": "ci-ninja"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "ci-ninja",
+      "configurePreset": "ci-ninja"
+    }
+  ]
+}

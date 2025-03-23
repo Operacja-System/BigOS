@@ -1,0 +1,45 @@
+name: Build and Test
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CMAKE_BUILD_PARALLEL_LEVEL: ""
+  CMAKE_BUILD_TYPE: "Release"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: '~3.24.0'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y \
+            gcc-riscv64-unknown-elf dosfstools e2fsprogs mtools \
+            qemu-system-misc
+
+      - name: Generate, build and test
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: 'ci-ninja'
+          buildPreset: 'ci-ninja'
+          testPreset: 'ci-ninja'
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: build/
