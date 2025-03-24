@@ -15,7 +15,7 @@ static volatile u64* mtimecmp = (u64*)(clint_base + 0x4000);
 static const u64 quant = 50000llu;
 
 void main() {
-	for(u32 i = 0;; ++i) DEBUG_PRINTF("hello OS %u\n", i);
+	for(u32 i = 0;; ++i) dprintf("hello OS %u\n", i);
 }
 
 [[gnu::interrupt("machine")]]
@@ -27,10 +27,10 @@ void int_handler() {
 
 		switch(int_no) {
 		case IntMTimer:
-			DEBUG_PUTS("\n\tgot timer interrupt\n");
+			dputs("\n\tgot timer interrupt\n");
 			mtimecmp[hartid()] = *mtime + quant;
 			break;
-		default: DEBUG_PRINTF("\n\tunknown interrupt (%ld)\n", int_no); break;
+		default: dprintf("\n\tunknown interrupt (%ld)\n", int_no); break;
 		}
 
 		CSR_CLEAR(mip, (reg_t)1 << int_no);
@@ -61,7 +61,10 @@ void start() {
 
 [[gnu::section(".init"), gnu::naked]]
 void _start() {
-	__asm__("la gp, global_pointer\n\t"
-			"la sp, stack_top\n\t"
-			"jal ra, start");
+	__asm__(".option push\n\t"
+			".option norelax\n\t"
+			"la    gp, global_pointer\n\t"
+			".option pop\n\t"
+			"la    sp, stack_top\n\t"
+			"j start");
 }
