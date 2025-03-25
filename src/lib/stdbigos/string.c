@@ -40,7 +40,13 @@ void* memset_explicit(void* dest, int val, size_t n) {
 void* memmove(void* dest, const void* src, size_t n) {
 	u8* d = dest;
 	const u8* s = src;
-	while(n--) { *d++ = *s++; }
+	if (d < s) {
+		while(n--) *d++ = *s++;
+	} else {
+		u8 *ld = d + (n-1);
+		const u8 *ls = s + (n-1);
+		while(n--) *ld-- = *ls--;
+	}
 	return dest;
 }
 
