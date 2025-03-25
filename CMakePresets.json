@@ -8,7 +8,6 @@
   "configurePresets": [
     {
       "name": "base",
-      "hidden": true,
       "binaryDir": "${sourceDir}/build",
       "installDir": "${sourceDir}/build/install",
       "toolchainFile": "${sourceDir}/CMake/riscv64-cmake-toolchain.cmake",
