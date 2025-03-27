@@ -3,7 +3,7 @@ ENTRY(start);
 . = 0x80000000;
 
 SECTIONS {
-	PROVIDE(origin_phis_addr = .);
+	PROVIDE(kernel_start = .);
 	.text : ALIGN(2M) {
 		*(.init);
 		*(.text);
@@ -23,7 +23,8 @@ SECTIONS {
 		PROVIDE(bss_end = .);
 	}
 	. = ALIGN(2M);
-	PROVIDE(stack_end = .);
+	PROVIDE(kernel_end = .);
+	PROVIDE(stack_start = .);
 	. += 2M;
-	PROVIDE(stack_ptr = .);
+	PROVIDE(stack_end = .);
 }
