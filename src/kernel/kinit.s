@@ -1,36 +1,42 @@
 .section .init
 
-.option norvc
+	.option norvc
 
-.type start, @function
-.global start
-start:
-	.cfi_startproc
+	.type start, @function
+	.global start
 
-.option push
-.option norelax
-	la gp, global_ptr
-.option pop
+	start:
+		.cfi_startproc
 
-	/* Setup stack */
-	la sp, stack_ptr
+		.option push
+		.option norelax
+		la gp, global_ptr
+		.option pop
 
-	/* Clear the BSS section */
-	la t5, bss_start
-	la t6, bss_end
-bss_clear:
-	sd zero, (t5)
-	addi t5, t5, 8
-	bltu t5, t6, bss_clear
+		/* Setup stack */
+		la sp, stack_end
 
-	/* Jump to kernel! */
-	la a0, origin_phis_addr
-	jal ra, kinit
+		/* Clear the BSS section */
+		la t5, bss_start
+		la t6, bss_end
+		bss_clear:
+			sd zero, (t5)
+			addi t5, t5, 8
+			bltu t5, t6, bss_clear
 
-halt:
-	wfi
-	j halt
+		/* Jump to kinit! */
+		/* kinit args: a0 - kernel_address, a1 - kernel_size, a2 - kernel_stack_address, a3 - kernel_stack_size */
+		la a0, kernel_start
+		la t0, kernel_end
+		sub a1, t0, a0
+		la a2, stack_start
+		la t0, stack_end
+		sub a3, t0, a2
+		jal ra, kinit
+
+	halt:
+		wfi
+		j halt
 
 	.cfi_endproc
-
-.end
+	.end
