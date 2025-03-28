@@ -10,6 +10,9 @@ void dprintf(char* (*handler)(const char*, void*, int), const char* fmt, ...);
 [[gnu::format(printf, 2, 3)]]
 void dprintf(char* (*handler)(const char*, void*, int), const char* fmt, ...);
 
+[[gnu::format(printf, 1, 2)]]
+void uprintf(const char *fmt, ...);
+
 #ifndef NDEBUG
 
 	#define DEBUG_PUTC(c)          dputc(c)

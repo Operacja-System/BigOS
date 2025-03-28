@@ -36,10 +36,10 @@ void int_handler() {
 
 		switch (int_no) {
 		case IntMTimer:
-			dputs("\n\tgot timer interrupt\n");
+			uprintf("\n\tgot timer interrupt\n");
 			mtimecmp[hartid()] = *mtime + quant;
 			break;
-		default: dprintf("\n\tunknown interrupt (%ld)\n", int_no); break;
+		default: dprintf(uart_output_handler, "\n\tunknown interrupt (%ld)\n", int_no); break;
 		}
 
 		CSR_CLEAR(mip, (reg_t)1 << int_no);
