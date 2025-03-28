@@ -1,9 +1,3 @@
-#include <debug/debug_stdio.h>
-#include <stdbigos/csr.h>
-#include <stdbigos/string.h>
-#include <stdbigos/trap.h>
-#include <stdbigos/types.h>
-
 // http://byterunner.com/16550.html
 #define RHR 0 // Receive Holding Register
 #define THR 0 // Transmit Holding Register
@@ -22,6 +16,11 @@
 #define LSR_RHR_STATUS (1 << 0)
 #define RHR_EMPTY 0
 #define RHR_HAVE_DATA 1
+
+#define FCR_FIFO_ENABLE 1
+#define FCR_FIFO_CLEAR 0b110
+#define IER_RX_ENABLE (1<<0)
+#define IER_TX_ENABLE (1<<1)
 
 // TODO we should probably declare such things in the linker script.
 // also we should parse DST and not hardcode anything.
@@ -45,8 +44,12 @@ void init_uart(void) {
   // 8 bits, 1 stop bit, no parity for now (also leave baud rate mode)
   WriteReg(LCR, 0b11);
   // go into polled mode
-  // TODO change it to interrupt mode once we have processes
   WriteReg(FCR, 0x01);
+
+  // TODO change it to interrupt mode once we have processes
+  //WriteReg(FCR, FCR_FIFO_ENABLE | FCR_FIFO_CLEAR);
+  //WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE);
+
   // i guess we're already in, but let's set this as stated in docs
   WriteReg(IER, 0x00);
 }
