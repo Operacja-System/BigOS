@@ -3,11 +3,11 @@
 
 typedef enum {
 	ERR_NONE,
+	ERR_VIRT_MEM_SCHEME_NOT_IMPLEMENTED,
 	ERR_VIRT_MEM_SCHEME_NOT_SUPPORTED,
-} ERROR_t;
+	ERR_ASID_NOT_SUPPORTED,
+} error_t;
 
-#define ERROR [[nodiscard]] ERROR_t
-
-const char* get_error_msg(ERROR_t err); //TODO: implement
+const char* get_error_msg(error_t err);
 
 #endif //_STDBIGOS_ERROR_H_
