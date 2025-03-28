@@ -7,60 +7,94 @@
   },
   "configurePresets": [
     {
-      "name": "base",
+      "name": "build-dirs",
       "hidden": true,
       "binaryDir": "${sourceDir}/build",
-      "installDir": "${sourceDir}/build/install",
-      "toolchainFile": "${sourceDir}/CMake/riscv64-cmake-toolchain.cmake",
+      "installDir": "${sourceDir}/build/install"
+    },
+    {
+      "name": "cross-compile",
+      "hidden": true,
+      "toolchainFile": "${sourceDir}/CMake/riscv64-cmake-toolchain.cmake"
+    },
+    {
+      "name": "compile-commands",
+      "hidden": true,
       "environment": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
-      "name": "ninja-multi",
-      "inherits": "base",
-      "generator": "Ninja Multi-Config"
-    },
-    {
-      "name": "debug",
-      "inherits": "base",
-      "environment": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "release",
-      "inherits": "base",
-      "environment": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "ninja",
-      "inherits": "base",
-      "generator": "Ninja"
-    },
-    {
-      "name": "ci-ninja",
-      "inherits": "ninja",
-      "environment": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "OFF"
-      },
+      "name": "warnings-as-errors",
+      "hidden": true,
       "cacheVariables": {
         "BIGOS_WARNINGS_AS_ERRORS": "ON"
       }
+    },
+    {
+      "name": "debug",
+      "inherits": ["build-dirs", "cross-compile", "compile-commands"],
+      "environment": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "displayName": "Debug Configuration",
+      "description": "Debug configuration with debug build."
+    },
+    {
+      "name": "release",
+      "inherits": ["build-dirs", "cross-compile", "compile-commands"],
+      "environment": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "displayName": "Release Configuration",
+      "description": "Release configuration with optimized build."
+    },
+    {
+      "name": "release-size",
+      "inherits": ["build-dirs", "cross-compile", "compile-commands"],
+      "environment": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel"
+      },
+      "displayName": "Release Configuration for size",
+      "description": "Release configuration with optimized build for size."
+    },
+    {
+      "name": "release-debug",
+      "inherits": ["build-dirs", "cross-compile", "compile-commands"],
+      "environment": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "displayName": "Release Configuration for debugging",
+      "description": "Release configuration with debug symbols."
+    },
+    {
+      "name": "ninja-multi",
+      "inherits": ["build-dirs", "cross-compile", "compile-commands"],
+      "generator": "Ninja Multi-Config",
+      "displayName": "Ninja Multi-Config",
+      "description": "Configuration using Ninja Multi-Config generator. (add --config <CONFIG> to build)"
+    },
+    {
+      "name": "ci-ninja",
+      "inherits": ["build-dirs", "cross-compile", "warnings-as-errors"],
+      "displayName": "CI Ninja Configuration",
+      "description": "CI configuration using Ninja with warnings as errors."
     }
   ],
   "buildPresets": [
     {
       "name": "ci-ninja",
-      "configurePreset": "ci-ninja"
+      "configurePreset": "ci-ninja",
+      "displayName": "CI Ninja Build",
+      "description": "Build using CI Ninja configuration."
     }
   ],
   "testPresets": [
     {
       "name": "ci-ninja",
-      "configurePreset": "ci-ninja"
+      "configurePreset": "ci-ninja",
+      "displayName": "CI Ninja Test",
+      "description": "Test using CI Ninja configuration."
     }
   ]
 }
