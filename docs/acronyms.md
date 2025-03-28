@@ -9,6 +9,7 @@ BIOS - Basic input/output system
 ## C
 CLI - Command Line Interface  
 CPU - Central processing unit  
+CSR - Control and Status Register  
 
 ## E
 ELF - Executable and Linkable Format  
