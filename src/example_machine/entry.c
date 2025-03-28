@@ -1,4 +1,5 @@
 #include <debug/debug_stdio.h>
+#include <drivers/console.h>
 #include <drivers/uart.h>
 #include <stdbigos/csr.h>
 #include <stdbigos/string.h>
@@ -15,8 +16,10 @@ static volatile u64* mtimecmp = (u64*)(clint_base + 0x4000);
 
 static const u64 quant = 50000llu;
 
+extern char console_buffer[];
+
 void main() {
-	for (u32 i = 0;; ++i) dprintf("hello OS %u\n", i);
+	puts_uart("Hemlo im uart UwU");
 }
 
 static char* uart_output_handler(const char* buf, void* user, int len) {
@@ -33,10 +36,10 @@ void int_handler() {
 
 		switch (int_no) {
 		case IntMTimer:
-			puts_uart("\n\tgot timer interrupt\n");
+			uprintf("\n\tgot timer interrupt\n");
 			mtimecmp[hartid()] = *mtime + quant;
 			break;
-		default: dprintf(uart_output_handler, "\n\tunknown interrupt (%ld)\n", int_no); break;
+		default: uprintf("\n\tunknown interrupt (%ld)\n", int_no); break;
 		}
 
 		CSR_CLEAR(mip, (reg_t)1 << int_no);
