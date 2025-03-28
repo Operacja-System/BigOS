@@ -25,6 +25,6 @@ void dprintf(const char* fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	char buf[STB_SPRINTF_MIN];
-	vsprintfcb(uart_output_handler, buf, buf, fmt, va);
+	vsprintfcb(handler, buf, buf, fmt, va);
 	va_end(va);
 }

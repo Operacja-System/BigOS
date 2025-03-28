@@ -1,4 +1,5 @@
 #include <debug/debug_stdio.h>
+#include <drivers/uart.h>
 #include <stdbigos/csr.h>
 #include <stdbigos/string.h>
 #include <stdbigos/trap.h>
@@ -18,6 +19,11 @@ void main() {
 	for (u32 i = 0;; ++i) dprintf("hello OS %u\n", i);
 }
 
+static char* uart_output_handler(const char* buf, void* user, int len) {
+	while (len--) putc_uart(*buf++);
+	return (char*)user;
+}
+
 [[gnu::interrupt("machine")]]
 void int_handler() {
 	reg_t cause = CSR_READ(mcause);
@@ -27,10 +33,10 @@ void int_handler() {
 
 		switch (int_no) {
 		case IntMTimer:
-			dputs("\n\tgot timer interrupt\n");
+			puts_uart("\n\tgot timer interrupt\n");
 			mtimecmp[hartid()] = *mtime + quant;
 			break;
-		default: dprintf("\n\tunknown interrupt (%ld)\n", int_no); break;
+		default: dprintf(uart_output_handler, "\n\tunknown interrupt (%ld)\n", int_no); break;
 		}
 
 		CSR_CLEAR(mip, (reg_t)1 << int_no);
@@ -46,13 +52,14 @@ void start() {
 	CSR_WRITE(mtvec, int_handler);
 
 	// request a timer interrupt
-	mtimecmp[hartid()] = *mtime + quant;
+	/// mtimecmp[hartid()] = *mtime + quant;
 
 	// set MIE in mstatus
-	CSR_SET(mstatus, 8);
+	// CSR_SET(mstatus, 8);
 
 	// set TIMER in mie
-	CSR_SET(mie, 1lu << IntMTimer);
+	// CSR_SET(mie, 1lu << IntMTimer);
+	init_uart();
 
 	main();
 
