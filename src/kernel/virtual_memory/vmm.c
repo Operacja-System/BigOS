@@ -11,7 +11,7 @@ static void TLB_flush() {
 	__asm__ volatile("sfence.vma");
 }
 
-static error_t validate_VMS(virt_mem_scheme_t vms) {
+static error_t validate_vms(virt_mem_scheme_t vms) {
 	switch(vms) {
 	case VMS_DISABLE: return ERR_NONE;
 	case VMS_Sv39:	  return ERR_VIRT_MEM_SCHEME_NOT_IMPLEMENTED;
@@ -19,6 +19,7 @@ static error_t validate_VMS(virt_mem_scheme_t vms) {
 	case VMS_Sv57:	  return ERR_VIRT_MEM_SCHEME_NOT_IMPLEMENTED;
 	case VMS_Sv64:	  return ERR_VIRT_MEM_SCHEME_NOT_IMPLEMENTED;
 	}
+	return ERR_NONE;
 }
 
 /*
@@ -26,7 +27,7 @@ static error_t validate_VMS(virt_mem_scheme_t vms) {
  * 64bit		   |4bit|16bit|44bit|
  */
 error_t virtual_memory_init(virt_mem_scheme_t vms, asid_t asid) {
-	error_t vms_err = validate_VMS(vms);
+	error_t vms_err = validate_vms(vms);
 	if(vms_err) return vms_err;
 	vms_in_use = vms;
 	u64 asidlen_check = (u64)UINT16_MAX << 44u;
