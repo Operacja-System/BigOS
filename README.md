@@ -23,6 +23,15 @@ git clone https://github.com/Operacja-System/BigOS.git
 cd BigOS
 cmake --preset=release
 cmake --build build
+
+# for all available presets see
+cmake --list-presets
+
+# some notable presets:
+# debug
+# release
+# release-size (optimize for size)
+# release-debug (release with debug info)
 ```
 
 Then either you can install produced binaries:
