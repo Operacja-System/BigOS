@@ -36,10 +36,10 @@ void int_handler() {
 
 		switch (int_no) {
 		case IntMTimer:
-			uprintf("\n\tgot timer interrupt\n");
+			dputs("\n\tgot timer interrupt\n");
 			mtimecmp[hartid()] = *mtime + quant;
 			break;
-		default: uprintf("\n\tunknown interrupt (%ld)\n", int_no); break;
+		default: dprintf("\n\tunknown interrupt (%ld)\n", int_no); break;
 		}
 
 		CSR_CLEAR(mip, (reg_t)1 << int_no);
@@ -55,14 +55,13 @@ void start() {
 	CSR_WRITE(mtvec, int_handler);
 
 	// request a timer interrupt
-	/// mtimecmp[hartid()] = *mtime + quant;
+	mtimecmp[hartid()] = *mtime + quant;
 
 	// set MIE in mstatus
-	// CSR_SET(mstatus, 8);
+	CSR_SET(mstatus, 8);
 
 	// set TIMER in mie
-	// CSR_SET(mie, 1lu << IntMTimer);
-	init_uart();
+	CSR_SET(mie, 1lu << IntMTimer);
 
 	main();
 
