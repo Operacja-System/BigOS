@@ -36,6 +36,13 @@
       }
     },
     {
+      "name": "release-lto",
+      "inherits": "release",
+      "cacheVariables": {
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+      }
+    },
+    {
       "name": "ninja",
       "inherits": "base",
       "generator": "Ninja"
@@ -49,12 +56,20 @@
       "cacheVariables": {
         "BIGOS_WARNINGS_AS_ERRORS": "ON"
       }
+    },
+    {
+      "name": "ci-ninja-lto",
+      "inherits": ["release-lto", "ci-ninja"]
     }
   ],
   "buildPresets": [
     {
       "name": "ci-ninja",
       "configurePreset": "ci-ninja"
+    },
+    {
+      "name": "ci-ninja-lto",
+      "configurePreset": "ci-ninja-lto"
     }
   ],
   "testPresets": [

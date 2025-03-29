@@ -13,8 +13,8 @@ SECTIONS {
 		*(.bss);
 	    *(COMMON);
 		. += 4096;
-		PROVIDE(stack_top = .);
-		PROVIDE(global_pointer = .);
+		PROVIDE(__stack_top = .);
+		PROVIDE(__global_pointer$ = .);
 		PROVIDE(bss_end = .);
 	}
 	.rodata : ALIGN(4K) {
