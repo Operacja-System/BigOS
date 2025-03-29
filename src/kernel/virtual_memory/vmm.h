@@ -2,16 +2,9 @@
 #define _KERNEL_VIRTUAL_MEMORY_VMM_H_
 
 #include <stdbigos/error.h>
+#include <stdbigos/types.h>
 
-#include "stdbigos/types.h"
-
-typedef enum : u8 {
-	PAGE_SIZE_4K,
-	PAGE_SIZE_2M,
-	PAGE_SIZE_1G,
-	PAGE_SIZE_512G,
-	PAGE_SIZE_256T,
-} page_size_t; // NOTE: The order of those enum values is important
+#include "mm_common.h"
 
 typedef enum : u8 {
 	VMS_BARE = 0,
@@ -39,7 +32,6 @@ typedef enum : u8 {
 
 typedef u16 asid_t;
 typedef u64 virt_addr_t;
-typedef u64 phys_addr_t;
 typedef u64 page_table_entry_t;
 
 [[nodiscard]] error_t virtual_memory_init(virt_mem_scheme_t vms, asid_t asid);
