@@ -1,0 +1,54 @@
+Kernel memory layout (not to scale):
+
+ __________
+|          | - Address space end - 0x0000ffffffffffff
+|          | - Kernel stack (S) (downwards) / Reserved (upwards) - 0x0000ffffffffefff
+|          |
+|          | - Kernel heap (.text, .rodata, .data, .bss) - 0x0000850000000000
+|          | - Kernel saint heap (S) (.text, .rodata, .data, .bss) - 0x0000840000000000
+|          | - Kernel (S) (.text, .rodata, .data, .bss) - 0x0000830000000000
+|          | - Reserved - 0x0000810000000000
+|          | - RAM_map (S) (Kernel address space begin) - 0x0000800000000000
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          | - Users address space begin - 0x0000000000001000
+|__________| - Reserved - 0x0000000000000000
+
+Structs:
+
+page_table - per RISC-V specs (Sv48)
+page_table_entry - per RISC-V specs (Sv48)
+page_table_metadata - !!TODO!!
+swap_map - !!TODO!!
+
+Internal:
+
+* ERROR malloc(uint64_t size, void* ptrOUT) - allocates a block of "size" bytes and returns the address of this block in "ptrOUT"
+* ERROR saint_malloc(uint64_t size, void* ptrOUT) - same as malloc but guarantees that the frame with this data will not be swapped out
+* void free(void* ptr) - frees the allocated data
+
+VMM:
+
+* ERROR create_page_mapping(PAGE_SIZE psize, asid_t asid, virt_addr_t virt_addr, phys_addr_t phys_add, uint8_t perm)
+- adds a page of size "psize" to a page table of address space asid at "virt_addr" and maps it to "phys_addr", setting permisions as "perm" (SGUXWRV)
+* ERROR remove_page_mapping(asid_t asid, virt_addr_t addr) - removes a mapping from address space "asid" of address "addr"
+* ERROR swap_out(asid_t asid, page_table_entry_t entry) - swaps a page "entry" into secondary memory
+* ERROR swap_in(asid_t asid, virt_addr_t virt_addr) - swaps address "virt_addr" from secondary memory to physical one
+* void set_active_page_table(asid_t asid) - sets satp register per RISC-V specs (Sv48)
+
+PMM:
+
+* ERROR alloc_frame(PAGE_SIZE fsize, phys_addr_t* phys_addrOUT) - allocates a frame with the size of "fsize" and returns it through "phys_addrOUT"
+* ERROR free_frame(phys_addr_t phys_addr) - frees a frame at "phys_addr"
+
+Victim selector:
+
+* ERROR find_victim(asid_t asid, page_table_entry_t* pteOUT) - returns a page table entry of a most suitable page to be swapped out.
+
+API:

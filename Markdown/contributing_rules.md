@@ -2,8 +2,7 @@
 ### Formatting
 - Ensure your code is properly formatted before submitting a pull request (use make format).  
 ### Naming conventions
-- Use snake_case for variable and function names.  
-- Use PascalCase for struct and enum names.  
+- Use snake_case names.  
 - Use _t at the end of typedef definitions.  
 - Use ALL_CAPS for MACROS.  
 - Use ALL_CAPS for enums values and include the name of the enum at the beginning of the value name.  
