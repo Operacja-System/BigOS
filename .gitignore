@@ -72,3 +72,6 @@ install/
 
 # CMake info
 CMakeUserPresets.json
+
+# Github pages data
+site/

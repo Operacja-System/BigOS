@@ -1,57 +1,71 @@
 # BigOS
-BigOS is an operating system developed by students at the University of Wrocław.
 
-### Dependencies (minimum version)
-- **CMake** (3.24)
-- **qemu-system-riscv64**
+BigOS is an operating system developed by students at the University of Wrocław.  
+
+## Dependencies (minimum version)
+
+- **CMake** (3.24) + makefile generator
+- **qemu-system-riscv**
 - **riscv64-elf-gcc**
-- **dosfstools**
-- **e2fsprogs**
-- **mtools**
+- **clang-format** (19.0)
+- **MkDocs** (1.4.2) – only for documentation
 
-### Contributing
-Before contributing please familiarize yourself with [the rules](Markdown/contributing_rules.md).
+---
 
-### Documentation
-All [acronyms](Markdown/acronyms.md) used in this project.
+## Building Quickstart
 
-### Building
+Complete information about build system can be found in [build system docs](https://Operacja-System.github.io/BigOS/build_system/).  
+Here is just enough to get you started.
 
-Cross compilation:
-```sh
-git clone https://github.com/Operacja-System/BigOS.git
-cd BigOS
-cmake --preset=release
-cmake --build build
+### Cross-Compiling
 
-# for all available presets see
+Clone and enter the repository, then run:
+
+```bash
+cmake --preset=<your-preset>
+cmake --build
+```
+
+To list all available presets run:
+
+```bash
 cmake --list-presets
-
-# some notable presets:
+# Some notable presets:
 # debug
 # release
 # release-size (optimize for size)
 # release-debug (release with debug info)
 ```
 
-Then either you can install produced binaries:
-```sh
-cmake --install build --prefix <install dir>
+#### Running
+
+To run the OS in QEMU use one of the targets:
+
+```bash
+cmake --build build --target run-<target to run> # ex. run-example_sbi
+# To exit just enter Ctrl+a x
 ```
 
-Or you can run or debug targets
-```sh
-cmake --build build --target run-<target to run> # e.g. run-example_sbi
-# or --target debug-
+All available targets are listed in [build system target docs](build_system/targets).
 
-# To exit just Ctrl-A x
+---
+
+## Contributing
+
+Before contributing please familiarize yourself with [the rules](contributing_rules.md).
+
+---
+
+## Documentation
+
+Documentation is available at [github pages](https://Operacja-System.github.io/BigOS).
+
+### Offline Documentation
+
+Can be generated using MkDocs:
+
+```bash
+mkdocs build
+# Or to serve it locally:
+# mkdocs serve
 ```
-
-### Debugging
-```sh
-cmake --build build --target debug-<target>
-gdb <path to elf> -ex 'target remote localhost:1234'
-```
-
-### [License](LICENSE)
-
