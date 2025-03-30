@@ -3,6 +3,7 @@ ENTRY(start);
 . = 0x80000000;
 
 SECTIONS {
+	PROVIDE(ram_start = .);
 	PROVIDE(kernel_start = .);
 	.text : ALIGN(2M) {
 		*(.init);
