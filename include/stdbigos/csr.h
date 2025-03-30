@@ -3,14 +3,11 @@
 
 #include "types.h"
 
-#define CSR_SWAP(csr, val)                        \
-	({                                            \
-		reg_t _val = (reg_t)(val);                \
-		__asm__ volatile("csrrw %0, " #csr ", %1" \
-						 : "=r"(_val)             \
-						 : "rK"(_val)             \
-						 : "memory");             \
-		_val;                                     \
+#define CSR_SWAP(csr, val)                                                               \
+	({                                                                                   \
+		reg_t _val = (reg_t)(val);                                                       \
+		__asm__ volatile("csrrw %0, " #csr ", %1" : "=r"(_val) : "rK"(_val) : "memory"); \
+		_val;                                                                            \
 	})
 
 #define CSR_READ(csr)                                                 \
@@ -34,24 +31,18 @@
 		__asm__ volatile("csrw " #csr ", %0" : : "rK"(_val) : "memory"); \
 	})
 
-#define CSR_READ_SET(csr, val)                    \
-	({                                            \
-		reg_t _val = (reg_t)(val);                \
-		__asm__ volatile("csrrs %0, " #csr ", %1" \
-						 : "=r"(_val)             \
-						 : "rK"(_val)             \
-						 : "memory");             \
-		_val;                                     \
+#define CSR_READ_SET(csr, val)                                                           \
+	({                                                                                   \
+		reg_t _val = (reg_t)(val);                                                       \
+		__asm__ volatile("csrrs %0, " #csr ", %1" : "=r"(_val) : "rK"(_val) : "memory"); \
+		_val;                                                                            \
 	})
 
-#define CSR_READ_CLEAR(csr, val)                  \
-	({                                            \
-		reg_t _val = (reg_t)(val);                \
-		__asm__ volatile("csrrc %0, " #csr ", %1" \
-						 : "=r"(_val)             \
-						 : "rK"(_val)             \
-						 : "memory");             \
-		_val;                                     \
+#define CSR_READ_CLEAR(csr, val)                                                         \
+	({                                                                                   \
+		reg_t _val = (reg_t)(val);                                                       \
+		__asm__ volatile("csrrc %0, " #csr ", %1" : "=r"(_val) : "rK"(_val) : "memory"); \
+		_val;                                                                            \
 	})
 
 #define CSR_SET(csr, val)                                                \

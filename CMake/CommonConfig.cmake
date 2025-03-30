@@ -4,7 +4,7 @@ find_program(QEMU_FOUND_PATH "qemu-system-riscv64")
 
 set(BIGOS_WARNINGS_AS_ERRORS OFF CACHE BOOL "Treat warnings as errors")
 set(BIGOS_QEMU_PATH "${QEMU_FOUND_PATH}" CACHE PATH "path to qemu")
-set(BIGOS_QEMU_OPTIONS "-machine virt -serial mon:stdio -nographic" CACHE STRING "options for qemu")
+set(BIGOS_QEMU_OPTIONS "-machine virt -serial mon:stdio" CACHE STRING "options for qemu")
 
 separate_arguments(BIGOS_QEMU_OPTIONS_LIST UNIX_COMMAND "${BIGOS_QEMU_OPTIONS}")
 
@@ -42,9 +42,9 @@ function(SETUP_EXECUTABLE name)
     add_executable(${name})
     SETUP_COMMON(${name})
 
-    file(GLOB SOURCES CONFIGURE_DEPENDS *.c)
-    file(GLOB HEADERS CONFIGURE_DEPENDS *.h)
-    file(GLOB AS_SOURCES CONFIGURE_DEPENDS *.s)
+	file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS *.c)
+    file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS *.h)
+    file(GLOB_RECURSE AS_SOURCES CONFIGURE_DEPENDS *.s)
 
     target_sources(${name}
       PRIVATE
