@@ -9,11 +9,11 @@ void dputc(char c) {
 }
 
 void dputs(const char* s) {
-	while(*s) dputc(*s++);
+	while (*s) dputc(*s++);
 }
 
 static char* uart_output_handler(const char* buf, void* user, int len) {
-	while(len--) dputc(*buf++);
+	while (len--) dputc(*buf++);
 	return (char*)user;
 }
 

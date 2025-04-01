@@ -3,10 +3,10 @@
 
 #include "types.h"
 
-#define SBI_SPEC_VERSION_DEFAULT	 0x1
+#define SBI_SPEC_VERSION_DEFAULT     0x1
 #define SBI_SPEC_VERSION_MAJOR_SHIFT 24
-#define SBI_SPEC_VERSION_MAJOR_MASK	 0x7f
-#define SBI_SPEC_VERSION_MINOR_MASK	 0xffffff
+#define SBI_SPEC_VERSION_MAJOR_MASK  0x7f
+#define SBI_SPEC_VERSION_MINOR_MASK  0xffffff
 
 typedef enum : ireg_t {
 	SbiSuccess = 0,
@@ -33,8 +33,7 @@ typedef struct {
 	};
 } sbiret;
 
-sbiret sbi_ecall(SbiExtensionId ext, reg_t fid, reg_t arg0, reg_t arg1,
-				 reg_t arg2, reg_t arg3, reg_t arg4, reg_t arg5);
+sbiret sbi_ecall(SbiExtensionId ext, reg_t fid, reg_t arg0, reg_t arg1, reg_t arg2, reg_t arg3, reg_t arg4, reg_t arg5);
 
 // Base Extension
 
@@ -48,10 +47,8 @@ sbiret sbi_get_mimpid();
 
 // ...
 
-sbiret sbi_debug_console_write(reg_t num_bytes, reg_t base_addr_lo,
-							   reg_t base_addr_hi);
-sbiret sbi_debug_console_read(reg_t num_bytes, reg_t base_addr_lo,
-							  reg_t base_addr_hi);
+sbiret sbi_debug_console_write(reg_t num_bytes, reg_t base_addr_lo, reg_t base_addr_hi);
+sbiret sbi_debug_console_read(reg_t num_bytes, reg_t base_addr_lo, reg_t base_addr_hi);
 sbiret sbi_debug_console_write_byte(u8 byte);
 
 #endif
