@@ -4,7 +4,7 @@
 #include <stdbigos/trap.h>
 #include <stdbigos/types.h>
 
-extern u8 bss_start;
+extern u8 bss_start[];
 extern u8 bss_end;
 
 static const u64 clint_base = 0x02000000;
@@ -38,9 +38,9 @@ void int_handler() {
 	}
 }
 
-[[noreturn]]
+[[noreturn, gnu::used]]
 void start() {
-	memset(&bss_start, '\0', &bss_end - &bss_start);
+	memset(bss_start, '\0', &bss_end - bss_start);
 
 	// register handler
 	CSR_WRITE(mtvec, int_handler);
@@ -63,8 +63,8 @@ void start() {
 void _start() {
 	__asm__(".option push\n\t"
 			".option norelax\n\t"
-			"la    gp, global_pointer\n\t"
+			"la    gp, __global_pointer$\n\t"
 			".option pop\n\t"
-			"la    sp, stack_top\n\t"
+			"la    sp, __stack_top\n\t"
 			"j start");
 }

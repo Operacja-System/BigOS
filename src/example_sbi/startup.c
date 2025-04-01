@@ -15,17 +15,17 @@ typedef void (*function_t)(void);
 
 // These symbols are defined by the linker script.
 // See linker.lds
-extern u8 __bss_start [[gnu::weak]];
-extern u8 __bss_end [[gnu::weak]];
+extern u8 __bss_start[];
+extern u8 __bss_end;
 
-extern function_t __preinit_array_start [[gnu::weak]];
-extern function_t __preinit_array_end [[gnu::weak]];
+extern function_t __preinit_array_start;
+extern function_t __preinit_array_end;
 
-extern function_t __init_array_start [[gnu::weak]];
-extern function_t __init_array_end [[gnu::weak]];
+extern function_t __init_array_start;
+extern function_t __init_array_end;
 
-extern function_t __fini_array_start [[gnu::weak]];
-extern function_t __fini_array_end [[gnu::weak]];
+extern function_t __fini_array_start;
+extern function_t __fini_array_end;
 
 extern int main(u32 hartid, const void* fdt);
 
@@ -35,19 +35,17 @@ void _enter(void) {
 					 ".option norelax\n\t"
 					 "la    gp, __global_pointer$\n\t"
 					 ".option pop\n\t"
-					 "la    sp, _sp\n\t"
+					 "la    sp, __stack_start\n\t"
 					 "jal   zero, _start");
 }
 
-[[noreturn, gnu::noinline]]
-void _Exit(int) {
+[[gnu::section(".fini"), noreturn, gnu::noinline]]
+static void _Exit(int) {
 	while(1) wfi();
 }
 
-[[noreturn]]
-void _start(u32 hartid, const void* fdt) {
-	memset(&__bss_start, 0, &__bss_end - &__bss_start);
-
+[[gnu::section(".init")]]
+static void _call_constructors() {
 	for(const function_t* entry = &__preinit_array_start;
 		entry < &__preinit_array_end; ++entry) {
 		(*entry)();
@@ -57,13 +55,23 @@ void _start(u32 hartid, const void* fdt) {
 		entry < &__init_array_end; ++entry) {
 		(*entry)();
 	}
+}
 
-	int rc = main(hartid, fdt);
-
+[[gnu::section(".fini")]]
+static void _call_destructors() {
 	for(const function_t* entry = &__fini_array_start;
 		entry < &__fini_array_end; ++entry) {
 		(*entry)();
 	}
+}
 
+[[gnu::section(".init"), noreturn, gnu::used]]
+static void _start(u32 hartid, const void* fdt) {
+	memset(__bss_start, 0, &__bss_end - __bss_start);
+	_call_constructors();
+
+	int rc = main(hartid, fdt);
+
+	_call_destructors();
 	_Exit(rc);
 }
