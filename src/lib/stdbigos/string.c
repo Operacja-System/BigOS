@@ -29,7 +29,9 @@ void* memset(void* dest, int val, size_t n) {
 }
 
 void* memset_explicit(void* dest, int val, size_t n) {
-	return memset(dest, val, n);
+	memset(dest, val, n);
+	__asm__ volatile("" ::: "memory");
+	return dest;
 }
 
 void* memmove(void* dest, const void* src, size_t n) {
