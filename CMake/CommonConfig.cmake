@@ -16,7 +16,7 @@ function(SETUP_COMMON name)
         COMPILE_WARNING_AS_ERROR ${BIGOS_WARNINGS_AS_ERRORS}
     )
 
-    target_compile_options(${name} PRIVATE -Wall -Wextra -Wno-ignored-qualifiers)
+    target_compile_options(${name} PRIVATE -Wall -Wextra -Wno-ignored-qualifiers -Wno-unknown-pragmas)
 endfunction()
 
 function(SETUP_LIBRARY name)
