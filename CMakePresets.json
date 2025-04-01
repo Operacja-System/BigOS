@@ -1,145 +1,194 @@
 {
-  "version": 5,
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 24,
-    "patch": 0
-  },
-  "configurePresets": [
-    {
-      "name": "build-dirs",
-      "hidden": true,
-      "binaryDir": "${sourceDir}/build",
-      "installDir": "${sourceDir}/build/install"
+    "version": 5,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 24,
+        "patch": 0
     },
-    {
-      "name": "cross-gcc",
-      "hidden": true,
-      "toolchainFile": "${sourceDir}/CMake/toolchains/riscv64-gcc.cmake"
-    },
-    {
-      "name": "cross-clang",
-      "hidden": true,
-      "toolchainFile": "${sourceDir}/CMake/toolchains/riscv64-clang.cmake"
-    },
-    {
-      "name": "compile-commands",
-      "hidden": true,
-      "environment": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      }
-    },
-    {
-      "name": "warnings-as-errors",
-      "hidden": true,
-      "cacheVariables": {
-        "BIGOS_WARNINGS_AS_ERRORS": "ON"
-      }
-    },
-    {
-      "name": "clang-tidy",
-      "hidden": true,
-      "cacheVariables": {
-        "BIGOS_USE_CLANG_TIDY": "ON"
-      }
-    },
-    {
-      "name": "debug-type",
-      "hidden": true,
-      "environment": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "release-type",
-      "hidden": true,
-      "environment": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },{
-      "name": "release-size-type",
-      "hidden": true,
-      "environment": {
-        "CMAKE_BUILD_TYPE": "MinSizeRel"
-      }
-    },{
-      "name": "release-debug-type",
-      "hidden": true,
-      "environment": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    },
-    {
-      "name": "debug",
-      "inherits": ["build-dirs", "compile-commands", "cross-gcc", "debug-type"],
-      "displayName": "Debug Configuration",
-      "description": "Debug configuration with debug build."
-    },
-    {
-      "name": "release",
-      "inherits": ["build-dirs", "compile-commands", "cross-gcc", "release-type"],
-      "displayName": "Release Configuration",
-      "description": "Release configuration with optimized build."
-    },
-    {
-      "name": "release-size",
-      "inherits": ["build-dirs", "compile-commands", "cross-gcc", "release-size-type"],
-      "displayName": "Release Configuration for size",
-      "description": "Release configuration with optimized build for size."
-    },
-    {
-      "name": "release-debug",
-      "inherits": ["build-dirs", "compile-commands", "cross-gcc", "release-debug-type"],
-      "displayName": "Release Configuration for debugging",
-      "description": "Release configuration with debug symbols."
-    },
-    {
-      "name": "ninja-multi",
-      "inherits": ["build-dirs", "compile-commands", "cross-gcc"],
-      "generator": "Ninja Multi-Config",
-      "displayName": "Ninja Multi-Config",
-      "description": "Configuration using Ninja Multi-Config generator. (add --config <CONFIG> to build)"
-    },
-    {
-      "name": "ninja-multi-clang",
-      "inherits": ["build-dirs", "compile-commands", "cross-clang", "clang-tidy"],
-      "generator": "Ninja Multi-Config",
-      "displayName": "Ninja Multi-Config with clang",
-      "description": "Configuration using Ninja Multi-Config generator and clang. (add --config <CONFIG> to build)"
-    },
-    {
-      "name": "ci-gcc",
-      "inherits": ["build-dirs", "cross-gcc", "warnings-as-errors"],
-      "displayName": "CI GCC Configuration",
-      "description": "CI configuration using Ninja with warnings as errors."
-    },
-    {
-      "name": "ci-clang",
-      "inherits": ["build-dirs", "cross-clang", "warnings-as-errors", "clang-tidy"],
-      "displayName": "CI Ninja Configuration",
-      "description": "CI configuration using Ninja with warnings as errors."
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "ci-gcc",
-      "configurePreset": "ci-gcc",
-      "displayName": "CI Ninja Build - GCC",
-      "description": "Build using CI Ninja configuration (GCC)."
-    },
-    {
-      "name": "ci-clang",
-      "configurePreset": "ci-clang",
-      "displayName": "CI Ninja Build - clang",
-      "description": "Build using CI Ninja configuration (clang)."
-    }
-  ],
-  "testPresets": [
-    {
-      "name": "ci-gcc",
-      "configurePreset": "ci-gcc",
-      "displayName": "CI Ninja Test",
-      "description": "Test using CI Ninja configuration."
-    }
-  ]
+    "configurePresets": [
+        {
+            "name": "build-dirs",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "installDir": "${sourceDir}/build/install"
+        },
+        {
+            "name": "cross-gcc",
+            "hidden": true,
+            "toolchainFile": "${sourceDir}/CMake/toolchains/riscv64-gcc.cmake"
+        },
+        {
+            "name": "cross-clang",
+            "hidden": true,
+            "toolchainFile": "${sourceDir}/CMake/toolchains/riscv64-clang.cmake"
+        },
+        {
+            "name": "compile-commands",
+            "hidden": true,
+            "environment": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "warnings-as-errors",
+            "hidden": true,
+            "cacheVariables": {
+                "BIGOS_WARNINGS_AS_ERRORS": "ON"
+            }
+        },
+        {
+            "name": "clang-tidy",
+            "hidden": true,
+            "cacheVariables": {
+                "BIGOS_USE_CLANG_TIDY": "ON"
+            }
+        },
+        {
+            "name": "include-what-you-use",
+            "hidden": true,
+            "cacheVariables": {
+                "BIGOS_USE_INCLUDE_WHAT_YOU_USE": "ON"
+            }
+        },
+        {
+            "name": "debug-type",
+            "hidden": true,
+            "environment": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release-type",
+            "hidden": true,
+            "environment": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "release-size-type",
+            "hidden": true,
+            "environment": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel"
+            }
+        },
+        {
+            "name": "release-debug-type",
+            "hidden": true,
+            "environment": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "debug",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc",
+                "debug-type"
+            ],
+            "displayName": "Debug Configuration",
+            "description": "Debug configuration with debug build."
+        },
+        {
+            "name": "release",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc",
+                "release-type"
+            ],
+            "displayName": "Release Configuration",
+            "description": "Release configuration with optimized build."
+        },
+        {
+            "name": "release-size",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc",
+                "release-size-type"
+            ],
+            "displayName": "Release Configuration for size",
+            "description": "Release configuration with optimized build for size."
+        },
+        {
+            "name": "release-debug",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc",
+                "release-debug-type"
+            ],
+            "displayName": "Release Configuration for debugging",
+            "description": "Release configuration with debug symbols."
+        },
+        {
+            "name": "ninja-multi",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc"
+            ],
+            "generator": "Ninja Multi-Config",
+            "displayName": "Ninja Multi-Config",
+            "description": "Configuration using Ninja Multi-Config generator. (add --config <CONFIG> to build)"
+        },
+        {
+            "name": "ninja-multi-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "generator": "Ninja Multi-Config",
+            "displayName": "Ninja Multi-Config with clang",
+            "description": "Configuration using Ninja Multi-Config generator and clang. (add --config <CONFIG> to build)"
+        },
+        {
+            "name": "ci-gcc",
+            "inherits": [
+                "build-dirs",
+                "cross-gcc",
+                "warnings-as-errors"
+            ],
+            "displayName": "CI GCC Configuration",
+            "description": "CI configuration using Ninja with warnings as errors."
+        },
+        {
+            "name": "ci-clang",
+            "inherits": [
+                "build-dirs",
+                "cross-clang",
+                "warnings-as-errors",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "CI Ninja Configuration",
+            "description": "CI configuration using Ninja with warnings as errors."
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "ci-gcc",
+            "configurePreset": "ci-gcc",
+            "displayName": "CI Ninja Build - GCC",
+            "description": "Build using CI Ninja configuration (GCC)."
+        },
+        {
+            "name": "ci-clang",
+            "configurePreset": "ci-clang",
+            "displayName": "CI Ninja Build - clang",
+            "description": "Build using CI Ninja configuration (clang)."
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "ci-gcc",
+            "configurePreset": "ci-gcc",
+            "displayName": "CI Ninja Test - GCC",
+            "description": "Test using CI Ninja configuration (GCC)."
+        }
+    ]
 }

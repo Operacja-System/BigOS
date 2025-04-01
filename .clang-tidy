@@ -1,11 +1,19 @@
 Checks: >
-    readability-*
-    modernize-*
-    bugprone-*
-    misc-*
-    google-runtime-int
-    -misc-no-recursion
-    -readability-magic-numbers
+    readability-*,
+    modernize-*,
+    bugprone-*,
+    misc-*,
+    google-runtime-int,
+    -misc-no-recursion,
+    -readability-magic-numbers,
+    -clang-analyzer-security.insecureAPI.strcpy,
+    -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+    -bugprone-easily-swappable-parameters,
+    -readability-identifier-length,
+    -readability-uppercase-literal-suffix,
+    -misc-include-cleaner,
+    -bugprone-reserved-identifier
+
 
 FormatStyle: 'file'
 CheckOptions:
