@@ -1,12 +1,30 @@
-### The only allowed language is C99.
+### The only allowed language is C23.
+### License
+Each file should start with a license header:
+```
+<one line to give the program's name and a brief idea of what it does.>
+Copyright (C) <year> <name of author>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+```
 ### Formatting
 - Ensure your code is properly formatted before submitting a pull request (use make format).  
 ### Naming conventions
-- Use snake_case for variable and function names.  
-- Use PascalCase for struct and enum names.  
+- Use snake_case for names.  
 - Use _t at the end of typedef definitions.  
 - Use ALL_CAPS for MACROS.  
-- Use ALL_CAPS for enums values and include the name of the enum at the beginning of the value name.  
+- Use ALL_CAPS for enum values and include the name of the enum at the beginning of the value name.  
 - Prefix global variables with g_.  
 - For file names use snake_case.  
 ### Naming rules
