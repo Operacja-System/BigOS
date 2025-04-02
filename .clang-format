@@ -1,7 +1,7 @@
 IndentWidth: 4
 TabWidth: 4
-# ColumnLimit: 0
-UseTab: Always
+ColumnLimit: 120
+UseTab: ForIndentation
 SortIncludes: true
 IncludeCategories:
   - Regex:      '^\<.*\>'          # stdlib
@@ -70,7 +70,7 @@ SpaceBeforeAssignmentOperators: true
 SpaceBeforeCaseColon: false
 SpaceBeforeParens: Custom
 SpaceBeforeParensOptions:
-  AfterControlStatements: false
+  AfterControlStatements: true
   AfterForeachMacros: false
   AfterFunctionDeclarationName: false
   AfterIfMacros: false
