@@ -140,7 +140,7 @@ virt_mem_scheme_t get_active_virt_mem_scheme() {
 
 const char* get_virt_mem_scheme_str_name(virt_mem_scheme_t vms) {
 	switch(vms) {
-	case VMS_BARE: return "Bear";
+	case VMS_BARE: return "Bare";
 	case VMS_Sv39: return "Sv39";
 	case VMS_Sv48: return "Sv48";
 	case VMS_Sv57: return "Sv57";
