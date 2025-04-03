@@ -5,79 +5,10 @@
         "minor": 24,
         "patch": 0
     },
+    "include": [
+        "CMake/preset-mixins.json"
+    ],
     "configurePresets": [
-        {
-            "name": "build-dirs",
-            "hidden": true,
-            "binaryDir": "${sourceDir}/build",
-            "installDir": "${sourceDir}/build/install"
-        },
-        {
-            "name": "cross-gcc",
-            "hidden": true,
-            "toolchainFile": "${sourceDir}/CMake/toolchains/riscv64-gcc.cmake"
-        },
-        {
-            "name": "cross-clang",
-            "hidden": true,
-            "toolchainFile": "${sourceDir}/CMake/toolchains/riscv64-clang.cmake"
-        },
-        {
-            "name": "compile-commands",
-            "hidden": true,
-            "environment": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-            }
-        },
-        {
-            "name": "warnings-as-errors",
-            "hidden": true,
-            "cacheVariables": {
-                "BIGOS_WARNINGS_AS_ERRORS": "ON"
-            }
-        },
-        {
-            "name": "clang-tidy",
-            "hidden": true,
-            "cacheVariables": {
-                "BIGOS_USE_CLANG_TIDY": "ON"
-            }
-        },
-        {
-            "name": "include-what-you-use",
-            "hidden": true,
-            "cacheVariables": {
-                "BIGOS_USE_INCLUDE_WHAT_YOU_USE": "ON"
-            }
-        },
-        {
-            "name": "debug-type",
-            "hidden": true,
-            "environment": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "release-type",
-            "hidden": true,
-            "environment": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "release-size-type",
-            "hidden": true,
-            "environment": {
-                "CMAKE_BUILD_TYPE": "MinSizeRel"
-            }
-        },
-        {
-            "name": "release-debug-type",
-            "hidden": true,
-            "environment": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
-        },
         {
             "name": "debug",
             "inherits": [
