@@ -58,7 +58,29 @@ static void TLB_flush() {
 	return ERR_NONE;
 }
 
-[[nodiscard]] static bool is_page_table_valid(asid_t asid) { // NOTE: This assumes that virtual memory has beed initialized
+//NOTE: if pte is nullptr this function has no effect
+static void write_to_page_table_entry(page_table_entry_t* pte, u8 N, u8 PBMT, u64 PPN, u8 RSW, u8 permissions) {
+	if(!pte) return;
+	page_table_entry_t new_pte = 
+	(N				& 0x1ull)			<< 63|
+	(PBMT			& 0x3ull)			<< 61|
+	(PPN			& 0xfffffffffffull) << 10|
+	(RSW			& 0x3ull)			<< 8 |
+	(permissions	& 0xffull)			<< 0 ;
+	*pte = new_pte;
+}
+
+//NOTE: all arguments after "pte" can be nullptr (argument ignored)
+static void read_page_table_entry(page_table_entry_t pte, u8* N, u8* PBMT, u64* PPN, u8* RSW, u8* permissions) {
+	if(N) *N = pte >> 63;
+	if(PBMT) *PBMT = pte >> 61 & 0x3ull;
+	if(PPN) *PPN = pte >> 10 & 0xfffffffffffull;
+	if(RSW) *RSW = pte >> 8 & 0x3ull;
+	if(permissions) *permissions = pte & 0xffull;
+}
+
+// NOTE:!!! All the functions below assume that virtual memory has been initialized !!!
+[[nodiscard]] static bool is_page_table_valid(asid_t asid) {
 	u64 ptt_vmask_inx = (u64)asid >> 6ull;
 	u64 ptt_vmask_offset = (u64)asid & 0x3full;
 	return g_page_table_table_vmask[ptt_vmask_inx] & (1ull << ptt_vmask_offset);
@@ -76,9 +98,12 @@ static void invalidate_page_table(asid_t asid) {
 	g_page_table_table_vmask[ptt_vmask_inx] &= ~(1ull << ptt_vmask_offset);
 }
 
-[[nodiscard]] static error_t physical_to_virtual(phys_addr_t paddr, void* vaddrOUT) { // TODO: implement
+[[nodiscard]] static inline void* physical_to_virtual(phys_addr_t paddr) {
+	return g_RAM_map + paddr;
+}
 
-	return ERR_NONE;
+static void destroy_page_table_entry(page_table_entry_t* pte) {
+	
 }
 
 //==========================================================================//
@@ -126,6 +151,7 @@ error_t virtual_memory_disable() {
 	CSR_WRITE(satp, 0);
 	g_active_vms = 0;
 	kfree(g_page_table_table);
+	kfree(g_page_table_table_vmask);
 	return ERR_NONE;
 }
 
@@ -163,12 +189,11 @@ error_t create_page_table(asid_t asid, bool saint) {
 	ENSURE_VM_INITED;
 	if(is_page_table_valid(asid)) return ERR_PAGE_TABLE_ALREADY_EXISTS;
 	phys_addr_t root_PTE_paddr = 0;
-	error_t err = alloc_frame(PAGE_SIZE_4K, &root_PTE_paddr);
+	error_t pmm_err = alloc_frame(PAGE_SIZE_4K, &root_PTE_paddr);
 	// TODO: handle pmm_err
-	page_table_entry_t* root_PTE_vaddr = nullptr;
-	err = physical_to_virtual(root_PTE_paddr, (void*)&root_PTE_vaddr);
+	page_table_entry_t* root_PTE_vaddr = physical_to_virtual(root_PTE_paddr);
 	memset(root_PTE_vaddr, 0, _4KB);
-	// TODO: save information whether the page_table is saint
+	// TODO: save information whether the page_table is a saint
 	g_page_table_table[asid] = root_PTE_vaddr;
 	validate_page_table(asid);
 	return ERR_NONE;
@@ -177,6 +202,7 @@ error_t create_page_table(asid_t asid, bool saint) {
 error_t destroy_page_table(asid_t asid) {
 	ENSURE_VM_INITED;
 	if(!is_page_table_valid(asid)) return ERR_PAGE_TABLE_DOESNT_EXIST;
+
 
 	return ERR_NONE;
 }
