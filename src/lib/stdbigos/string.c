@@ -113,13 +113,23 @@ void* memchr(const void* ptr, int ch, size_t n) {
 
 int strcmp(const char* lhs, const char* rhs) {
 	int ret = 0;
-	while(!ret) { ret = (int)*lhs++ - (int)*rhs++; }
+	while(!ret) {
+		ret = (int)*lhs - (int)*rhs;
+		if (!*lhs) break;
+		lhs++;
+		rhs++;
+	}
 	return ret;
 }
 
 int strncmp(const char* lhs, const char* rhs, size_t n) {
 	int ret = 0;
-	while(n-- && !ret) { ret = (int)*lhs++ - (int)*rhs++; }
+	while(n-- && !ret) {
+		ret = (int)*lhs - (int)*rhs;
+		if (!*lhs) break;
+		lhs++;
+		rhs++;
+	}
 	return ret;
 }
 
