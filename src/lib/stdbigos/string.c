@@ -115,7 +115,7 @@ int strcmp(const char* lhs, const char* rhs) {
 	int ret = 0;
 	while(!ret) {
 		ret = (int)*lhs - (int)*rhs;
-		if (!*lhs) break;
+		if(!*lhs) break;
 		lhs++;
 		rhs++;
 	}
@@ -126,7 +126,7 @@ int strncmp(const char* lhs, const char* rhs, size_t n) {
 	int ret = 0;
 	while(n-- && !ret) {
 		ret = (int)*lhs - (int)*rhs;
-		if (!*lhs) break;
+		if(!*lhs) break;
 		lhs++;
 		rhs++;
 	}
