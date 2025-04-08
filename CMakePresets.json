@@ -54,6 +54,58 @@
             "description": "Release configuration with debug symbols."
         },
         {
+            "name": "debug-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "debug-type",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "Debug Configuration (clang)",
+            "description": "Debug configuration with debug build (clang)."
+        },
+        {
+            "name": "release-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "release-type",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "Release Configuration (clang)",
+            "description": "Release configuration with optimized build (clang)."
+        },
+        {
+            "name": "release-size-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "release-size-type",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "Release Configuration for size (clang)",
+            "description": "Release configuration with optimized build for size (clang)."
+        },
+        {
+            "name": "release-debug-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "release-debug-type",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "Release Configuration for debugging (clang)",
+            "description": "Release configuration with debug symbols (clang)."
+        },
+        {
             "name": "ninja-multi",
             "inherits": [
                 "build-dirs",
