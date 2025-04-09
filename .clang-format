@@ -1,6 +1,6 @@
 IndentWidth: 4
 TabWidth: 4
-ColumnLimit: 200
+ColumnLimit: 120
 UseTab: Always
 SortIncludes: true
 IncludeCategories:

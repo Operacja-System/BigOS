@@ -1,6 +1,7 @@
 #include <stdbigos/sbi.h>
 
-sbiret sbi_ecall(SbiExtensionId ext, reg_t fid, reg_t arg0, reg_t arg1, reg_t arg2, reg_t arg3, reg_t arg4, reg_t arg5) {
+sbiret sbi_ecall(SbiExtensionId ext, reg_t fid, reg_t arg0, reg_t arg1, reg_t arg2, reg_t arg3, reg_t arg4,
+				 reg_t arg5) {
 	register reg_t a0 __asm__("a0") = arg0;
 	register reg_t a1 __asm__("a1") = arg1;
 	register reg_t a2 __asm__("a2") = arg2;

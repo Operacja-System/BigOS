@@ -1,6 +1,6 @@
 #include "pmm.h"
 
-error_t alloc_frame(page_size_t psize, phys_addr_t* paddrOUT) {
+error_t alloc_frame(page_size_t psize, physical_page_number_t* ppnOUT) {
 	return ERR_NONE;
 }
 

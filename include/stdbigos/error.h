@@ -12,6 +12,7 @@ typedef enum {
 	ERR_PAGE_TABLE_DOESNT_EXIST,
 	ERR_ALREADY_INITIALIZED,
 	ERR_VIRTUAL_MEMORY_NOT_INITIALIZED,
+	ERR_INVALID_ARGUMENT,
 } error_t;
 
 const char* get_error_msg(error_t err);
