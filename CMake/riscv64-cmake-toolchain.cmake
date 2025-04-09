@@ -6,7 +6,7 @@ endif()
 
 set(RISCV_TOOLCHAIN_INCLUDED true)
 
-foreach(PREFIX "riscv64-unknown-elf" "riscv64-elf" "riscv64-none-elf" "riscv64-unknown-none-elf")
+foreach(PREFIX "riscv64-linux-gnu" "riscv64-unknown-elf" "riscv64-elf" "riscv64-none-elf" "riscv64-unknown-none-elf")
     find_program(PREFIX_TOOLCHAIN_GCC "${PREFIX}-gcc")
     if (PREFIX_TOOLCHAIN_GCC)
         set(DEFAULT_RISCV_TOOLCHAIN_PREFIX "${PREFIX}-")

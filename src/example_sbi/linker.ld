@@ -9,7 +9,7 @@ SECTIONS
     __stack_size = DEFINED(__stack_size) ? __stack_size : 32M;
     PROVIDE(__stack_size = __stack_size);
 
-    .init 0x80200000 : {
+    .init 0x84000000 : {
         KEEP (*(.init.enter))
         KEEP (*(SORT_NONE(.init)))
     }

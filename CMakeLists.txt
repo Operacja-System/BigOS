@@ -3,6 +3,8 @@ project(BigOS LANGUAGES C ASM)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+add_subdirectory(external/efi)
+
 include_directories(SYSTEM external/include)
 include_directories(include)
 
