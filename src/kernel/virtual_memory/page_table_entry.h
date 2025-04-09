@@ -7,13 +7,13 @@
 #include "mm_common.h"
 
 typedef enum : u8 {
-	PTEP_R = 0x01,
-	PTEP_W = 0x02,
-	PTEP_X = 0x04,
-	PTEP_U = 0x08,
-	PTEP_G = 0x10,
-	PTEP_S = 0x20,
-	PTEP_NOT_YET_DEFINES = 0x40,
+	PTEP_R = (1u << 0u),
+	PTEP_W = (1u << 1u),
+	PTEP_X = (1u << 2u),
+	PTEP_U = (1u << 3u),
+	PTEP_G = (1u << 4u),
+	PTEP_S = (1u << 5u),
+	PTEP_NOT_YET_DEFINED = (1u << 6u),
 } page_table_entry_perms_t;
 /* (* is an OS reserved bit not yet defines)
  * page_talbe_entry_perms_t structure:
@@ -53,10 +53,10 @@ void destroy_page_table_entry_t(page_table_entry_t* pte);
 void read_page_table_entry(page_table_entry_t pte, u8* N, u8* PBMT, physical_page_number_t* PPN, u8* RSW,
 						   u8* permissions);
 
-[[nodiscard]] inline u8 create_permissions(bool D, bool A, bool G, bool U, bool X, bool W, bool R, bool V);
+[[nodiscard]] u8 create_flags(bool D, bool A, bool G, bool U, bool X, bool W, bool R, bool V);
 
 // NOTE: any argument being nullptr is valid and will be ignored
-void read_permissions(u8 permissions, bool* D, bool* A, bool* G, bool* U, bool* X, bool* W, bool* R, bool* V);
+void read_flags(u8 flags, bool* D, bool* A, bool* G, bool* U, bool* X, bool* W, bool* R, bool* V);
 
 [[nodiscard]] error_t add_page_table_entry(page_table_entry_t* root_pte, page_size_t page_size,
 										   virtual_page_number_t vpn, page_table_entry_t pte);

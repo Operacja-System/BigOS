@@ -18,6 +18,6 @@ typedef void* virt_addr_t;
 typedef u64 virtual_page_number_t;
 typedef u64 physical_page_number_t;
 
-[[nodiscard]] inline virt_addr_t physical_to_virtual(phys_addr_t paddr);
+[[nodiscard]] virt_addr_t physical_to_virtual(phys_addr_t paddr);
 
 #endif // !_KERNEL_VIRTUAL_MEMORY_MM_COMMON_H

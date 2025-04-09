@@ -8,6 +8,14 @@
 
 typedef u16 asid_t;
 
+typedef enum {
+	VMS_BARE = 0,
+	VMS_Sv39 = 1,
+	VMS_Sv48 = 2,
+	VMS_Sv57 = 3,
+	VMS_RESERVED = 4,
+} virt_mem_scheme_t;
+
 [[nodiscard]] error_t virtual_memory_init(void* RAM_start);
 [[nodiscard]] error_t virtual_memory_enable(virt_mem_scheme_t vms, asid_t asid);
 [[nodiscard]] error_t virtual_memory_disable();

@@ -13,6 +13,7 @@ const char* get_error_msg(error_t err) {
 	case ERR_VIRTUAL_MEMORY_NOT_INITIALIZED:  return "Attempted to acces virtual memory before initialization";
 	case ERR_ASID_NOT_VALID:				  return "Address space identifier bigger then maximal value";
 	case ERR_INVALID_ARGUMENT:				  return "Invalid argument";
+	case ERR_PAGE_SIZE_TOO_BIG:				  return "Page size is larger then the max size supported by the virtual memory scheme";
 	default:								  return "Error message was not provided";
 	}
 }
