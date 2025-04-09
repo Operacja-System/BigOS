@@ -25,6 +25,7 @@ static u16 g_asid_max_val = 0;
 static virt_mem_scheme_t g_active_vms = 0;
 static page_table_t* g_page_table_table = nullptr;
 static bool g_virtual_memory_initialized = false;
+static virt_mem_scheme_t g_active_mem_scheme = VMS_BARE;
 
 //==========================================================================//
 //===							   INTERNAL								 ===//

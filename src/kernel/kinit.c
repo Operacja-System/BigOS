@@ -23,7 +23,7 @@
 
 // NOTE: This is an example so far.
 [[noreturn]] void kinit(u64 kernel_physical_address, u64 kernel_size, u64 stack_physical_address, u64 stack_size,
-						void* ram_start) {
+						void* ram_start, u64 ram_size /*in GB*/) {
 	DEBUG_PRINTF("Kernel loaded at phisical address: 0x%lx (size: %luMB). Stack at: 0x%lx (size: %luMB)\n",
 				 kernel_physical_address, kernel_size >> 20, stack_physical_address, stack_size >> 20);
 	error_t err = virtual_memory_init(ram_start);

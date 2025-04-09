@@ -13,7 +13,7 @@ typedef enum {
 	VMS_Sv39 = 1,
 	VMS_Sv48 = 2,
 	VMS_Sv57 = 3,
-	VMS_RESERVED = 4,
+	VMS_Sv64 = 4, // NOTE: This is not yet implemented by riscv ISA (09-04-2025)
 } virt_mem_scheme_t;
 
 [[nodiscard]] error_t virtual_memory_init(void* RAM_start);

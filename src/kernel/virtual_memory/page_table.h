@@ -28,8 +28,10 @@ void page_table_init(page_table_t* pt, physical_page_number_t ppn, bool saint, p
 void page_table_delete(page_table_t* pt);
 // all arguments except "pt" can be nullptr, in that case they will be ignored
 void get_page_table_tags(page_table_t* pt, bool* valid, bool* saint, page_table_level_t* ptl, bool* user);
-[[nodiscard]] error_t page_table_add_entry(page_table_t* pt, virtual_page_number_t vpn, page_size_t psize, page_table_entry_perms_t perms);
+[[nodiscard]] error_t page_table_add_entry(page_table_t* pt, virtual_page_number_t vpn, page_size_t psize,
+										   page_table_entry_perms_t perms);
 [[nodiscard]] error_t page_table_get_entry(page_size_t* pt, virtual_page_number_t vpn, page_table_entry_t* pteOUT);
-[[nodiscard]] error_t page_table_get_entry_reference(page_size_t* pt, virtual_page_number_t vpn, page_table_entry_t** pteOUT);
+[[nodiscard]] error_t page_table_get_entry_reference(page_size_t* pt, virtual_page_number_t vpn,
+													 page_table_entry_t** pteOUT);
 
 #endif //!_KERNEL_VIRTUAL_MEMORY_PAGE_TABLE_H

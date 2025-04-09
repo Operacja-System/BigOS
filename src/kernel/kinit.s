@@ -31,6 +31,7 @@
 			a2 - kernel_stack_address
 			a3 - kernel_stack_size
 			a4 - ram_start
+			a5 - ram size in GB
 		*/
 		la a0, kernel_start
 		la t0, kernel_end
@@ -40,6 +41,7 @@
 		sub a3, t0, a2
 		la a4, ram_start
 		jal ra, kinit
+		mv a5, zero
 
 	halt:
 		wfi
