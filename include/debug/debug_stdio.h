@@ -9,15 +9,14 @@ void dprintf(const char* fmt, ...);
 
 #ifndef NDEBUG
 
-	#define DEBUG_PUTC(c)		   dputc(c)
-	#define DEBUG_PUTS(s)		   dputs(s)
+	#define DEBUG_PUTC(c)          dputc(c)
+	#define DEBUG_PUTS(s)          dputs(s)
 	#define DEBUG_PRINTF(fmt, ...) dprintf(fmt __VA_OPT__(, ) __VA_ARGS__)
 
 #else
 
 // for argument checking
-[[gnu::format(printf, 1, 2)]] static inline void noop_printf(const char*, ...) {
-}
+[[gnu::format(printf, 1, 2)]] static inline void noop_printf(const char*, ...) {}
 
 	#define DEBUG_PUTC(c)
 	#define DEBUG_PUTS(s)

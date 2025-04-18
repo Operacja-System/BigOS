@@ -19,8 +19,7 @@ void* memset_explicit(void* dest, int val, size_t n);
 void* memmove(void* dest, const void* src, size_t n);
 
 [[reproducible, gnu::nonnull]]
-void* memccpy(void* restrict dest, const void* restrict src, int c,
-			  size_t count);
+void* memccpy(void* restrict dest, const void* restrict src, int c, size_t count);
 
 [[unsequenced, gnu::nonnull, gnu::pure]]
 int memcmp(const void* lhs, const void* rhs, size_t n);
