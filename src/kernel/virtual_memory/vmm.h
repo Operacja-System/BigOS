@@ -4,26 +4,19 @@
 #include <stdbigos/error.h>
 #include <stdbigos/types.h>
 
-#include "mm_common.h"
-
 typedef u16 asid_t;
 
 typedef enum {
-	VMS_BARE = 0,
-	VMS_Sv39 = 1,
-	VMS_Sv48 = 2,
-	VMS_Sv57 = 3,
-	VMS_Sv64 = 4, // NOTE: This is not yet implemented by riscv ISA (09-04-2025)
-} virt_mem_scheme_t;
+	VMS_SV_39,
+	VMS_SV_48,
+	VMS_SV_57,
+} virtual_memory_scheme_t;
 
-[[nodiscard]] error_t virtual_memory_init(void* RAM_start);
-[[nodiscard]] error_t virtual_memory_enable(virt_mem_scheme_t vms, asid_t asid);
-[[nodiscard]] error_t virtual_memory_disable();
+[[nodiscard]] error_t initialize_virtual_memory(virtual_memory_scheme_t vms /*TODO:, device tree*/);
+[[nodiscard]] error_t create_address_space(asid_t* asidOUT);
+[[nodiscard]] error_t destroy_address_space(asid_t asid);
+[[nodiscard]] error_t resolve_page_fault(asid_t asid, void* failed_address);
 
-[[nodiscard]] asid_t get_asid_max_val();
-[[nodiscard]] virt_mem_scheme_t get_active_virt_mem_scheme();
-[[nodiscard]] const char* get_virt_mem_scheme_str_name(virt_mem_scheme_t vms);
+virtual_memory_scheme_t get_active_virtual_memory_scheme();
 
-[[nodiscard]] error_t resolve_page_fault();
-
-#endif //_KERNEL_VIRTUAL_MEMORY_VMM_H_
+#endif // !_KERNEL_VIRTUAL_MEMORY_VMM_H_

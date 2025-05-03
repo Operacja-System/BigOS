@@ -1,37 +1,36 @@
-#ifndef _KERNEL_VIRTUAL_MEMORY_PAGE_TABLE_H
-#define _KERNEL_VIRTUAL_MEMORY_PAGE_TABLE_H
+#ifndef _KERNEL_VIRTUAL_MEMORY_PAE_TABLE_H_
+#define _KERNEL_VIRTUAL_MEMORY_PAE_TABLE_H_
 
 #include <stdbigos/error.h>
-
+#include <stdbigos/types.h>
 #include "mm_common.h"
-#include "page_table_entry.h"
+
+typedef enum : u8 {
+	PTEF_V = (1u << 0u),
+	PTEF_R = (1u << 1u),
+	PTEF_W = (1u << 2u),
+	PTEF_X = (1u << 3u),
+	PTEF_U = (1u << 4u),
+	PTEF_G = (1u << 5u),
+	PTEF_A = (1u << 6u),
+	PTEF_D = (1u << 7u),
+} page_table_entry_flags_t;
 
 typedef struct [[gnu::packed]] {
-	physical_page_number_t root_pte_ppn : 44;
-	u8 flags;
-	/* flags:
-	 * bit 0: Valid
-	 * bit 1: Saint
-	 * bits 2-3: Levels (0 - 3lvl, 1 - 4lvl, 2 - 5lvl, 3 - RESERVED)
-	 * bit 4: User
-	 */
-} page_table_t;
+	page_table_entry_flags_t flags : 8;
+	u8 rsw : 2;
+	u64 ppn : 44;
+	u8 reserved : 7;
+	u8 pbmt : 2;
+	u8 n : 1;
+} page_table_entry_t;
+static_assert(sizeof(page_table_entry_t) == 8);
 
-typedef enum {
-	PTL_3 = 0,
-	PTL_4 = 1,
-	PTL_5 = 2,
-	PTL_RESERVED = 3, // NOTE: This should be updated when Sv64 is released
-} page_table_level_t; // this field is 2 bits wide, only 4 unique values possible
+typedef page_table_entry_t page_table_t;
 
-void page_table_init(page_table_t* pt, physical_page_number_t ppn, bool saint, page_table_level_t ptl, bool user);
-void page_table_delete(page_table_t* pt);
-// all arguments except "pt" can be nullptr, in that case they will be ignored
-void get_page_table_tags(page_table_t* pt, bool* valid, bool* saint, page_table_level_t* ptl, bool* user);
-[[nodiscard]] error_t page_table_add_entry(page_table_t* pt, virtual_page_number_t vpn, page_size_t psize,
-										   page_table_entry_perms_t perms);
-[[nodiscard]] error_t page_table_get_entry(page_size_t* pt, virtual_page_number_t vpn, page_table_entry_t* pteOUT);
-[[nodiscard]] error_t page_table_get_entry_reference(page_size_t* pt, virtual_page_number_t vpn,
-													 page_table_entry_t** pteOUT);
+[[nodiscard]] error_t page_table_create(page_table_t* ptOUT, bool global, bool user);
+[[nodiscard]] error_t page_table_destroy(page_table_t* pt);
+[[nodiscard]] error_t page_table_add_entry(page_table_t pt, page_size_t ps, vpn_t vpn, ppn_t ppn);
+[[nodiscard]] error_t page_table_remove_entry(page_table_t pt, vpn_t vpn); //only removes leaf pages
 
-#endif //!_KERNEL_VIRTUAL_MEMORY_PAGE_TABLE_H
+#endif // !_KERNEL_VIRTUAL_MEMORY_PAE_TABLE_H_
