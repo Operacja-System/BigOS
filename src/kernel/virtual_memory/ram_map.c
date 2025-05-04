@@ -7,5 +7,5 @@ void set_ram_map_address(void* ram_addr) {
 }
 
 void* get_effective_address(ppn_t ppn, u64 offset) {
-	return (void*)((intptr_t)ram_map_address + (ppn << 12) + offset);
+	return (void*)((uintptr_t)ram_map_address + (ppn << 12) + offset);
 }

@@ -4,16 +4,20 @@
 #include <stdbigos/error.h>
 #include <stdbigos/types.h>
 
+#include "mm_common.h"
+
 typedef u16 asid_t;
 
 typedef enum {
-	VMS_SV_39,
-	VMS_SV_48,
-	VMS_SV_57,
+	VMS_BARE = -1,
+	VMS_SV_39 = 0,
+	VMS_SV_48 = 1,
+	VMS_SV_57 = 2,
 } virtual_memory_scheme_t;
 
 [[nodiscard]] error_t initialize_virtual_memory(virtual_memory_scheme_t vms /*TODO:, device tree*/);
-[[nodiscard]] error_t create_address_space(asid_t* asidOUT);
+[[nodiscard]] error_t enable_virtual_memory(asid_t asid);
+[[nodiscard]] error_t create_address_space(page_size_t ps, bool global, bool user, asid_t* asidOUT);
 [[nodiscard]] error_t destroy_address_space(asid_t asid);
 [[nodiscard]] error_t resolve_page_fault(asid_t asid, void* failed_address);
 
