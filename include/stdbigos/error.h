@@ -4,6 +4,9 @@
 typedef enum {
 	ERR_NONE = 0,
 	ERR_INVALID_ARGUMENT,
+	ERR_CRITICAL_INTERNAL_FAILURE,
+	ERR_HARDWARE_NOT_COMPATIBLE,
+	ERR_ALL_ADDRESS_SPACES_IN_USE,
 } error_t;
 
 const char* get_error_msg(error_t err);
