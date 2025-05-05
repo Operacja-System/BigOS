@@ -3,9 +3,6 @@
 
 #include <stdbigos/types.h>
 
-typedef u64 vpn_t;
-typedef u64 ppn_t;
-
 typedef enum : u8 {
 	PAGE_SIZE_4kB = 0,	 // kilo-page
 	PAGE_SIZE_2MB = 1,	 // Mega-page
@@ -14,4 +11,7 @@ typedef enum : u8 {
 	PAGE_SIZE_256TB = 4, // Peta-page
 } page_size_t;
 
-#endif					 // !_KERNEL_VIRTUAL_MEMORY_MM_COMMON_H_
+typedef u64 vpn_t;
+typedef u64 ppn_t;
+
+#endif // !_KERNEL_VIRTUAL_MEMORY_MM_COMMON_H_

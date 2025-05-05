@@ -18,9 +18,8 @@ int first_zero_bit_index(u64 x) {
 	for(int i = 0; i < 64; ++i) {
 		if(((x >> i) & 1) == 0) return i;
 	}
-	return -1; // No zero bit found
+	return -1;
 }
-#include <stdint.h>
 
 u8 count_bits_u64(u64 x) {
 	x = x - ((x >> 1) & 0x5555555555555555ULL);
