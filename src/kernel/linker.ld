@@ -1,8 +1,8 @@
 ENTRY(start);
 
-. = 0x80000000;
 
 SECTIONS {
+	. = 0x80000000;
 	PROVIDE(ram_start = .);
 	PROVIDE(kernel_start = .);
 	.text : ALIGN(2M) {
