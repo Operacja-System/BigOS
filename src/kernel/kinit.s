@@ -41,7 +41,7 @@
 		sub a3, t0, a2
 		la a4, ram_start
 		jal ra, kinit
-		mv a5, zero
+		addi a5, zero, 1
 
 	halt:
 		wfi

@@ -14,7 +14,7 @@ static address_space_t address_spaces[address_spaces_size] = {0};
 static u64 address_spaces_valid_bit[address_spaces_valid_bit_size] = {0};
 
 // TODO: replace those functons with stdbit.h
-int first_zero_bit_index(u64 x) {
+static int first_zero_bit_index(u64 x) {
 	for(int i = 0; i < 64; ++i) {
 		if(((x >> i) & 1) == 0) return i;
 	}
