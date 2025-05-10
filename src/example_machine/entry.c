@@ -1,11 +1,9 @@
-#include <debug/debug_stdio.h>
 #include <stdbigos/csr.h>
-#include <stdbigos/string.h>
+#include <stdbigos/debug_stdio.h>
 #include <stdbigos/trap.h>
 #include <stdbigos/types.h>
-
-extern u8 bss_start;
-extern u8 bss_end;
+#include <stdlib.h>
+#include <string.h>
 
 static const u64 clint_base = 0x02000000;
 
@@ -14,9 +12,14 @@ static volatile u64* mtimecmp = (u64*)(clint_base + 0x4000);
 
 static const u64 quant = 50000llu;
 
-void main() {
-	for(u32 i = 0;; ++i) dprintf("hello OS %u\n", i);
-}
+extern u8 __bss_start [[gnu::weak]];
+extern u8 __bss_end [[gnu::weak]];
+
+extern u8 stack_top;
+extern u8 __global_pointer$;
+
+extern void __libc_init_array();
+extern void __libc_fini_array();
 
 [[gnu::interrupt("machine")]]
 void int_handler() {
@@ -27,10 +30,10 @@ void int_handler() {
 
 		switch(int_no) {
 		case IntMTimer:
-			dputs("\n\tgot timer interrupt\n");
+			puts("\n\tgot timer interrupt\n");
 			mtimecmp[hartid()] = *mtime + quant;
 			break;
-		default: dprintf("\n\tunknown interrupt (%ld)\n", int_no); break;
+		default: printf("\n\tunknown interrupt (%ld)\n", int_no); break;
 		}
 
 		CSR_CLEAR(mip, (reg_t)1 << int_no);
@@ -38,10 +41,7 @@ void int_handler() {
 	}
 }
 
-[[noreturn]]
-void start() {
-	memset(&bss_start, '\0', &bss_end - &bss_start);
-
+void main() {
 	// register handler
 	CSR_WRITE(mtvec, int_handler);
 
@@ -54,17 +54,29 @@ void start() {
 	// set TIMER in mie
 	CSR_SET(mie, 1lu << IntMTimer);
 
-	main();
-
-	while(true) wfi();
+	for(u32 i = 0;; ++i) printf("hello OS %u\n", i);
 }
 
-[[gnu::section(".init"), gnu::naked]]
-void _start() {
-	__asm__(".option push\n\t"
-			".option norelax\n\t"
-			"la    gp, global_pointer\n\t"
-			".option pop\n\t"
-			"la    sp, stack_top\n\t"
-			"j start");
+[[gnu::section(".init.enter"), gnu::naked]]
+void _enter(void) {
+	__asm__ volatile(".option push\n\t"
+					 ".option norelax\n\t"
+					 "la    gp, __global_pointer$\n\t"
+					 ".option pop\n\t"
+					 "la    sp, stack_top\n\t"
+					 "j     start");
+}
+
+void __llvm_libc_exit(int) {
+	while(true) __asm__("wfi");
+}
+
+[[noreturn, gnu::used]]
+void start() {
+	memset(&__bss_start, 0, &__bss_end - &__bss_start);
+
+	__libc_init_array();
+	main();
+	__libc_fini_array();
+	_Exit(0);
 }

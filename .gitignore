@@ -75,3 +75,6 @@ CMakeUserPresets.json
 
 # Github pages data
 site/
+
+# allow all in external
+!external/**

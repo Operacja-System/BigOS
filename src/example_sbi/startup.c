@@ -7,63 +7,38 @@
 */
 
 #include <stdbigos/csr.h>
-#include <stdbigos/string.h>
 #include <stdbigos/types.h>
+#include <stdlib.h>
+#include <string.h>
 
-// Generic C function pointer.
-typedef void (*function_t)(void);
-
-// These symbols are defined by the linker script.
-// See linker.lds
 extern u8 __bss_start [[gnu::weak]];
 extern u8 __bss_end [[gnu::weak]];
 
-extern function_t __preinit_array_start [[gnu::weak]];
-extern function_t __preinit_array_end [[gnu::weak]];
-
-extern function_t __init_array_start [[gnu::weak]];
-extern function_t __init_array_end [[gnu::weak]];
-
-extern function_t __fini_array_start [[gnu::weak]];
-extern function_t __fini_array_end [[gnu::weak]];
+extern void __libc_init_array();
+extern void __libc_fini_array();
 
 extern int main(u32 hartid, const void* fdt);
 
 [[gnu::section(".init.enter"), gnu::naked]]
 void _enter(void) {
-	__asm__ volatile(".option push\n\t"
-					 ".option norelax\n\t"
-					 "la    gp, __global_pointer$\n\t"
-					 ".option pop\n\t"
-					 "la    sp, _sp\n\t"
-					 "jal   zero, _start");
+	__asm__(".option push\n\t"
+			".option norelax\n\t"
+			"la    gp, __global_pointer$\n\t"
+			".option pop");
+	__asm__("la    sp, _sp");
+	__asm__("j     _start");
 }
 
-[[noreturn, gnu::noinline]]
-void _Exit(int) {
-	while(1) wfi();
+void __llvm_libc_exit(int) {
+	while(true) __asm__("wfi");
 }
 
 [[noreturn]]
 void _start(u32 hartid, const void* fdt) {
 	memset(&__bss_start, 0, &__bss_end - &__bss_start);
 
-	for(const function_t* entry = &__preinit_array_start;
-		entry < &__preinit_array_end; ++entry) {
-		(*entry)();
-	}
-
-	for(const function_t* entry = &__init_array_start;
-		entry < &__init_array_end; ++entry) {
-		(*entry)();
-	}
-
+	__libc_init_array();
 	int rc = main(hartid, fdt);
-
-	for(const function_t* entry = &__fini_array_start;
-		entry < &__fini_array_end; ++entry) {
-		(*entry)();
-	}
-
+	__libc_fini_array();
 	_Exit(rc);
 }
