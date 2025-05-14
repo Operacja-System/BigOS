@@ -11,7 +11,9 @@
 void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
 	u8* d = dest;
 	const u8* s = src;
-	while (n--) { *d++ = *s++; }
+	while (n--) {
+		*d++ = *s++;
+	}
 	return dest;
 }
 
@@ -22,7 +24,8 @@ void* memccpy(void* restrict dest, const void* restrict src, int ch, size_t n) {
 	while (n--) {
 		u8 cur = *s++;
 		*d++ = cur;
-		if (cur == ch) return d;
+		if (cur == ch)
+			return d;
 	}
 	return nullptr;
 }
@@ -84,7 +87,8 @@ char* strcat(char* restrict dest, const char* restrict src) {
 char* strncat(char* restrict dest, const char* restrict src, size_t n) {
 	size_t l = strnlen(dest, n);
 	char* end = memccpy(dest + l, src, '\0', n - l);
-	if (!end) dest[n] = '\0';
+	if (!end)
+		dest[n] = '\0';
 	return dest;
 }
 
@@ -93,8 +97,10 @@ int memcmp(const void* lhs_, const void* rhs_, size_t n) {
 	const u8* rhs = rhs_;
 
 	while (n--) {
-		if (*lhs < *rhs) return -1;
-		if (*lhs > *rhs) return 1;
+		if (*lhs < *rhs)
+			return -1;
+		if (*lhs > *rhs)
+			return 1;
 		lhs++;
 		rhs++;
 	}
@@ -106,7 +112,8 @@ void* memchr(const void* src_, int ch, size_t n) {
 	const u8* s = src_;
 
 	while (n--) {
-		if (*s == ch) return (void*)s;
+		if (*s == ch)
+			return (void*)s;
 		s++;
 	}
 
@@ -115,9 +122,12 @@ void* memchr(const void* src_, int ch, size_t n) {
 
 int strcmp(const char* lhs, const char* rhs) {
 	while (true) {
-		if (*lhs < *rhs) return -1;
-		if (*lhs > *rhs) return 1;
-		if (!*lhs) return 0;
+		if (*lhs < *rhs)
+			return -1;
+		if (*lhs > *rhs)
+			return 1;
+		if (!*lhs)
+			return 0;
 		lhs++;
 		rhs++;
 	}
@@ -125,9 +135,12 @@ int strcmp(const char* lhs, const char* rhs) {
 
 int strncmp(const char* lhs, const char* rhs, size_t n) {
 	while (n--) {
-		if (*lhs < *rhs) return -1;
-		if (*lhs > *rhs) return 1;
-		if (!*lhs) return 0;
+		if (*lhs < *rhs)
+			return -1;
+		if (*lhs > *rhs)
+			return 1;
+		if (!*lhs)
+			return 0;
 		lhs++;
 		rhs++;
 	}
@@ -136,8 +149,10 @@ int strncmp(const char* lhs, const char* rhs, size_t n) {
 
 char* strchr(const char* str, int ch) {
 	while (true) {
-		if (*str == ch) return (char*)str;
-		if (!*str) return nullptr;
+		if (*str == ch)
+			return (char*)str;
+		if (!*str)
+			return nullptr;
 		str++;
 	}
 }
@@ -146,21 +161,25 @@ char* strrchr(const char* str, int ch) {
 	char* res = nullptr;
 
 	while (*str) {
-		if (*str == ch) res = (char*)str;
+		if (*str == ch)
+			res = (char*)str;
 		str++;
 	}
 
-	if ('\0' == ch) res = (char*)str;
+	if ('\0' == ch)
+		res = (char*)str;
 	return res;
 }
 
 char* strstr(const char* str, const char* substr) {
 	size_t l1 = strlen(str);
 	size_t l2 = strlen(substr);
-	if (l2 > l1) return nullptr;
+	if (l2 > l1)
+		return nullptr;
 
 	for (size_t i = 0; i <= l2 - l1; ++i) {
-		if (memcmp(str + i, substr, l2) == 0) return (char*)str + i;
+		if (memcmp(str + i, substr, l2) == 0)
+			return (char*)str + i;
 	}
 	return nullptr;
 }
@@ -185,7 +204,8 @@ size_t strcspn(const char* dest, const char* src) {
 
 char* strpbrk(const char* dest, const char* breakset) {
 	while (*dest) {
-		if (strchr(breakset, *dest)) return (char*)dest;
+		if (strchr(breakset, *dest))
+			return (char*)dest;
 		dest++;
 	}
 	return nullptr;

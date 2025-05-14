@@ -16,10 +16,10 @@ IncludeCategories:
 MaxEmptyLinesToKeep: 1
 SpacesBeforeTrailingComments: 1
 # ---
-AllowShortEnumsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: true
-AllowShortIfStatementsOnASingleLine: true
-AllowShortBlocksOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortFunctionsOnASingleLine: Empty
@@ -30,7 +30,7 @@ AlignConsecutiveAssignments: false
 AlignConsecutiveMacros:
   Enabled: true
   AcrossEmptyLines: false
-  AcrossComments: true
+  AcrossComments: false
 AlignConsecutiveShortCaseStatements:
   Enabled: true
   AcrossEmptyLines: false

@@ -48,13 +48,19 @@ void _Exit(int) {
 void _start(u32 hartid, const void* fdt) {
 	memset(&__bss_start, 0, &__bss_end - &__bss_start);
 
-	for (const function_t* entry = &__preinit_array_start; entry < &__preinit_array_end; ++entry) { (*entry)(); }
+	for (const function_t* entry = &__preinit_array_start; entry < &__preinit_array_end; ++entry) {
+		(*entry)();
+	}
 
-	for (const function_t* entry = &__init_array_start; entry < &__init_array_end; ++entry) { (*entry)(); }
+	for (const function_t* entry = &__init_array_start; entry < &__init_array_end; ++entry) {
+		(*entry)();
+	}
 
 	int rc = main(hartid, fdt);
 
-	for (const function_t* entry = &__fini_array_start; entry < &__fini_array_end; ++entry) { (*entry)(); }
+	for (const function_t* entry = &__fini_array_start; entry < &__fini_array_end; ++entry) {
+		(*entry)();
+	}
 
 	_Exit(rc);
 }
