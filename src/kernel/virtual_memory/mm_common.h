@@ -9,6 +9,8 @@ typedef enum : u8 {
 	PAGE_SIZE_1GB = 2,	 // Giga-page
 	PAGE_SIZE_512GB = 3, // Tera-page
 	PAGE_SIZE_256TB = 4, // Peta-page
+	PAGE_SIZE_MAX = PAGE_SIZE_256TB,
+	PAGE_SIZE_AMOUNT
 } page_size_t;
 
 typedef u64 vpn_t;

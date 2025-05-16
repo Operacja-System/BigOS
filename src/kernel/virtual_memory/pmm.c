@@ -1,14 +1,14 @@
 #include "pmm.h"
-#include "kmalloc.h"
 
 #include <debug/debug_stdio.h>
 #include <stdbigos/string.h>
 
+#include "kmalloc.h"
 
 static u64* kilo_page_frame_bitmap = nullptr;
 //[0] is always null for consistant indexing
-static u16* subpage_busy_counter[5] = {nullptr, nullptr, nullptr, nullptr, nullptr};
-static u64 page_frame_amount[5] = {0};
+static u16* subpage_busy_counter[PAGE_SIZE_AMOUNT] = {nullptr, nullptr, nullptr, nullptr, nullptr};
+static u64 page_frame_amount[PAGE_SIZE_AMOUNT] = {0};
 
 error_t initialize_pmm(virtual_memory_scheme_t vms, u64 ram_size) {
 	for(u8 i = 0; i <= vms + 3; ++i) {
@@ -28,8 +28,9 @@ error_t initialize_pmm(virtual_memory_scheme_t vms, u64 ram_size) {
 		}
 		if(err) {
 			if(kilo_page_frame_bitmap) kfree(kilo_page_frame_bitmap);
-			for(u8 j = 0; j < 5; ++j) {
+			for(u8 j = 0; j < PAGE_SIZE_AMOUNT; ++j) {
 				if(subpage_busy_counter[j]) kfree(subpage_busy_counter[j]);
+				subpage_busy_counter[j] = nullptr;
 				page_frame_amount[j] = 0;
 			}
 			return ERR_CRITICAL_INTERNAL_FAILURE;
@@ -39,12 +40,12 @@ error_t initialize_pmm(virtual_memory_scheme_t vms, u64 ram_size) {
 }
 
 error_t allocate_page_frame(page_size_t page_size, ppn_t* ppnOUT) {
-	if(page_size != 0 && subpage_busy_counter[page_size] == nullptr) return ERR_INVALID_ARGUMENT;
+	if(page_size != PAGE_SIZE_4kB && subpage_busy_counter[page_size] == nullptr) return ERR_INVALID_ARGUMENT;
 	u64 max_inx = 0;
-	for(i8 i = 5; i > page_size; --i) {
+	for(i8 i = PAGE_SIZE_MAX; i > page_size; --i) {
 		if(subpage_busy_counter[i] == nullptr) continue;
 		i32 max = -1;
-		for(u64 j = max_inx; j < page_frame_amount[j]; ++j) {
+		for(u64 j = max_inx; j < page_frame_amount[i]; ++j) {
 			if(subpage_busy_counter[i][j] > max && subpage_busy_counter[i][j] < 511) {
 				max = subpage_busy_counter[i][j];
 				max_inx = j;
@@ -60,7 +61,8 @@ error_t allocate_page_frame(page_size_t page_size, ppn_t* ppnOUT) {
 			*ppnOUT = (max_inx + i) << (9 * page_size);
 			break;
 		}
-	} else {
+	}
+	else {
 		for(u16 i = 0; i < 512; ++i) {
 			if((kilo_page_frame_bitmap[(max_inx + i) >> 6] & (1 << (i & 0x3f))) != 0) continue;
 			kilo_page_frame_bitmap[(max_inx + i) >> 6] |= (1 << (i & 0x3f));
