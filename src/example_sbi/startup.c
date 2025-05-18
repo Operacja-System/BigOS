@@ -32,36 +32,33 @@ extern int main(u32 hartid, const void* fdt);
 [[gnu::section(".init.enter"), gnu::naked]]
 void _enter(void) {
 	__asm__ volatile(".option push\n\t"
-					 ".option norelax\n\t"
-					 "la    gp, __global_pointer$\n\t"
-					 ".option pop\n\t"
-					 "la    sp, _sp\n\t"
-					 "jal   zero, _start");
+	                 ".option norelax\n\t"
+	                 "la    gp, __global_pointer$\n\t"
+	                 ".option pop\n\t"
+	                 "la    sp, _sp\n\t"
+	                 "jal   zero, _start");
 }
 
 [[noreturn, gnu::noinline]]
 void _Exit(int) {
-	while(1) wfi();
+	while (1) wfi();
 }
 
 [[noreturn]]
 void _start(u32 hartid, const void* fdt) {
 	memset(&__bss_start, 0, &__bss_end - &__bss_start);
 
-	for(const function_t* entry = &__preinit_array_start;
-		entry < &__preinit_array_end; ++entry) {
+	for (const function_t* entry = &__preinit_array_start; entry < &__preinit_array_end; ++entry) {
 		(*entry)();
 	}
 
-	for(const function_t* entry = &__init_array_start;
-		entry < &__init_array_end; ++entry) {
+	for (const function_t* entry = &__init_array_start; entry < &__init_array_end; ++entry) {
 		(*entry)();
 	}
 
 	int rc = main(hartid, fdt);
 
-	for(const function_t* entry = &__fini_array_start;
-		entry < &__fini_array_end; ++entry) {
+	for (const function_t* entry = &__fini_array_start; entry < &__fini_array_end; ++entry) {
 		(*entry)();
 	}
 
