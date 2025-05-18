@@ -2,12 +2,6 @@
 #include <stdbigos/types.h>
 #include <stddef.h>
 
-/* This file contains low level library functions such as memcpy. As such it is
- * optimized for speed. We also define no-tree-loop-distribute-patterns to
- * prevent compiler from "optimize" those functions into a recursive call
- */
-#pragma GCC optimize("O3", "no-tree-loop-distribute-patterns")
-
 void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
 	u8* d = dest;
 	const u8* s = src;
@@ -17,11 +11,11 @@ void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
 	return dest;
 }
 
-void* memccpy(void* restrict dest, const void* restrict src, int ch, size_t n) {
+void* memccpy(void* restrict dest, const void* restrict src, int ch, size_t count) {
 	u8* d = dest;
 	const u8* s = src;
 
-	while (n--) {
+	while (count--) {
 		u8 cur = *s++;
 		*d++ = cur;
 		if (cur == ch)
@@ -37,7 +31,9 @@ void* memset(void* dest, int val, size_t n) {
 }
 
 void* memset_explicit(void* dest, int val, size_t n) {
-	return memset(dest, val, n);
+	memset(dest, val, n);
+	__asm__ volatile("" ::: "memory");
+	return dest;
 }
 
 void* memmove(void* dest, const void* src, size_t n) {
@@ -72,10 +68,11 @@ char* strcpy(char* restrict dest, const char* restrict src) {
 
 char* strncpy(char* restrict dest, const char* restrict src, size_t count) {
 	char* rest = (char*)memccpy(dest, src, '\0', count);
-	if (rest)
+	if (rest) {
 		memset(rest, '\0', count - (rest - dest));
-	else
+	} else {
 		dest[count - 1] = '\0'; // non conpliant, but better
+	}
 	return dest;
 }
 
@@ -84,11 +81,11 @@ char* strcat(char* restrict dest, const char* restrict src) {
 	return dest;
 }
 
-char* strncat(char* restrict dest, const char* restrict src, size_t n) {
-	size_t l = strnlen(dest, n);
-	char* end = memccpy(dest + l, src, '\0', n - l);
+char* strncat(char* restrict dest, const char* restrict src, size_t count) {
+	size_t l = strnlen(dest, count);
+	char* end = memccpy(dest + l, src, '\0', count - l);
 	if (!end)
-		dest[n] = '\0';
+		dest[count] = '\0';
 	return dest;
 }
 
@@ -108,8 +105,8 @@ int memcmp(const void* lhs_, const void* rhs_, size_t n) {
 	return 0;
 }
 
-void* memchr(const void* src_, int ch, size_t n) {
-	const u8* s = src_;
+void* memchr(const void* ptr, int ch, size_t n) {
+	const u8* s = ptr;
 
 	while (n--) {
 		if (*s == ch)
@@ -121,30 +118,27 @@ void* memchr(const void* src_, int ch, size_t n) {
 }
 
 int strcmp(const char* lhs, const char* rhs) {
-	while (true) {
-		if (*lhs < *rhs)
-			return -1;
-		if (*lhs > *rhs)
-			return 1;
+	int ret = 0;
+	while (!ret) {
+		ret = (int)*lhs - (int)*rhs;
 		if (!*lhs)
-			return 0;
+			break;
 		lhs++;
 		rhs++;
 	}
+	return ret;
 }
 
 int strncmp(const char* lhs, const char* rhs, size_t n) {
-	while (n--) {
-		if (*lhs < *rhs)
-			return -1;
-		if (*lhs > *rhs)
-			return 1;
+	int ret = 0;
+	while (n-- && !ret) {
+		ret = (int)*lhs - (int)*rhs;
 		if (!*lhs)
-			return 0;
+			break;
 		lhs++;
 		rhs++;
 	}
-	return 0;
+	return ret;
 }
 
 char* strchr(const char* str, int ch) {
@@ -184,18 +178,18 @@ char* strstr(const char* str, const char* substr) {
 	return nullptr;
 }
 
-size_t strspn(const char* dest, const char* src) {
+size_t strspn(const char* dest, const char* chars) {
 	size_t l = 0;
-	while (*dest && strchr(src, *dest)) {
+	while (*dest && strchr(chars, *dest)) {
 		l++;
 		dest++;
 	}
 	return l;
 }
 
-size_t strcspn(const char* dest, const char* src) {
+size_t strcspn(const char* dest, const char* chars) {
 	size_t l = 0;
-	while (*dest && !strchr(src, *dest)) {
+	while (*dest && !strchr(chars, *dest)) {
 		l++;
 		dest++;
 	}

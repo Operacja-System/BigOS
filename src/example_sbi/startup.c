@@ -40,7 +40,7 @@ void _enter(void) {
 }
 
 [[noreturn, gnu::noinline]]
-void _Exit(int) {
+void _Exit([[maybe_unused]] int return_code) {
 	while (1) wfi();
 }
 

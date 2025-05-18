@@ -1,4 +1,5 @@
 #include <stdbigos/sbi.h>
+#include <stdbigos/types.h>
 
 sbiret sbi_ecall(SbiExtensionId ext, reg_t fid, reg_t arg0, reg_t arg1, reg_t arg2, reg_t arg3, reg_t arg4,
                  reg_t arg5) {

@@ -67,7 +67,7 @@ size_t strcspn(const char* dest, const char* chars);
 char* strpbrk(const char* dest, const char* breakset);
 
 [[unsequenced, gnu::nonnull, gnu::pure]]
-char* strstr(const char* src, const char* dst);
+char* strstr(const char* str, const char* substr);
 
 #pragma GCC diagnostic pop
 
