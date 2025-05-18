@@ -22,8 +22,7 @@ void handle_trap(uint64_t scause, uint64_t sepc, uint64_t stval) {
 
 extern void kmain();
 
-[[noreturn]] void kinit(u64 kernel_adr, u64 kernel_size, u64 kernel_stack_adr, u64 kernel_stack_size, u64 ram_start,
-						u64 ram_size) {
+[[noreturn]] void kinit(u64 kernel_adr, u64 kernel_size, u64 kernel_stack_adr, u64 kernel_stack_size, u64 ram_start, u64 ram_size) {
 	ram_size = 1; // HACK: this will be later retrieved from device tree
 	DEBUG_PRINTF("kinit() run. ram_size: %lu\r\n", ram_size);
 	// TEST:
