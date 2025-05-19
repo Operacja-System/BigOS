@@ -13,6 +13,13 @@ typedef enum : u8 {
 	PAGE_SIZE_AMOUNT
 } page_size_t;
 
+typedef enum {
+	VMS_BARE = -1,
+	VMS_SV_39 = 0,
+	VMS_SV_48 = 1,
+	VMS_SV_57 = 2,
+} virtual_memory_scheme_t;
+
 typedef u64 vpn_t;
 typedef u64 ppn_t;
 

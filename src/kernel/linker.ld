@@ -1,12 +1,20 @@
-ENTRY(start);
-
 
 SECTIONS {
 	. = 0x80000000;
-	PROVIDE(ram_start = .);
-	PROVIDE(kernel_start = .);
-	.text : ALIGN(2M) {
+
+	.boot.text : ALIGN(2M) {
+		*(.boot.text);
 		*(.init);
+	}
+	.boot.data : ALIGN(2M) {
+		*(.boot.data);
+	}
+	PROVIDE(stack_start = .);
+	. += 2M;
+	PROVIDE(stack_end = .);
+
+	. = 0x800000000000;
+	.text : ALIGN(2M) {
 		*(.text);
 	}
 	. = ALIGN(4K);
@@ -23,9 +31,4 @@ SECTIONS {
 		*(COMMON)
 		PROVIDE(bss_end = .);
 	}
-	. = ALIGN(2M);
-	PROVIDE(kernel_end = .);
-	PROVIDE(stack_start = .);
-	. += 2M;
-	PROVIDE(stack_end = .);
 }

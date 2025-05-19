@@ -32,45 +32,6 @@ u8 count_bits_u64(u64 x) {
 }
 // ENDTODO
 
-typedef enum : u8 {
-	SATP_MODE_BARE = 0,
-	SATP_MODE_SV39 = 8,
-	SATP_MODE_SV48 = 9,
-	SATP_MODE_SV57 = 10,
-	SATP_MODE_SV64 = 11,
-} satp_mode_t;
-
-reg_t create_satp(satp_mode_t mode, u16 asid, ppn_t ppn) {
-	return ((u64)mode << 60) | ((u64)asid << 44) | ((u64)ppn & 0xfffffffffff);
-}
-
-void read_satp(reg_t satp, satp_mode_t* modeOUT, u16* asidOUT, ppn_t* ppnOUT) {
-	if(modeOUT) *modeOUT = satp >> 60;
-	if(asidOUT) *asidOUT = (satp >> 44) & UINT16_MAX;
-	if(ppnOUT) *ppnOUT = satp & 0xfffffffffff;
-}
-
-error_t initialize_virtual_memory(virtual_memory_scheme_t vms) {
-	reg_t satp = create_satp(SATP_MODE_BARE, UINT16_MAX, 0);
-	CSR_WRITE(satp, satp);
-	satp = CSR_READ(satp);
-	u16 asid_max_val = 0;
-	read_satp(satp, nullptr, &asid_max_val, nullptr);
-	if(asid_max_val == 0) return ERR_HARDWARE_NOT_COMPATIBLE;
-	asidlen = count_bits_u64(asid_max_val);
-	active_vms = vms;
-	return ERR_NONE;
-}
-
-error_t enable_virtual_memory(asid_t asid) {
-	if(active_vms == VMS_BARE) return ERR_CRITICAL_INTERNAL_FAILURE;
-	ppn_t ppn = 0;
-	read_page_table_entry(address_spaces[asid].page_table, nullptr, nullptr, &ppn);
-	reg_t satp = create_satp((satp_mode_t[3]){SATP_MODE_SV39, SATP_MODE_SV48, SATP_MODE_SV57}[active_vms], asid, ppn);
-	CSR_WRITE(satp, satp);
-	return ERR_NONE;
-}
-
 error_t create_address_space(page_size_t ps, bool global, bool user, asid_t* asidOUT) {
 	bool found = false;
 	asid_t new_asid = 0;

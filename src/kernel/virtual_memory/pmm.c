@@ -61,8 +61,7 @@ error_t allocate_page_frame(page_size_t page_size, ppn_t* ppnOUT) {
 			*ppnOUT = (max_inx + i) << (9 * page_size);
 			break;
 		}
-	} 
-	else {
+	} else {
 		for(u16 i = 0; i < 512; ++i) {
 			if((kilo_page_frame_bitmap[(max_inx + i) >> 6] & (1 << (i & 0x3f))) != 0) continue;
 			kilo_page_frame_bitmap[(max_inx + i) >> 6] |= (1 << (i & 0x3f));
