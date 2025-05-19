@@ -130,6 +130,30 @@
             "description": "Configuration using Ninja Multi-Config generator and clang. (add --config <CONFIG> to build)"
         },
         {
+            "name": "ninja-multi-lto",
+            "inherits": ["ninja-multi", "build-release-lto"],
+            "displayName": "Ninja Multi-Config with LTO",
+            "description": "Configuration using Ninja Multi-Config generator with LTO. (add --config <CONFIG> to build)"
+        },
+        {
+            "name": "ninja-multi-clang-lto",
+            "inherits": ["ninja-multi-clang", "build-release-lto"],
+            "displayName": "Ninja Multi-Config with LTO and clang",
+            "description": "Configuration using Ninja Multi-Config generator with LTO and clang. (add --config <CONFIG> to build)"
+        },
+        {
+            "name": "release-lto",
+            "inherits": ["release", "build-lto"],
+            "displayName": "Release Configuration with LTO",
+            "description": "Release configuration with optimized build and LTO."
+        },
+        {
+            "name": "release-clang-lto",
+            "inherits": ["release-clang", "build-lto"],
+            "displayName": "Release Configuration with LTO (clang)",
+            "description": "Release configuration with optimized build and LTO (clang)."
+        },
+        {
             "name": "ci-gcc",
             "inherits": [
                 "build-dirs",
@@ -150,6 +174,28 @@
             ],
             "displayName": "CI Ninja Configuration",
             "description": "CI configuration using Ninja with warnings as errors."
+        },
+        {
+            "name": "ci-gcc-lto",
+            "inherits": [
+                "build-dirs",
+                "cross-gcc",
+                "warnings-as-errors",
+                "build-lto"
+            ],
+            "displayName": "CI GCC Configuration",
+            "description": "CI configuration using Ninja with warnings as errors."
+        },
+        {
+            "name": "ci-clang-lto",
+            "inherits": [
+                "build-dirs",
+                "cross-clang",
+                "warnings-as-errors",
+                "build-lto"
+            ],
+            "displayName": "CI Ninja Configuration",
+            "description": "CI configuration using Ninja with warnings as errors."
         }
     ],
     "buildPresets": [
@@ -164,6 +210,18 @@
             "configurePreset": "ci-clang",
             "displayName": "CI Ninja Build - clang",
             "description": "Build using CI Ninja configuration (clang)."
+        },
+        {
+            "name": "ci-gcc-lto",
+            "configurePreset": "ci-gcc-lto",
+            "displayName": "CI Ninja Build - GCC (LTO)",
+            "description": "Build using CI Ninja configuration (GCC) (LTO)."
+        },
+        {
+            "name": "ci-clang-lto",
+            "configurePreset": "ci-clang-lto",
+            "displayName": "CI Ninja Build - clang (LTO)",
+            "description": "Build using CI Ninja configuration (clang) (LTO)."
         }
     ],
     "testPresets": [
