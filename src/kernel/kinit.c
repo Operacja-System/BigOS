@@ -22,6 +22,8 @@ void handle_trap(uint64_t scause, uint64_t sepc, uint64_t stval) {
 
 extern void kmain();
 
+[[gnu::naked]] void _start() { asm("j kinit"); }
+
 [[noreturn]] void kinit(u64 ram_map, u16 asid_max_val /*, device tree*/) {
 	u64 ram_size = 1; // HACK: this will be later retrieved from device tree
 	DEBUG_PRINTF("kinit() run. ram_size: %lu\r\n", ram_size);
