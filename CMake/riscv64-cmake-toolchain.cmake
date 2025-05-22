@@ -6,7 +6,7 @@ endif()
 
 set(RISCV_TOOLCHAIN_INCLUDED true)
 
-foreach(PREFIX "riscv64-unknown-elf" "riscv64-elf" "riscv64-none-elf" "riscv64-unknown-none-elf")
+foreach(PREFIX "riscv64-linux-gnu")
     find_program(PREFIX_TOOLCHAIN_GCC "${PREFIX}-gcc")
     if (PREFIX_TOOLCHAIN_GCC)
         set(DEFAULT_RISCV_TOOLCHAIN_PREFIX "${PREFIX}-")
@@ -51,7 +51,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 set(RISCV_COMPILER_FLAGS "${RISCV_COMPILER_FLAGS} \
     -march=${RISCV_ARCH} -mabi=${RISCV_ABI} -mcmodel=${RISCV_CMODEL} \
-    -ffreestanding"
+    -ffreestanding -static-pie -static -pie"
     )
 
 set(RISCV_LINKER_FLAGS "-nostdlib")
