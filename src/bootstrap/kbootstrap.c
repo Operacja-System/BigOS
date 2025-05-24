@@ -4,7 +4,7 @@
 #include "virtual_memory/mm_common.h"
 
 extern unsigned char _binary_kernel_start[];
-extern unsigned char _binary_kernel_start[];
+extern unsigned char _binary_kernel_end[];
 extern size_t _binary_kernel_size;
 
 [[noreturn]] extern void kinit(u64 ram_map, u16 asid_max_val /*, device tree*/);
