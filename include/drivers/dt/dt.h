@@ -4,12 +4,12 @@
 #include <drivers/dt/dt_node.h>
 #include <stdbigos/types.h>
 
-#define DT_ARENA_SIZE 4096
+#define DT_ARENA_SIZE 16384
 
-u8 dt_arena_buffer[DT_ARENA_SIZE];
+extern u8 dt_arena_buffer[DT_ARENA_SIZE];
 
 // Root of the parsed device tree
-struct dt_node* root_node = ((void*)0);
+extern struct dt_node* root_node;
 
 // Initializes the device tree driver
 // TODO: Currently parses the entire FDT at init, maybe change to lazy parsing later

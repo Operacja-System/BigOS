@@ -10,6 +10,9 @@ struct dt_prop* dt_find_prop(const struct dt_node* node, const char* name);
 // Read a single 32-bit value from a node's name prop and write it to out, 0 if success, <0 if error
 int dt_prop_read_u32(const struct dt_node* node, const char* name, u32* out);
 
+// Read a single 64-bit value from a node's name prop and write it to out, 0 if success, <0 if error
+int dt_prop_read_u64(const struct dt_node* node, const char* name, u64* out);
+
 // Read a single 32-bit value from a node's name prop's id index and write it to out, 0 if success, <0 if error
 int dt_prop_read_by_id_u32(const struct dt_node* node, const char* name, u32 index, u32* out);
 

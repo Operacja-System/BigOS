@@ -11,8 +11,13 @@ static u32 arena_size;
 static u32 arena_offset;
 
 // Helper for aligning to 4 bytes
-static u32 align4(u32 off) {
+u32 align4(u32 off) {
 	return (off + 3) & ~3u;
+}
+
+// Helper for aligning to 32 bytes
+u32 align32(u32 off) {
+	return (off + 31) & ~31u;
 }
 
 int dt_arena_init(void* start, u32 size) {

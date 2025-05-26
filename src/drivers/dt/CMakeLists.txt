@@ -1,3 +1,3 @@
-SETUP_LIBRARY(Dt)
+SETUP_LIBRARY(dt)
 
-target_link_libraries(Drivers PRIVATE stdbigos)
+target_link_libraries(dt PRIVATE stdbigos)

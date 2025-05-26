@@ -77,3 +77,18 @@ int dt_prop_read_u32(const struct dt_node* node, const char* name, u32* out) {
 
 	return 0;
 }
+
+int dt_prop_read_u64(const struct dt_node* node, const char* name, u64* out) {
+	struct dt_prop* prop = dt_find_prop(node, name);
+
+	if (!prop || prop->data_length < 8 || !prop->value)
+		return -1;
+
+	const u8* val = (const u8*)prop->value;
+
+	u32 high = read_be32(val);
+	u32 low = read_be32(val + 4);
+
+	*out = ((u64)high << 32) | (u64)low;
+	return 0;
+}
