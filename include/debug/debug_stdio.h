@@ -12,7 +12,7 @@ void dprintf(char* (*handler)(const char*, void*, int), const char* fmt, ...);
 void dprintf(char* (*handler)(const char*, void*, int), const char* fmt, ...);
 
 [[gnu::format(printf, 1, 2)]]
-void uprintf(const char *fmt, ...);
+void uprintf(const char* fmt, ...);
 
 #ifndef NDEBUG
 
