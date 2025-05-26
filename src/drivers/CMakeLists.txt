@@ -1,6 +1,4 @@
-SETUP_LIBRARY(Drivers)
-target_link_libraries(Drivers PRIVATE stdbigos)
-
 add_subdirectory(dt)
 
-target_link_libraries(Drivers PRIVATE stdbigos dt)
+SETUP_LIBRARY(drivers)
+target_link_libraries(drivers PRIVATE stdbigos)
