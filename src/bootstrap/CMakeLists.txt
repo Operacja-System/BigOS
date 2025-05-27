@@ -13,8 +13,17 @@ add_custom_command(
     VERBATIM
 )
 
+set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
+
+target_link_options(kboot PRIVATE -T ${LINKER_SCRIPT})
+set_target_properties(kboot
+    PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
+target_compile_options(kboot PRIVATE --no-pie -static) # for now
+
+
 target_sources(kboot PRIVATE ${KERNEL_BIN})
 target_include_directories(kboot PRIVATE ../kernel)
 target_link_libraries(kboot PRIVATE stdbigos)
 
 COMPILE_BINARY(kboot)
+ADD_QEMU_TARGET(kboot)

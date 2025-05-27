@@ -51,10 +51,10 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 set(RISCV_COMPILER_FLAGS "${RISCV_COMPILER_FLAGS} \
     -march=${RISCV_ARCH} -mabi=${RISCV_ABI} -mcmodel=${RISCV_CMODEL} \
-    -ffreestanding -static-pie -mno-relax"
+    -ffreestanding -static-pie"
     )
 
-set(RISCV_LINKER_FLAGS "-nostdlib")
+set(RISCV_LINKER_FLAGS "-nostdlib -Wl,--no-relax-gp")
 
 set(CMAKE_C_FLAGS             "${RISCV_COMPILER_FLAGS} ${CMAKE_C_FLAGS}")
 set(CMAKE_ASM_FLAGS           "${RISCV_COMPILER_FLAGS} ${CMAKE_ASM_FLAGS}")

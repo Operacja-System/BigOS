@@ -13,11 +13,6 @@ stack_end:
 	_start:
 		.cfi_startproc
 
-		.option push
-		.option norelax
-		la gp, __global_pointer$
-		.option pop
-
 		/* Setup stack */
 		la sp, stack_end
 
