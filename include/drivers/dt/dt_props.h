@@ -1,8 +1,10 @@
 #ifndef DT_PROPS_H
 #define DT_PROPS_H
 
-#include <drivers/dt/dt_node.h>
 #include <stdbigos/types.h>
+
+struct dt_node;
+struct dt_prop;
 
 // Find a property of node by a name, dt_prop ptr if success, nullptr if error
 struct dt_prop* dt_find_prop(const struct dt_node* node, const char* name);
@@ -32,5 +34,11 @@ int dt_prop_read_bool(const struct dt_node* node, const char* name);
 
 // Read a node's name phandle (a handle to a different node) and write it to out, 0 if success, -1 if error
 int dt_prop_read_phandle(const struct dt_node* node, const char* name, u32* out);
+
+// Print the node's properties
+void dt_print_props(const struct dt_node* node, u8 depth);
+
+// Print the entire subtree with properties
+void dt_print_tree(const struct dt_node* node, u8 depth);
 
 #endif

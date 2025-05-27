@@ -1,10 +1,11 @@
 #include <drivers/dt/dt.h>
-#include <drivers/dt/dt_alloc.h>
-#include <drivers/dt/dt_parser.h>
+#include <stdbigos/bitutils.h>
 #include <stdbigos/types.h>
 
-u8 dt_arena_buffer[DT_ARENA_SIZE];
-struct dt_node* root_node = ((void*)0);
+#include "dt_alloc.h"
+#include "dt_parser.h"
+
+struct dt_node* root_node = nullptr;
 
 #define FDT_MAGIC                 0xd00dfeed
 #define FDT_OFF_MAGIC             0x00
@@ -41,7 +42,7 @@ int dt_init(const void* fdt_blob, u32 blob_size) {
 
 	u32 offset = struct_off + 4;
 
-	root_node = parse_subtree(fdt_blob, &offset, struct_off + struct_size, strings_off, ((void*)0));
+	root_node = parse_subtree(fdt_blob, &offset, struct_off + struct_size, strings_off, nullptr);
 	if (!root_node)
 		return -5;
 

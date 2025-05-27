@@ -1,11 +1,11 @@
-#include <drivers/dt/dt_alloc.h>
-#include <drivers/dt/dt_node.h>
-#include <drivers/dt/dt_parser.h>
+#include "dt_parser.h"
+
+#include <stdbigos/bitutils.h>
 #include <stdbigos/string.h>
 #include <stdbigos/types.h>
 
-extern u32 align4(u32 off);
-extern u32 align32(u32 off);
+#include "dt_alloc.h"
+#include "dt_node.h"
 
 // FDT token values
 #define FDT_BEGIN_NODE 0x1
@@ -14,18 +14,12 @@ extern u32 align32(u32 off);
 #define FDT_NOP        0x4
 #define FDT_END        0x9
 
-// The FDT is in big-endian and risc-v is in little-endian, so we need a function to read big-endian u32 values
-u32 read_be32(const void* addr) {
-	const u8* bytes = (const u8*)addr;
-	return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | (bytes[3] << 0);
-};
-
 // Function to parse a block of properties starting at props_offset with props_size size in the FDT with fdt
 // being a ptr to the start of the flattened device tree blob
 struct dt_prop* parse_props(const void* fdt, u32 props_offset, u32 props_size, u32 str_offset) {
 	u32 curr_offset = props_offset;
 	const u8* fdt_u8 = (const u8*)fdt;
-	struct dt_prop* head = ((void*)0);
+	struct dt_prop* head = nullptr;
 	struct dt_prop** pp = &head;
 
 	while (curr_offset < props_offset + props_size) {
@@ -40,28 +34,22 @@ struct dt_prop* parse_props(const void* fdt, u32 props_offset, u32 props_size, u
 		curr_offset += 4;
 		u32 name_offset = read_be32(fdt_u8 + curr_offset);
 		curr_offset += 4;
-
 		struct dt_prop* new_prop = dt_alloc(sizeof(*new_prop));
 		new_prop->data_length = len;
-		new_prop->next_prop = ((void*)0);
+		new_prop->next_prop = nullptr;
 
 		new_prop->name = (const char*)(fdt_u8 + str_offset + name_offset);
+		// sbi_puts(new_prop->name);
+		// sbi_puts("\n");
 
-		void* value_buffer = dt_alloc(len);
-
-		if (value_buffer)
-			memcpy(value_buffer, fdt_u8 + curr_offset, len);
-		else if (len > 0)
-			return ((void*)0);
-
-		new_prop->value = value_buffer;
+		new_prop->value = fdt_u8 + curr_offset;
 
 		// At first it sets the head in the right place, then it sets the next_prop of the previous property to point to
 		// the current property
 		*pp = new_prop;
 		pp = &new_prop->next_prop;
 
-		curr_offset = align32(curr_offset + len);
+		curr_offset = align4(curr_offset + len);
 	}
 	return head;
 }
@@ -71,25 +59,29 @@ struct dt_node* parse_subtree(const void* fdt, u32* offset, u32 max_offset, u32 
 	const u8* fdt_u8 = (const u8*)fdt;
 	struct dt_node* node = dt_alloc(sizeof(*node));
 
+	if (!node)
+		return nullptr;
+
 	node->parent = parent;
-	node->first_child = ((void*)0);
-	node->next_sibling = ((void*)0);
-	node->props = ((void*)0);
+	node->first_child = nullptr;
+	node->next_sibling = nullptr;
+	node->props = nullptr;
 	node->phandle = 0;
 
 	u32 curr_offset = *offset;
 
 	if (read_be32(fdt_u8 + curr_offset - 4) != FDT_BEGIN_NODE) {
-		return ((void*)0);
+		return nullptr;
 	}
 
 	const char* name = (const char*)(fdt_u8 + curr_offset);
 
+	if (!name)
+		return nullptr;
+
 	u32 name_len = strlen(name) + 1;
 
-	char* namebuf = dt_alloc(name_len);
-	strncpy(namebuf, name, name_len);
-	node->name = namebuf;
+	node->name = name;
 
 	curr_offset = align4(curr_offset + name_len);
 
@@ -99,19 +91,24 @@ struct dt_node* parse_subtree(const void* fdt, u32* offset, u32 max_offset, u32 
 		if (tag != FDT_PROP)
 			break;
 		u32 p_len = read_be32(fdt_u8 + curr_offset + 4);
+
 		curr_offset += 12; // Skip tag, length, name_offset
 		curr_offset = align4(curr_offset + p_len);
 	}
+
 	u32 props_len = curr_offset - props_off;
+
 	node->props = parse_props(fdt, props_off, props_len, str_offset);
 
 	curr_offset = align4(props_off + props_len);
+
 	while (curr_offset < max_offset) {
 		u32 tag = read_be32(fdt_u8 + curr_offset);
 		curr_offset += 4;
 		switch (tag) {
 		case FDT_BEGIN_NODE:
 			struct dt_node* child = parse_subtree(fdt, &curr_offset, max_offset, str_offset, node);
+
 			if (child) {
 				if (!node->first_child)
 					node->first_child = child;
@@ -126,6 +123,7 @@ struct dt_node* parse_subtree(const void* fdt, u32* offset, u32 max_offset, u32 
 			break;
 
 		case FDT_END_NODE:
+
 			*offset = curr_offset; //
 			return node;
 

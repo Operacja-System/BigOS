@@ -3,6 +3,7 @@
 
 #include <stdbigos/types.h>
 
+// Both prop and node structures are lists with outside pointers only to the first element
 struct dt_prop {
 	const char* name;
 	const void* value;
@@ -18,6 +19,5 @@ struct dt_node {
 	struct dt_node* first_child;
 	struct dt_node* next_sibling;
 };
-// Both prop and node structures are lists with outside pointers only to the first element
 
 #endif
