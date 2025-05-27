@@ -1,5 +1,5 @@
-#ifndef __KERNEL_BOOTSTRAP_BOOTSTRAP_PAGE_TALBE_H__
-#define __KERNEL_BOOTSTRAP_BOOTSTRAP_PAGE_TALBE_H__
+#ifndef __BOOTSTRAP_BOOTSTRAP_PAGE_TALBE_H__
+#define __BOOTSTRAP_BOOTSTRAP_PAGE_TALBE_H__
 
 #include "virtual_memory/mm_common.h"
 
