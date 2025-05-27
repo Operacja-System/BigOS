@@ -23,7 +23,7 @@ target_compile_options(kboot PRIVATE --no-pie -static) # for now
 
 target_sources(kboot PRIVATE ${KERNEL_BIN})
 target_include_directories(kboot PRIVATE ../kernel)
-target_link_libraries(kboot PRIVATE stdbigos)
+target_link_libraries(kboot PRIVATE stdbigos Debug)
 
 COMPILE_BINARY(kboot)
 ADD_QEMU_TARGET(kboot)
