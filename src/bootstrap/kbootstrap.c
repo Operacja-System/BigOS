@@ -7,6 +7,9 @@ extern unsigned char _binary_kernel_start[];
 extern unsigned char _binary_kernel_end[];
 extern size_t _binary_kernel_size;
 
+extern void __executable_start;
+extern void _DYNAMIC;
+
 [[noreturn]] extern void kinit(u64 ram_map, u16 asid_max_val /*, device tree*/);
 
 // WARNING: THIS WILL ONLY WORK IF KERNEL USES 2MiB PAGES
