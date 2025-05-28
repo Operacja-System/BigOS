@@ -20,6 +20,17 @@ typedef enum {
 	VMS_SV_57 = 2,
 } virtual_memory_scheme_t;
 
+typedef enum : u8 {
+	PTEF_V = (1u << 0u),
+	PTEF_R = (1u << 1u),
+	PTEF_W = (1u << 2u),
+	PTEF_X = (1u << 3u),
+	PTEF_U = (1u << 4u),
+	PTEF_G = (1u << 5u),
+	PTEF_A = (1u << 6u),
+	PTEF_D = (1u << 7u),
+} page_table_entry_flags_t;
+
 typedef u64 vpn_t;
 typedef u64 ppn_t;
 
