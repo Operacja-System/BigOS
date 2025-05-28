@@ -72,6 +72,20 @@
             "environment": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo"
             }
+        },
+        {
+          "name": "build-release-lto",
+          "hidden": true,
+          "environment": {
+            "CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE": "ON"
+          }
+        },
+        {
+          "name": "build-lto",
+          "hidden": true,
+          "environment": {
+            "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+          }
         }
     ]
 }
