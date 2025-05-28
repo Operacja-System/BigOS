@@ -15,10 +15,10 @@ add_custom_command(
 
 set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
 
-target_link_options(kboot PRIVATE -T ${LINKER_SCRIPT})
+target_link_options(kboot PRIVATE -T ${LINKER_SCRIPT} -no-pie)
 set_target_properties(kboot
     PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
-target_compile_options(kboot PRIVATE --no-pie -static) # for now
+target_compile_options(kboot PRIVATE -fno-pie -static) # for now
 
 
 target_sources(kboot PRIVATE ${KERNEL_BIN})
