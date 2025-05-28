@@ -1,6 +1,7 @@
 #ifndef DT_H
 #define DT_H
 
+#include <stdbigos/buffer.h>
 #include <stdbigos/types.h>
 
 struct dt_node;
@@ -9,7 +10,7 @@ struct dt_prop;
 // Initializes the device tree driver
 // TODO: Currently parses the entire FDT at init, maybe change to lazy parsing later
 // Builds the actual tree structure handleable by the driver, 0 if success, <0 if error
-int dt_init(const void* fdt_blob, u32 blob_size);
+int dt_init(buffer_t fdt_buf);
 
 // Frees all memory used by the arena
 void dt_cleanup(void);

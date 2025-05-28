@@ -1,6 +1,7 @@
 #include "dt_alloc.h"
 
 #include <stdbigos/bitutils.h>
+#include <stdbigos/buffer.h>
 #include <stdbigos/types.h>
 
 // Arena
@@ -32,7 +33,7 @@ void* dt_alloc(u32 size) {
 		return nullptr;
 
 	// Align to 4 bytes
-	u32 align = align4(size);
+	u32 align = alignN(size, 4);
 
 	if (arena_offset + align > arena_size)
 		return nullptr;

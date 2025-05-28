@@ -3,6 +3,7 @@
 #include <drivers/dt/dt_props.h>
 #include <drivers/uart.h>
 #include <stdbigos/bitutils.h>
+#include <stdbigos/buffer.h>
 #include <stdbigos/sbi.h>
 #include <stdbigos/types.h>
 
@@ -48,8 +49,9 @@
 
 void main([[maybe_unused]] u32 hartid, const void* fdt) {
 	u32 blob_size = read_be32((const u8*)fdt + 4);
+	buffer_t buf = make_buffer(fdt, blob_size);
 
-	if (dt_init(fdt, blob_size) < 0) {
+	if (dt_init(buf) < 0) {
 		sbi_puts("DT_INIT FAILED\n");
 		return;
 	}
