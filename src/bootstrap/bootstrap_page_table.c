@@ -1,17 +1,18 @@
 #include "bootstrap_page_table.h"
 
+#include <debug/debug_stdio.h>
 #include <stdbigos/csr.h>
 #include <stdbigos/string.h>
+
+#include "bootstrap_panic.h"
 
 //===============================
 //===        INTERNAL        ====
 //===============================
 
-static void* s_page_frame_allocation_region = nullptr;
-static u64 s_amount_of_4kB_pages = 0;
-static u64 s_amount_of_2MB_pages = 0;
 static void* s_ram_start = nullptr;
 static virtual_memory_scheme_t s_active_vms = VMS_BARE;
+static phisical_memory_region_t s_page_mem_regs[5] = {0};
 
 reg_t create_satp(virtual_memory_scheme_t vms, u16 asid, ppn_t ppn) {
 	return ((u64)((vms == -1 ? 0 : vms + 8)) << 60) | ((u64)asid << 44) | ((u64)ppn & 0xfffffffffff);
@@ -34,37 +35,18 @@ void read_page_table_entry(u64 pte, ppn_t* ppnOUT) {
 	if(ppnOUT) *ppnOUT = (pte >> 10) & 0xfffffffffff;
 }
 
-bool add_to_vpn_reg(u64 vpn_reg[], u8* inx, u64 val) {
-	for(u8 i = 0; i < *inx; ++i) {
+bool add_to_vpn_reg(u64 vpn_reg[], u32* inx, u64 val, u64 size) {
+	for(u32 i = 0; i < *inx; ++i) {
 		if(vpn_reg[i] == val) return true;
 	}
-	vpn_reg[*inx++] = val;
-	if(*inx > 63) return false;
+	vpn_reg[(*inx)++] = val;
+	if(*inx >= size) return false;
 	return true;
 }
 
 ppn_t get_page_frame(page_size_t ps) {
-	static bool not_init = true;
-	static void* address_of_4k = nullptr;
-	static void* address_of_2M = nullptr;
-	if(not_init) {
-		not_init = false;
-		address_of_4k = s_page_frame_allocation_region;
-		address_of_2M = s_page_frame_allocation_region + 0x200000 * ((s_amount_of_4kB_pages + 511) / 512);
-	}
-	switch(ps) {
-	case PAGE_SIZE_4kB: {
-		u64 address = (uintptr_t)address_of_4k;
-		address_of_4k += 0x1000;
-		return address >> 12;
-	}
-	case PAGE_SIZE_2MB: {
-		u64 address = (uintptr_t)address_of_2M;
-		address_of_4k += 0x200000;
-		return address >> 12;
-	}
-	default: return 0; // PANIC
-	}
+	static u64 number_of_allocated_pages[PAGE_SIZE_AMOUNT] = {0};
+	return (u64)(s_page_mem_regs[ps].address + number_of_allocated_pages[ps] * (0x1000 << (9 * ps))) >> 12;
 }
 
 void page_table_add_entry(u64 root_pt_ppn, page_size_t ps, vpn_t vpn, ppn_t ppn, bool R, bool W, bool X) {
@@ -86,11 +68,11 @@ void page_table_add_entry(u64 root_pt_ppn, page_size_t ps, vpn_t vpn, ppn_t ppn,
 		}
 		u8 access_perms = 0;
 		if(level == ps) {
-			if(R) access_perms |= (1 << 1);
-			if(W) access_perms |= (1 << 2);
-			if(X) access_perms |= (1 << 3);
+			if(R) access_perms |= PTEF_R;
+			if(W) access_perms |= PTEF_W;
+			if(X) access_perms |= PTEF_X;
 		}
-		*curr_pte = create_page_table_entry((1 << 0) | (1 << 5) | (1 << 4) | access_perms, 0, new_ppn);
+		*curr_pte = create_page_table_entry(PTEF_V | PTEF_G | access_perms, 0, new_ppn);
 	}
 }
 
@@ -103,42 +85,54 @@ void init_boot_page_table_managment(virtual_memory_scheme_t vms, void* ram_start
 	s_ram_start = ram_start;
 }
 
-required_memory_space_t calc_required_memory_for_page_table(region_t regions[], u64 regions_amount) {
-	u64 vpn_reg[64] = {0};
-	u8 vpn_reg_inx = 0;
+void set_page_memory_regions(phisical_memory_region_t* mem_regions) {
+	memcpy(s_page_mem_regs, mem_regions, 5 * sizeof(phisical_memory_region_t));
+}
 
-	u64 page_2MB = 0;
-	u64 page_4kB = 0;
+required_memory_space_t calc_required_memory_for_page_table(region_t* regions, u64 regions_amount) {
+	DEBUG_PRINTF("regions: %lu\n", regions_amount);
+	constexpr u32 vpn_reg_size = 1024;
+	u64 vpn_reg[vpn_reg_size] = {0};
+	u32 vpn_reg_inx = 0;
+	u32 max_vpn_reg_inx = 0;
 
-	for(u64 i = 0; i < regions_amount; ++i) {
-		u64 size_left = regions[i].size;
-		u64 working_address = regions[i].addr;
-		while(size_left > 0) {
-			if(!add_to_vpn_reg(vpn_reg, &vpn_reg_inx, (working_address >> (9 + 12))))
-				return (required_memory_space_t){0, 0, 0, .error = true};
-			if(!regions[i].mapped) ++page_2MB;
-			working_address += 0x200000;
-			if(size_left < 0x200000)
-				size_left = 0;
-			else
-				size_left -= 0x200000;
+	u64 page_amounts[PAGE_SIZE_AMOUNT] = {0};
+
+	for(u8 lvl = 0; lvl <= s_active_vms + 3; ++lvl) {
+		if(vpn_reg_inx > max_vpn_reg_inx) max_vpn_reg_inx = vpn_reg_inx;
+		u64 new_vpn_reg[vpn_reg_size] = {0};
+		u32 new_vpn_reg_inx = 0;
+		for(u32 i = 0; i < vpn_reg_inx; ++i)
+			if(!add_to_vpn_reg(new_vpn_reg, &new_vpn_reg_inx, vpn_reg[i] >> 9, vpn_reg_size))
+				return (required_memory_space_t){{0}, .error = true};
+		page_amounts[PAGE_SIZE_4kB] += new_vpn_reg_inx;
+		for(u64 i = 0; i < regions_amount; ++i) {
+			if(regions[i].ps == lvl) {
+				u64 size_left = regions[i].size;
+				u64 curr_addr = regions[i].addr;
+				const u64 size_dif = 0x1000 << (9 * lvl);
+				while(size_left > 0) {
+					u32 old_inx = new_vpn_reg_inx;
+					if(!add_to_vpn_reg(new_vpn_reg, &new_vpn_reg_inx, curr_addr >> (12 + 9 * lvl), vpn_reg_size))
+						return (required_memory_space_t){{0}, .error = true};
+					if(old_inx == new_vpn_reg_inx) {
+						DEBUG_PRINTF("overaping mem regions, i: %lu page: %lu\n", i,
+									 (curr_addr - regions[i].addr) / size_dif);
+					}
+					if(regions[i].mapped == false) ++page_amounts[lvl];
+					curr_addr += size_dif;
+					if(size_left < size_dif) size_left = size_dif;
+					size_left -= size_dif;
+				}
+			}
 		}
-	}
-	page_4kB += vpn_reg_inx - 1;
-	for(u8 lvl = 2; lvl < s_active_vms + 3; ++lvl) {
-		u64 new_vpn_reg[64] = {0};
-		u8 new_vpn_reg_inx = 0;
-		for(u8 i = 0; i < vpn_reg_inx; ++i)
-			if(!add_to_vpn_reg(new_vpn_reg, &new_vpn_reg_inx, vpn_reg[i] >> 9))
-				return (required_memory_space_t){0, 0, 0, .error = true};
-		page_4kB += new_vpn_reg_inx;
 		vpn_reg_inx = new_vpn_reg_inx;
 		memcpy(vpn_reg, new_vpn_reg, new_vpn_reg_inx * sizeof(u64));
 	}
-	return (required_memory_space_t){.amount_of_4kb_pages = page_4kB,
-									 .amount_of_2Mb_pages = page_2MB,
-									 .total_in_bytes = page_4kB * 0x1000 + page_2MB * 0x200000,
-									 .error = false};
+	required_memory_space_t ret = {{0}, false};
+	memcpy(ret.require_page_amounts, page_amounts, sizeof(page_amounts));
+	DEBUG_PRINTF("calc, max_inx: %u\n", max_vpn_reg_inx);
+	return ret;
 }
 
 u16 initialize_virtual_memory() {
@@ -150,8 +144,7 @@ u16 initialize_virtual_memory() {
 	return asid_max_val;
 }
 
-page_table_meta_t create_page_table(region_t regions[], u64 regions_amount, void* mem_region) {
-	s_page_frame_allocation_region = mem_region;
+ppn_t create_page_table(region_t regions[], u64 regions_amount) {
 	ppn_t root_ppn = get_page_frame(PAGE_SIZE_4kB);
 	memset((root_ppn << 12) + s_ram_start, 0, 0x1000);
 	for(u64 i = 0; i < regions_amount; ++i) {
@@ -159,13 +152,14 @@ page_table_meta_t create_page_table(region_t regions[], u64 regions_amount, void
 		u64 curr_addr = regions[i].addr;
 		u64 map_addr = regions[i].map_address;
 		while(size_left > 0) {
-			ppn_t use_ppn = (regions[i].mapped) ? (map_addr << 12) : get_page_frame(PAGE_SIZE_2MB);
-			page_table_add_entry(root_ppn, PAGE_SIZE_2MB, curr_addr >> 12, use_ppn, 1, 1, 1);
-			if(regions[i].mapped) map_addr += 0x200000;
-			curr_addr += 0x200000;
-			size_left = (size_left < 0x200000) ? 0 : size_left - 0x200000;
+			ppn_t use_ppn = (regions[i].mapped) ? (map_addr >> 12) : get_page_frame(regions[i].ps);
+			page_table_add_entry(root_ppn, regions[i].ps, curr_addr >> 12, use_ppn, 1, 1, 1);
+			const u64 size_dif = 0x1000 << (9 * regions[i].ps);
+			if(regions[i].mapped) map_addr += size_dif;
+			curr_addr += size_dif;
+			if(size_left < size_dif) size_left = size_dif;
+			size_left -= size_dif;
 		}
 	}
-	return (page_table_meta_t){
-		.root_pt_ppn = root_ppn, .used_4kB_pages = s_amount_of_4kB_pages, .used_2MB_pages = s_amount_of_2MB_pages};
+	return root_ppn;
 }

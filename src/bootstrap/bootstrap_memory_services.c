@@ -1,11 +1,11 @@
 #include "bootstrap_memory_services.h"
-#include <stdbigos/string.h>
+
 #include <debug/debug_stdio.h>
+#include <stdbigos/string.h>
 
 error_t allocate_phisical_memory_region(void* dt, phisical_memory_region_t busy_memory_regions[],
 										u64 busy_memory_regions_amount, u64 alocation_size,
 										phisical_memory_region_t* pmrOUT) {
-	DEBUG_PRINTF("WYWOŁAŁO SIE\n");
 	return ERR_NONE;
 }
 
@@ -153,7 +153,7 @@ u64 align_up(u64 val, u64 align) {
 	return (val + align - 1) & ~(align - 1);
 }
 
-//returs aligned load_addr
+// returs aligned load_addr
 void load_elf_segment_at_address(void* elf_img, elf64_program_header_t ph, void* target_addr) {
 	const void* segment_start = elf_img + ph.offset;
 	void* load_addr = target_addr + align_up((u64)(ph.vaddr), ph.align);
@@ -162,34 +162,30 @@ void load_elf_segment_at_address(void* elf_img, elf64_program_header_t ph, void*
 }
 
 error_t load_elf_at_address(void* elf_img, void* target_addr, void** elf_entry_OUT) {
-	if(((u64)target_addr & 0xfff) != 0) { //if targed_addr is not aligned to 4kiB then elf alignemnts will be broken
+	if(((u64)target_addr & 0xfff) != 0) { // if targed_addr is not aligned to 4kiB then elf alignemnts will be broken
 		return ERR_INVALID_ARGUMENT;
 	}
 	const elf64_header_t* header = elf_img;
 	if(header->magic[0] != 0x7f || header->magic[1] != 'E' || header->magic[2] != 'L' || header->magic[3] != 'F') {
 		return ERR_INVALID_ARGUMENT;
 	}
-	if(header->version != 0x01) {
+	if(header->version != 0x01) { return ERR_INVALID_ARGUMENT; }
+	if(header->class != 0x02) {		  // Only elf64 is supported
 		return ERR_INVALID_ARGUMENT;
 	}
-	if(header->class != 0x02) { //Only elf64 is supported
+	if(header->data != 0x01) {		  // Only little-endian is supported
 		return ERR_INVALID_ARGUMENT;
 	}
-	if(header->data != 0x01) { //Only little-endian is supported
+	if(header->machine != EM_RISCV) { // Only riscv is supported
 		return ERR_INVALID_ARGUMENT;
 	}
-	if(header->machine != EM_RISCV) { //Only riscv is supported
-		return ERR_INVALID_ARGUMENT;
-	}
-	if(header->entry == 0) { //ELF doesnt have an entry point
+	if(header->entry == 0) {		  // ELF doesnt have an entry point
 		return ERR_INVALID_ARGUMENT;
 	}
 	*elf_entry_OUT = target_addr + header->entry;
 	const elf64_program_header_t* segment_table = elf_img + header->start_of_program_headers;
 	for(u64 i = 0; i < header->size_of_program_headrs; ++i) {
-		if(segment_table[i].type == PT_LOAD) {
-			load_elf_segment_at_address(elf_img, segment_table[i], target_addr);
-		}
+		if(segment_table[i].type == PT_LOAD) { load_elf_segment_at_address(elf_img, segment_table[i], target_addr); }
 	}
 	return ERR_NONE;
 }

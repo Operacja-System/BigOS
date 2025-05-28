@@ -12,7 +12,7 @@ SECTIONS {
 		PROVIDE(bss_start = .);
 		*(.bss);
 	    *(COMMON);
-		. += 4096;
+		. += 0x200000;
 		PROVIDE(stack_top = .);
 		PROVIDE(global_pointer = .);
 		PROVIDE(bss_end = .);

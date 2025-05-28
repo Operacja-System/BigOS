@@ -10,7 +10,6 @@ extern unsigned char _binary_kernel_start[];
 extern unsigned char _binary_kernel_end[];
 extern size_t _binary_kernel_size;
 
-
 extern void __executable_start;
 extern void _DYNAMIC;
 
@@ -22,8 +21,8 @@ static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 
 [[noreturn]] void kbootstrap(u64 load_address, u64 load_size, u64 dt_ppn) {
 	const size_t kernel_size = (uintptr_t)_binary_kernel_end - (uintptr_t)_binary_kernel_start;
-	u64 ram_start = 0x80000000;	 // TODO: Read from DT
-	u64 ram_size_GB = 1; // TODO: Read from DT
+	u64 ram_start = 0x80000000; // TODO: Read from DT
+	u64 ram_size_GB = 1;		// TODO: Read from DT
 	u64 ram_size = ram_size_GB * 0x40000000;
 	void* device_tree = (void*)(dt_ppn << 12) + ram_start;
 
@@ -61,35 +60,42 @@ static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 	}
 	ram_map_addr = heap_addr - ram_size;
 
-	phisical_memory_region_t kernel_pmr = {0};
+	phisical_memory_region_t busy_mem_regions[PAGE_SIZE_AMOUNT + 1] = {0};
+	phisical_memory_region_t* kernel_pmr = &busy_mem_regions[0];
 	error_t pmr_alloc_err = ERR_NONE;
-	pmr_alloc_err = allocate_phisical_memory_region(device_tree, nullptr, 0, kernel_size, &kernel_pmr);
+	pmr_alloc_err = allocate_phisical_memory_region(device_tree, nullptr, 0, kernel_size, 0x200000, kernel_pmr);
 	if(pmr_alloc_err != ERR_NONE) PANIC("Failed to find free space for kernel image");
 
-	*heap_region = (region_t){.addr = heap_addr, .size = 32 * 0x200000, .mapped = false, .map_address = 0};
-	*ident_region = (region_t){.addr = ram_start, .size = ram_size, .mapped = true, .map_address = ram_start};
-	*stack_region = (region_t){.addr = stack_addr, .size = 32 * 0x200000, .mapped = false, .map_address = 0};
-	*kernel_region = (region_t){.addr = text_addr, .size = kernel_size, .mapped = false, .map_address = 0};
-	*ram_map_region = (region_t){.addr = ram_map_addr, .size = ram_size, .mapped = true, .map_address = ram_start};
+	*heap_region =
+		(region_t){.addr = heap_addr, .size = 32 * 0x200000, .mapped = false, .map_address = 0, .ps = PAGE_SIZE_2MB};
+	*ident_region =
+		(region_t){.addr = ram_start, .size = ram_size, .mapped = true, .map_address = ram_start, .ps = PAGE_SIZE_1GB};
+	*stack_region =
+		(region_t){.addr = stack_addr, .size = 32 * 0x200000, .mapped = false, .map_address = 0, .ps = PAGE_SIZE_2MB};
+	*kernel_region =
+		(region_t){.addr = text_addr, .size = kernel_size, .mapped = false, .map_address = 0, .ps = PAGE_SIZE_2MB};
+	*ram_map_region = (region_t){
+		.addr = ram_map_addr, .size = ram_size, .mapped = true, .map_address = ram_start, .ps = PAGE_SIZE_1GB};
 
 	required_memory_space_t mem_reg = calc_required_memory_for_page_table(regions, sizeof(regions) / sizeof(regions[0]));
 	if(mem_reg.error) PANIC("calculation of required memory space for page table failed");
 
-	//TEST:
-	
-	DEBUG_PRINTF("memory required for page table: %lu\n\tthis includes:\n\t\t%lu 4kiB pages\n\t\t%lu 2MiB pages\n", mem_reg.total_in_bytes, mem_reg.amount_of_4kb_pages, mem_reg.amount_of_2Mb_pages);
+	phisical_memory_region_t free_mem_region[PAGE_SIZE_AMOUNT] = {0};
 
-	//!TEST
+	for(u8 i = 0; i < PAGE_SIZE_AMOUNT; ++i) {
+		if(mem_reg.require_page_amounts[i] != 0) {
+			pmr_alloc_err = allocate_phisical_memory_region(
+				device_tree, busy_mem_regions, sizeof(busy_mem_regions) / sizeof(busy_mem_regions[0]),
+				mem_reg.require_page_amounts[i] * (0x1000 << (9 * i)), (0x1000 << (9 * i)), &busy_mem_regions[i + 1]);
+			if(pmr_alloc_err != ERR_NONE) PANIC("Failed to find free space for page table");
+		}
+	}
 
-	phisical_memory_region_t free_mem_region = {0};
-	pmr_alloc_err =
-		allocate_phisical_memory_region(device_tree, &kernel_pmr, 1, mem_reg.total_in_bytes, &free_mem_region);
-	if(pmr_alloc_err != ERR_NONE) PANIC("Failed to find free space for page table");
-
-	page_table_meta_t ptm = create_page_table(regions, sizeof(regions) / sizeof(regions[0]), free_mem_region.address);
+	page_table_meta_t ptm = create_page_table(regions, sizeof(regions) / sizeof(regions[0]));
 	void* kernel_entry_point_addr = nullptr;
-	const error_t elf_loading_err = load_elf_at_address(_binary_kernel_start, kernel_pmr.address, &kernel_entry_point_addr);
+	const error_t elf_loading_err =
+		load_elf_at_address(_binary_kernel_start, kernel_pmr.address, &kernel_entry_point_addr);
 	if(elf_loading_err != ERR_NONE) PANIC("Failed to load kernel elf");
-	((void(*)(void))kernel_entry_point_addr)(); //HACK:
+	((void (*)(void))kernel_entry_point_addr)(); // HACK:
 	PANIC("Kernel returned to kboot (this should never happen)");
 }
