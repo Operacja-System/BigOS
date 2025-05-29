@@ -2,6 +2,7 @@
 #define __BOOTSTRAP_BOOTSTRAP_PAGE_TALBE_H__
 
 #include <stdbigos/error.h>
+
 #include "bootstrap_memory_services.h"
 #include "virtual_memory/mm_common.h"
 
@@ -18,8 +19,8 @@ typedef struct {
 	bool error;
 } required_memory_space_t;
 
-void init_boot_page_table_managment(virtual_memory_scheme_t vms, void* ram_start);
-void set_page_memory_regions(phisical_memory_region_t* mem_regions);
+void init_boot_page_table_managment(virtual_memory_scheme_t vms);
+void set_page_memory_regions(phisical_memory_region_t mem_regions[5]);
 [[nodiscard]] required_memory_space_t calc_required_memory_for_page_table(region_t* regions, u64 regions_amount);
 [[nodiscard]] u16 initialize_virtual_memory();
 [[nodiscard]] ppn_t get_page_frame(page_size_t ps);

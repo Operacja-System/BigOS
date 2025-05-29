@@ -3,10 +3,68 @@
 #include <debug/debug_stdio.h>
 #include <stdbigos/string.h>
 
+u64 align_up(u64 val, u64 align) {
+	return (val + align - 1) & ~(align - 1);
+}
+
+static void* s_mem_start = nullptr;
+static u64 s_mem_size = 0;
+
+void set_ram_params(void* ram_start, u64 ram_size) {
+	s_mem_start = ram_start;
+	s_mem_size = ram_size;
+}
+
+void* get_ram_start() {
+	return s_mem_start;
+}
+
+u64 get_ram_size() {
+	return s_mem_size;
+}
+
+// This shouldn't be here
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
+// I know this algorithm is very naive, but busy_memory_regions_amount most likely won't exceed 6
 error_t allocate_phisical_memory_region(void* dt, phisical_memory_region_t busy_memory_regions[],
-										u64 busy_memory_regions_amount, u64 alocation_size,
+										u64 busy_memory_regions_amount, u64 allocation_size, u64 aligment,
 										phisical_memory_region_t* pmrOUT) {
-	return ERR_NONE;
+	u64 unavalible_regions_in_dt_amount = 0;
+	u64 unavalible_regions_amount = 0;
+	//TEST:
+	unavalible_regions_in_dt_amount = 1;
+	//!TEST
+	phisical_memory_region_t unavalible_regions[unavalible_regions_in_dt_amount + busy_memory_regions_amount];
+	if(busy_memory_regions)
+		memcpy(unavalible_regions, busy_memory_regions, busy_memory_regions_amount * sizeof(phisical_memory_region_t));
+	// TODO: read the rest of the unavalible memory regions from the dt
+	//TEST:
+	unavalible_regions[busy_memory_regions_amount] = (phisical_memory_region_t){.address = (void*)0x80000000, .size = 160 * 1024};
+	//!TEST
+	unavalible_regions_amount = unavalible_regions_in_dt_amount + busy_memory_regions_amount;
+
+	void* curr_addr = (void*)align_up((u64)get_ram_start(), aligment);
+
+	while((curr_addr + allocation_size) < (get_ram_start() + get_ram_size())) {
+		bool overlap = false;
+		for(u64 i = 0; i < unavalible_regions_amount; ++i) {
+			void* region_start = unavalible_regions[i].address;
+			void* region_end = unavalible_regions[i].address + unavalible_regions[i].size;
+			if(MAX(curr_addr, region_start) < MIN(curr_addr + allocation_size, region_end)) {
+				curr_addr = region_end;
+				curr_addr = (void*)align_up((u64)curr_addr, aligment);
+				overlap = true;
+				break;
+			}
+		}
+		if(!overlap) {
+			*pmrOUT = (phisical_memory_region_t){.address = curr_addr, .size = allocation_size};
+			return ERR_NONE;
+		}
+	}
+	return ERR_PHISICAL_MEMORY_FULL;
 }
 
 typedef enum : u8 {
@@ -149,12 +207,7 @@ typedef struct [[gnu::packed]] {
 	u64 entry_size;
 } elf64_section_header;
 
-u64 align_up(u64 val, u64 align) {
-	return (val + align - 1) & ~(align - 1);
-}
-
-// returs aligned load_addr
-void load_elf_segment_at_address(void* elf_img, elf64_program_header_t ph, void* target_addr) {
+static void load_elf_segment_at_address(void* elf_img, elf64_program_header_t ph, void* target_addr) {
 	const void* segment_start = elf_img + ph.offset;
 	void* load_addr = target_addr + align_up((u64)(ph.vaddr), ph.align);
 	memcpy(load_addr, segment_start, ph.filesz);
