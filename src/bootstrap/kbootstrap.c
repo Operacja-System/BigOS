@@ -20,14 +20,21 @@ extern void _DYNAMIC;
 static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 
 [[noreturn]] void kbootstrap(u64 load_address, u64 load_size, u64 dt_ppn) {
+
+    void* sp;
+    __asm__ volatile ("mv %0, sp" : "=r"(sp));
+	DEBUG_PRINTF("sp: %lx\n", (u64)sp);
+
+
 	const size_t kernel_size = (uintptr_t)_binary_kernel_end - (uintptr_t)_binary_kernel_start;
 	u64 ram_start = 0x80000000; // TODO: Read from DT
 	u64 ram_size_GB = 1;		// TODO: Read from DT
 	u64 ram_size = ram_size_GB * 0x40000000;
 	void* device_tree = (void*)(dt_ppn << 12) + ram_start;
 
-	init_boot_page_table_managment(TARGET_VMS, (void*)ram_start);
-	initialize_virtual_memory();
+	init_boot_page_table_managment(TARGET_VMS);
+	u16 asid_max = initialize_virtual_memory();
+	set_ram_params((void*)ram_start, ram_size);
 
 	region_t regions[5] = {0};
 	region_t* stack_region = &regions[0];
@@ -80,21 +87,21 @@ static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 	required_memory_space_t mem_reg = calc_required_memory_for_page_table(regions, sizeof(regions) / sizeof(regions[0]));
 	if(mem_reg.error) PANIC("calculation of required memory space for page table failed");
 
-	phisical_memory_region_t free_mem_region[PAGE_SIZE_AMOUNT] = {0};
-
 	for(u8 i = 0; i < PAGE_SIZE_AMOUNT; ++i) {
 		if(mem_reg.require_page_amounts[i] != 0) {
-			pmr_alloc_err = allocate_phisical_memory_region(
-				device_tree, busy_mem_regions, sizeof(busy_mem_regions) / sizeof(busy_mem_regions[0]),
-				mem_reg.require_page_amounts[i] * (0x1000 << (9 * i)), (0x1000 << (9 * i)), &busy_mem_regions[i + 1]);
+			pmr_alloc_err = allocate_phisical_memory_region(device_tree, busy_mem_regions, 1 + i,
+															mem_reg.require_page_amounts[i] * (0x1000 << (9 * i)),
+															(0x1000 << (9 * i)), &busy_mem_regions[i + 1]);
 			if(pmr_alloc_err != ERR_NONE) PANIC("Failed to find free space for page table");
 		}
 	}
 
-	page_table_meta_t ptm = create_page_table(regions, sizeof(regions) / sizeof(regions[0]));
+	set_page_memory_regions(&busy_mem_regions[1]);
+	ppn_t root_ppn = create_page_table(regions, sizeof(regions) / sizeof(regions[0]));
+	DEBUG_PRINTF("[ ] Bootstrap page table was created successfully\n");
 	void* kernel_entry_point_addr = nullptr;
 	const error_t elf_loading_err =
-		load_elf_at_address(_binary_kernel_start, kernel_pmr.address, &kernel_entry_point_addr);
+		load_elf_at_address(_binary_kernel_start, kernel_pmr->address, &kernel_entry_point_addr);
 	if(elf_loading_err != ERR_NONE) PANIC("Failed to load kernel elf");
 	((void (*)(void))kernel_entry_point_addr)(); // HACK:
 	PANIC("Kernel returned to kboot (this should never happen)");
