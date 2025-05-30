@@ -52,36 +52,31 @@ ppn_t get_page_frame(page_size_t ps) {
 }
 
 static void page_table_add_entry(u64 root_pt_ppn, page_size_t ps, vpn_t vpn, ppn_t ppn, bool R, bool W, bool X) {
-	vpn >>= 12;
-	const u16 vpn_slice[5] = {
-		(vpn >> (9 * 0)) & 0x1ffu, (vpn >> (9 * 1)) & 0x1ffu, (vpn >> (9 * 2)) & 0x1ffu,
-		(vpn >> (9 * 3)) & 0x1ffu, (vpn >> (9 * 4)) & 0x1ffu,
+	u16 vpn_slice[5] = {
+		(vpn >> 9 * 0) & 0x1ff,
+		(vpn >> 9 * 1) & 0x1ff,
+		(vpn >> 9 * 2) & 0x1ff,
+		(vpn >> 9 * 3) & 0x1ff,
+		(vpn >> 9 * 4) & 0x1ff,
 	};
-	u64* curr_pte = (void*)(root_pt_ppn << 12);
-	for(i8 level = s_active_vms + 2; level >= ps; --level) {
-		u8 flags;
-		ppn_t curr_ppn = 0;
-		read_page_table_entry(*curr_pte, &flags, nullptr, &curr_ppn);
-		curr_pte = &(*(u64(*)[512])((curr_ppn << 12)))[vpn_slice[level]];
-		ppn_t new_ppn = 0;
-		if(level == ps)
-			new_ppn = ppn;
-		else if (flags & PTEF_V) {
-			curr_pte = (void*)(curr_ppn << 12); 
-			continue;
+	u64 (*current_page)[512] = (u64(*)[512])(root_pt_ppn << 12);
+	for(i8 lvl = s_active_vms + 2; lvl >= ps; --lvl) {
+		u8 flags = 0;
+		ppn_t current_ppn = 0;
+		u64* current_pte = &(*current_page)[vpn_slice[lvl]];
+		read_page_table_entry(*current_pte, &flags, nullptr, &current_ppn);
+		if((flags & PTEF_V) == 0) {
+			current_ppn = get_page_frame(PAGE_SIZE_4kB);
+			memset((void*)(current_ppn << 12), 0, 0x1000);
+			*current_pte = create_page_table_entry(PTEF_V | PTEF_G, 0, current_ppn);
 		}
-		else {
-			new_ppn = get_page_frame(PAGE_SIZE_4kB);
-			memset((void*)(new_ppn << 12), 0, 0x1000);
-		}
-		u8 access_perms = 0;
-		if(level == ps) {
-			if(R) access_perms |= PTEF_R;
-			if(W) access_perms |= PTEF_W;
-			if(X) access_perms |= PTEF_X;
-		}
-		*curr_pte = create_page_table_entry(PTEF_V | PTEF_G | access_perms, 0, new_ppn);
+		current_page = (u64(*)[512])(current_ppn << 12);
 	}
+	u8 flags = PTEF_V | PTEF_G;
+	if(R) flags |= PTEF_R;
+	if(W) flags |= PTEF_W;
+	if(X) flags |= PTEF_X;
+	(*current_page)[vpn_slice[ps]] = create_page_table_entry(flags, 0, ppn);
 }
 
 //===============================
@@ -95,9 +90,9 @@ void init_boot_page_table_managment(virtual_memory_scheme_t vms) {
 void set_page_memory_regions(phisical_memory_region_t mem_regions[5]) {
 	memcpy(s_page_mem_regs, mem_regions, 5 * sizeof(phisical_memory_region_t));
 	const char* page_names[] = {"kilo", "mega", "giga", "tera", "peta"};
-	DEBUG_PRINTF("[ ] page memory region set:\n");
+	DEBUG_PRINTF("[i] page memory region set:\n");
 	for(u8 i = 0; i < 5; ++i) {
-		DEBUG_PRINTF("\t[ ] %s page to: %lx, size: %lu\n", page_names[i], (u64)mem_regions[i].address,
+		DEBUG_PRINTF("\t[i] %s page to: %lx, size: %lu\n", page_names[i], (u64)mem_regions[i].address,
 					 mem_regions[i].size);
 	}
 }
