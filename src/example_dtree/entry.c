@@ -1,7 +1,5 @@
-#include <drivers/console.h>
 #include <drivers/dt/dt.h>
 #include <drivers/dt/dt_props.h>
-#include <drivers/uart.h>
 #include <stdbigos/bitutils.h>
 #include <stdbigos/buffer.h>
 #include <stdbigos/sbi.h>
