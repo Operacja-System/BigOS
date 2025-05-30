@@ -20,12 +20,6 @@ extern void _DYNAMIC;
 static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 
 [[noreturn]] void kbootstrap(u64 load_address, u64 load_size, u64 dt_ppn) {
-
-    void* sp;
-    __asm__ volatile ("mv %0, sp" : "=r"(sp));
-	DEBUG_PRINTF("sp: %lx\n", (u64)sp);
-
-
 	const size_t kernel_size = (uintptr_t)_binary_kernel_end - (uintptr_t)_binary_kernel_start;
 	u64 ram_start = 0x80000000; // TODO: Read from DT
 	u64 ram_size_GB = 1;		// TODO: Read from DT
@@ -33,7 +27,7 @@ static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 	void* device_tree = (void*)(dt_ppn << 12) + ram_start;
 
 	init_boot_page_table_managment(TARGET_VMS);
-	u16 asid_max = initialize_virtual_memory();
+	//u16 asid_max = initialize_virtual_memory();
 	set_ram_params((void*)ram_start, ram_size);
 
 	region_t regions[5] = {0};
@@ -98,7 +92,7 @@ static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 
 	set_page_memory_regions(&busy_mem_regions[1]);
 	ppn_t root_ppn = create_page_table(regions, sizeof(regions) / sizeof(regions[0]));
-	DEBUG_PRINTF("[ ] Bootstrap page table was created successfully\n");
+	DEBUG_PRINTF("[✔] Bootstrap page table was created successfully\n");
 	void* kernel_entry_point_addr = nullptr;
 	const error_t elf_loading_err =
 		load_elf_at_address(_binary_kernel_start, kernel_pmr->address, &kernel_entry_point_addr);
