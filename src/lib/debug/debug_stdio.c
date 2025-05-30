@@ -1,8 +1,6 @@
 #include <debug/debug_stdio.h>
-#include <drivers/uart.h>
 #include <stdarg.h>
 #include <stdbigos/stdio.h>
-#include <stdbigos/string.h>
 
 static volatile unsigned char* uart = (volatile unsigned char*)0x10000000;
 
@@ -32,12 +30,11 @@ void dprintf(const char* fmt, ...) {
 }
 
 static char* uart_output_handler(const char* buf, void* user, int len) {
-	while (len--) putc_uart(*buf++);
+	while (len--) dputc(*buf++);
 	return (char*)user;
 }
 
-// by u i mean "uart"
-void uprintf(const char* fmt, ...) {
+void dprintf(const char* fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	char buf[STB_SPRINTF_MIN];
