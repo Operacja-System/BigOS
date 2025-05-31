@@ -51,7 +51,7 @@ error_t allocate_page_frame(page_size_t page_size, ppn_t* ppnOUT) {
 				max_inx = j;
 			}
 		}
-		if(max == -1) return ERR_PHISICAL_MEMORY_FULL;
+		if(max == -1) return ERR_PHYSICAL_MEMORY_FULL;
 		max_inx <<= 9;
 	}
 	if(page_size != 0) {
@@ -101,6 +101,6 @@ error_t free_page_frame(ppn_t ppn) {
 	return ERR_CRITICAL_INTERNAL_FAILURE;
 }
 
-error_t set_phisical_memory_region_busy(ppn_t ppn, u64 size_in_bytes) { // TODO:
+error_t set_physical_memory_region_busy(ppn_t ppn, u64 size_in_bytes) { // TODO:
 	return ERR_NONE;
 }
