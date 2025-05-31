@@ -3,6 +3,7 @@
 #include <debug/debug_stdio.h>
 #include <stdbigos/string.h>
 
+// TODO: This shouldn't be here
 u64 align_up(u64 val, u64 align) {
 	return (val + align - 1) & ~(align - 1);
 }
@@ -23,48 +24,49 @@ u64 get_ram_size() {
 	return s_mem_size;
 }
 
-// This shouldn't be here
+// TODO: This also shouldn't be here
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
-// I know this algorithm is very naive, but busy_memory_regions_amount most likely won't exceed 6
-error_t allocate_phisical_memory_region(void* dt, phisical_memory_region_t busy_memory_regions[],
-										u64 busy_memory_regions_amount, u64 allocation_size, u64 aligment,
-										phisical_memory_region_t* pmrOUT) {
-	u64 unavalible_regions_in_dt_amount = 0;
-	u64 unavalible_regions_amount = 0;
+// I know this algorithm is very naive, but busy memory regions amount most likely won't exceed 6
+error_t allocate_physical_memory_region(void* dt, u64 size, u64 align, physical_memory_region_t* pmrOUT) {
+	static physical_memory_region_t allocated_memory_regions[16] = {0};
+	static u64 allocated_regions_end_idx = 0;
+	if(allocated_regions_end_idx >= sizeof(allocated_memory_regions) / sizeof(allocated_memory_regions[0]))
+		return ERR_CRITICAL_INTERNAL_FAILURE;
 	//TEST:
-	unavalible_regions_in_dt_amount = 1;
+	u64 unavaliable_regions_amount = 0;
+	unavaliable_regions_amount = 1;
+	physical_memory_region_t unavaliable_regions[unavaliable_regions_amount];
+	unavaliable_regions[0] = (physical_memory_region_t){.address = (void*)0x80000000, .size = 160 * kiB};
+	// TODO: read the rest of the unavalible memory regions and the region of kboot from the dt
 	//!TEST
-	phisical_memory_region_t unavalible_regions[unavalible_regions_in_dt_amount + busy_memory_regions_amount];
-	if(busy_memory_regions)
-		memcpy(unavalible_regions, busy_memory_regions, busy_memory_regions_amount * sizeof(phisical_memory_region_t));
-	// TODO: read the rest of the unavalible memory regions from the dt
-	//TEST:
-	unavalible_regions[busy_memory_regions_amount] = (phisical_memory_region_t){.address = (void*)0x80000000, .size = 160 * 1024};
-	//!TEST
-	unavalible_regions_amount = unavalible_regions_in_dt_amount + busy_memory_regions_amount;
+	void* curr_region_start = (void*)align_up((u64)get_ram_start(), align);
 
-	void* curr_addr = (void*)align_up((u64)get_ram_start(), aligment);
-
-	while((curr_addr + allocation_size) < (get_ram_start() + get_ram_size())) {
+	physical_memory_region_t* busy_regions_ptrs[] = {allocated_memory_regions, unavaliable_regions};
+	u64 busy_regions_sizes[] = {allocated_regions_end_idx, unavaliable_regions_amount};
+	while((curr_region_start + size) < (get_ram_start() + get_ram_size())) {
 		bool overlap = false;
-		for(u64 i = 0; i < unavalible_regions_amount; ++i) {
-			void* region_start = unavalible_regions[i].address;
-			void* region_end = unavalible_regions[i].address + unavalible_regions[i].size;
-			if(MAX(curr_addr, region_start) < MIN(curr_addr + allocation_size, region_end)) {
-				curr_addr = region_end;
-				curr_addr = (void*)align_up((u64)curr_addr, aligment);
-				overlap = true;
-				break;
+		for(u64 reg_idx = 0; reg_idx < sizeof(busy_regions_ptrs) / sizeof(busy_regions_ptrs[0]); ++reg_idx) {
+			for(u64 i = 0; i < busy_regions_sizes[reg_idx]; ++i) {
+				void* busy_region_start = busy_regions_ptrs[reg_idx][i].address;
+				void* busy_region_end = busy_regions_ptrs[reg_idx][i].address + busy_regions_ptrs[reg_idx][i].size;
+				if(MAX(curr_region_start, busy_region_start) < MIN(curr_region_start + size, busy_region_end)) {
+					curr_region_start = busy_region_end;
+					curr_region_start = (void*)align_up((u64)curr_region_start, align);
+					overlap = true;
+					break;
+				}
 			}
+			if(overlap) break;
 		}
 		if(!overlap) {
-			*pmrOUT = (phisical_memory_region_t){.address = curr_addr, .size = allocation_size};
+			*pmrOUT = (physical_memory_region_t){.address = curr_region_start, .size = size};
+			allocated_memory_regions[allocated_regions_end_idx++] = *pmrOUT;
 			return ERR_NONE;
 		}
 	}
-	return ERR_PHISICAL_MEMORY_FULL;
+	return ERR_PHYSICAL_MEMORY_FULL;
 }
 
 typedef enum : u8 {
@@ -215,30 +217,24 @@ static void load_elf_segment_at_address(void* elf_img, elf64_program_header_t ph
 }
 
 error_t load_elf_at_address(void* elf_img, void* target_addr, void** elf_entry_OUT) {
-	if(((u64)target_addr & 0xfff) != 0) { // if targed_addr is not aligned to 4kiB then elf alignemnts will be broken
-		return ERR_INVALID_ARGUMENT;
-	}
 	const elf64_header_t* header = elf_img;
-	if(header->magic[0] != 0x7f || header->magic[1] != 'E' || header->magic[2] != 'L' || header->magic[3] != 'F') {
+	if(((u64)target_addr & 0xfff) != 0) // if targed_addr is not aligned to 4kiB then elf alignments will be broken
 		return ERR_INVALID_ARGUMENT;
-	}
-	if(header->version != 0x01) { return ERR_INVALID_ARGUMENT; }
-	if(header->class != 0x02) {		  // Only elf64 is supported
+	if(header->magic[0] != 0x7f || header->magic[1] != 'E' || header->magic[2] != 'L' || header->magic[3] != 'F')
 		return ERR_INVALID_ARGUMENT;
-	}
-	if(header->data != 0x01) {		  // Only little-endian is supported
+	if(header->version != 0x01) return ERR_INVALID_ARGUMENT;
+	if(header->class != 0x02)		// Only elf64 is supported
 		return ERR_INVALID_ARGUMENT;
-	}
-	if(header->machine != EM_RISCV) { // Only riscv is supported
+	if(header->data != 0x01)		// Only little-endian is supported
 		return ERR_INVALID_ARGUMENT;
-	}
-	if(header->entry == 0) {		  // ELF doesnt have an entry point
+	if(header->machine != EM_RISCV) // Only riscv is supported
 		return ERR_INVALID_ARGUMENT;
-	}
+	if(header->entry == 0)			// ELF doesnt have an entry point
+		return ERR_INVALID_ARGUMENT;
 	*elf_entry_OUT = target_addr + header->entry;
 	const elf64_program_header_t* segment_table = elf_img + header->start_of_program_headers;
 	for(u64 i = 0; i < header->size_of_program_headrs; ++i) {
-		if(segment_table[i].type == PT_LOAD) { load_elf_segment_at_address(elf_img, segment_table[i], target_addr); }
+		if(segment_table[i].type == PT_LOAD) load_elf_segment_at_address(elf_img, segment_table[i], target_addr);
 	}
 	return ERR_NONE;
 }
