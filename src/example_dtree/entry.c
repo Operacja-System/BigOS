@@ -49,12 +49,12 @@ void main([[maybe_unused]] u32 hartid, const void* fdt) {
 	u32 blob_size = read_be32((const u8*)fdt + 4);
 	buffer_t buf = make_buffer(fdt, blob_size);
 
-	if (dt_init(buf) < 0) {
+	if (dt_init(buf, ENDIAN_LITTLE) < 0) {
 		sbi_puts("DT_INIT FAILED\n");
 		return;
 	}
 
-	struct dt_node* root = dt_get_root();
+	dt_node_t* root = dt_get_root();
 	if (!root) {
 		sbi_puts("GETTING ROOT FAILED\n");
 		return;
@@ -62,7 +62,7 @@ void main([[maybe_unused]] u32 hartid, const void* fdt) {
 
 	// Showcasing that values and finding work
 	const char* uart_path = "/soc/serial@10000000";
-	struct dt_node* uart = dt_node_find(uart_path);
+	dt_node_t* uart = dt_node_find(uart_path);
 	if (!uart) {
 		sbi_puts("UART node not found\n");
 	} else {

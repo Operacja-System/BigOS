@@ -15,9 +15,9 @@ void dt_print_props(const dt_node_t* node, u8 depth);
 void dt_print_tree(const dt_node_t* node, u8 depth);
 
 // Print the node's properties
-void dt_print_props(const struct dt_node* node, u8 depth);
+void dt_print_props(const dt_node_t* node, u8 depth);
 
 // Print the entire subtree with properties
-void dt_print_tree(const struct dt_node* node, u8 depth);
+void dt_print_tree(const dt_node_t* node, u8 depth);
 
 #endif
