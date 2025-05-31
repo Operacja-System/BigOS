@@ -9,26 +9,29 @@
 #include "dt_node.h"
 
 // FDT token values
-#define FDT_BEGIN_NODE 0x1
-#define FDT_END_NODE   0x2
-#define FDT_PROP       0x3
-#define FDT_NOP        0x4
-#define FDT_END        0x9
+typedef enum FdtToken : u32 {
+	FDT_BEGIN_NODE = 0x1,
+	FDT_END_NODE = 0x2,
+	FDT_PROP = 0x3,
+	FDT_NOP = 0x4,
+	// Unused/Reserved 0x5 - 0x8
+	FDT_END = 0x9
+} FdtToken;
 
 // Function to parse a block of properties starting at props_offset with props_size size in the FDT with fdt
 // being a ptr to the start of the flattened device tree blob
-struct dt_prop* parse_props(buffer_t* fdt_buf, u32 props_offset, u32 props_size, u32 str_offset) {
+dt_prop_t* parse_props(buffer_t* fdt_buf, u32 props_offset, u32 props_size, u32 str_offset) {
 	u32 curr_offset = props_offset;
 
-	struct dt_prop* head = nullptr;
-	struct dt_prop** pp = &head;
+	dt_prop_t* head = nullptr;
+	dt_prop_t** pp = &head;
 
 	while (curr_offset < props_offset + props_size) {
 		u32 tag;
 		buffer_read_u32_be(fdt_buf, curr_offset, &tag);
 
 		// Because of the separation of parsing properties and nodes, we don't want to parse non-properties
-		if (tag != FDT_PROP)
+		if ((FdtToken)tag != FDT_PROP)
 			break;
 
 		curr_offset += 4;
@@ -38,7 +41,7 @@ struct dt_prop* parse_props(buffer_t* fdt_buf, u32 props_offset, u32 props_size,
 		u32 name_offset;
 		buffer_read_u32_be(fdt_buf, curr_offset, &name_offset);
 		curr_offset += 4;
-		struct dt_prop* new_prop = dt_alloc(sizeof(*new_prop));
+		dt_prop_t* new_prop = dt_alloc(sizeof(*new_prop));
 		new_prop->data_length = len;
 		new_prop->next_prop = nullptr;
 
@@ -54,14 +57,14 @@ struct dt_prop* parse_props(buffer_t* fdt_buf, u32 props_offset, u32 props_size,
 		*pp = new_prop;
 		pp = &new_prop->next_prop;
 
-		curr_offset = alignN(curr_offset + len, 4);
+		curr_offset = alignu32(curr_offset + len, 4);
 	}
 	return head;
 }
 
 // Function to recursively parse a subtree at the given offset
-struct dt_node* parse_subtree(buffer_t* fdt_buf, u32* offset, u32 max_offset, u32 str_offset, struct dt_node* parent) {
-	struct dt_node* node = dt_alloc(sizeof(*node));
+dt_node_t* parse_subtree(buffer_t* fdt_buf, u32* offset, u32 max_offset, u32 str_offset, dt_node_t* parent) {
+	dt_node_t* node = dt_alloc(sizeof(*node));
 
 	if (!node)
 		return nullptr;
@@ -76,7 +79,7 @@ struct dt_node* parse_subtree(buffer_t* fdt_buf, u32* offset, u32 max_offset, u3
 
 	u32 tag;
 
-	if (buffer_read_u32_be(fdt_buf, curr_offset - 4, &tag) != BUFFER_OK || tag != FDT_BEGIN_NODE)
+	if (buffer_read_u32_be(fdt_buf, curr_offset - 4, &tag) != BUFFER_OK || (FdtToken)tag != FDT_BEGIN_NODE)
 		return nullptr;
 
 	const char* name;
@@ -89,41 +92,41 @@ struct dt_node* parse_subtree(buffer_t* fdt_buf, u32* offset, u32 max_offset, u3
 
 	node->name = name;
 
-	curr_offset = alignN(curr_offset + name_len, 4);
+	curr_offset = alignu32(curr_offset + name_len, 4);
 
 	u32 props_off = curr_offset;
 	while (curr_offset < max_offset) {
 		u32 tag;
 		buffer_read_u32_be(fdt_buf, curr_offset, &tag);
-		if (tag != FDT_PROP)
+		if ((FdtToken)tag != FDT_PROP)
 			break;
 
 		u32 p_len;
 		buffer_read_u32_be(fdt_buf, curr_offset + 4, &p_len);
 
 		curr_offset += 12; // Skip tag, length, name_offset
-		curr_offset = alignN(curr_offset + p_len, 4);
+		curr_offset = alignu32(curr_offset + p_len, 4);
 	}
 	u32 props_len = curr_offset - props_off;
 
 	node->props = parse_props(fdt_buf, props_off, props_len, str_offset);
 
-	curr_offset = alignN(props_off + props_len, 4);
+	curr_offset = alignu32(props_off + props_len, 4);
 
 	while (curr_offset < max_offset) {
 		u32 tag;
 		buffer_read_u32_be(fdt_buf, curr_offset, &tag);
 
 		curr_offset += 4;
-		switch (tag) {
+		switch ((FdtToken)tag) {
 		case FDT_BEGIN_NODE:
-			struct dt_node* child = parse_subtree(fdt_buf, &curr_offset, max_offset, str_offset, node);
+			dt_node_t* child = parse_subtree(fdt_buf, &curr_offset, max_offset, str_offset, node);
 
 			if (child) {
 				if (!node->first_child)
 					node->first_child = child;
 				else {
-					struct dt_node* next = node->first_child;
+					dt_node_t* next = node->first_child;
 					while (next->next_sibling) {
 						next = next->next_sibling;
 					}

@@ -3,10 +3,12 @@
 
 #include <stdbigos/types.h>
 
+#include "dt_node.h"
+
 #define DT_ARENA_SIZE 32760
 extern u8 dt_arena_buffer[DT_ARENA_SIZE];
 
-extern struct dt_node* root_node;
+extern dt_node_t* root_node;
 
 // Initialize the arena allocator with the start ptr at the start of the memory block of size bytes for allocations
 int dt_arena_init(void* start, u32 size);

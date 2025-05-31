@@ -4,10 +4,9 @@
 #include <stdbigos/buffer.h>
 #include <stdbigos/types.h>
 
-// Arena
+// Arena proper
 u8 dt_arena_buffer[DT_ARENA_SIZE];
 
-// Ptr to start of arena area
 static u32* arena_start = nullptr;
 
 // Arena size in bytes
@@ -33,7 +32,7 @@ void* dt_alloc(u32 size) {
 		return nullptr;
 
 	// Align to 4 bytes
-	u32 align = alignN(size, 4);
+	u32 align = alignu32(size, 4);
 
 	if (arena_offset + align > arena_size)
 		return nullptr;

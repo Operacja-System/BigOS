@@ -5,7 +5,7 @@
 #include "dt_alloc.h"
 #include "dt_parser.h"
 
-struct dt_node* root_node = nullptr;
+dt_node_t* root_node = nullptr;
 
 #define FDT_MAGIC                 0xd00dfeed
 #define FDT_OFF_MAGIC             0x00
@@ -19,7 +19,8 @@ struct dt_node* root_node = nullptr;
 #define FDT_OFF_SIZE_DT_STRINGS   0x20
 #define FDT_OFF_SIZE_DT_STRUCT    0x24
 
-int dt_init(buffer_t fdt_buf) {
+// HACK: WARNING, the handling on big endian native machines not implemented, the second argument is ignored for now
+int dt_init(buffer_t fdt_buf, [[maybe_unused]] endianness_t machine_big_endian) {
 	if (!fdt_buf.data || fdt_buf.size < (FDT_OFF_OFF_DT_STRINGS + 4))
 		return -1;
 

@@ -1,5 +1,5 @@
-#ifndef DRIVERS_DT_BUFFER_H
-#define DRIVERS_DT_BUFFER_H
+#ifndef _STDBIGOS_BUFFER_H
+#define _STDBIGOS_BUFFER_H
 
 #include <stdbigos/types.h>
 
