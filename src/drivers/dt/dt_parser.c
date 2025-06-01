@@ -97,7 +97,7 @@ dt_node_t* parse_subtree(const buffer_t* fdt_buf, u32* offset, u32 max_offset, u
 		return nullptr;
 
 	const char* name;
-	if (buffer_read_cstring(*fdt_buf, curr_offset, &name) != BUFFER_ERROR_OK)
+	if (buffer_read_cstring(*fdt_buf, curr_offset, &name) != BUF_ERR_OK)
 		return nullptr;
 
 	// After this point all reads from the buffer should be correct
