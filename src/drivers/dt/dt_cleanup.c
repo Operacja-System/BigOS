@@ -4,6 +4,5 @@
 
 void dt_cleanup(void) {
 	dt_arena_reset();
-
-	root_node = nullptr;
+	dt_reset_root();
 }

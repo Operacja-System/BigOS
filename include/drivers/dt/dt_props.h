@@ -1,10 +1,8 @@
 #ifndef DT_PROPS_H
 #define DT_PROPS_H
 
+#include <drivers/dt/dt_node.h>
 #include <stdbigos/types.h>
-
-typedef struct dt_node_t dt_node_t;
-typedef struct dt_prop_t dt_prop_t;
 
 // Find a property of node by a name, dt_prop_t ptr if success, nullptr if error
 dt_prop_t* dt_find_prop(const dt_node_t* node, const char* name);

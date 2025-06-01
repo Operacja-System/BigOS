@@ -12,6 +12,10 @@ void dputs(const char* s) {
 	while (*s) dputc(*s++);
 }
 
+void dputgap(unsigned int gap_size) {
+	while (gap_size--) dputc('\t');
+}
+
 static char* uart_output_handler(const char* buf, void* user, int len) {
 	while (len--) dputc(*buf++);
 	return (char*)user;

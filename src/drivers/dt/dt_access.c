@@ -1,24 +1,11 @@
+#include <debug/debug_stdio.h>
 #include <drivers/dt/dt.h>
+#include <drivers/dt/dt_node.h>
 #include <stdbigos/bitutils.h>
-#include <stdbigos/sbi.h>
 #include <stdbigos/string.h>
 
 #include "dt_alloc.h"
-#include "dt_node.h"
 #include "dt_parser.h"
-
-static void sbi_puts(const char* str) {
-	while (*str) sbi_debug_console_write_byte(*str++);
-}
-
-// There has to be a better way to do this
-static void gap(u8 size) {
-	for (u8 i = 0; i < size; i++) sbi_puts("\t");
-}
-
-dt_node_t* dt_get_root(void) {
-	return root_node;
-}
 
 static dt_node_t* find_child_by_name(dt_node_t* parent, const char* name) {
 	for (dt_node_t* child = parent->first_child; child; child = child->next_sibling) {
@@ -30,6 +17,8 @@ static dt_node_t* find_child_by_name(dt_node_t* parent, const char* name) {
 }
 
 dt_node_t* dt_node_find(const char* path) {
+	dt_node_t* root_node = dt_get_root();
+
 	if (!path || path[0] != '/' || !root_node)
 		return nullptr;
 
@@ -77,10 +66,12 @@ int dt_node_child_count(const dt_node_t* n) {
 	return c;
 }
 
-dt_node_t* dt_node_get_child(const dt_node_t* n, int idx) {
-	dt_node_t* ch = n ? n->first_child : NULL;
-	for (; ch && idx > 0; ch = ch->next_sibling, idx--);
-	return ch;
+dt_node_t* dt_get_next_child(const dt_node_t* node) {
+	if (!node)
+		return nullptr;
+
+	// If there's no next sibling, it will automatically return a nullptr, as per documentation
+	return node->next_sibling;
 }
 
 dt_prop_t* dt_find_prop(const dt_node_t* node, const char* name) {
@@ -125,22 +116,21 @@ int dt_prop_read_u64(const dt_node_t* node, const char* name, u64* out) {
 void dt_print_props(const dt_node_t* node, u8 depth) {
 	dt_prop_t* next = node->props;
 	while (next) {
-		gap(depth);
-		sbi_puts(next->name);
-		sbi_puts("\n");
+		DEBUG_PUTGAP(depth);
+		DEBUG_PRINTF("%s\n", next->name);
 		next = next->next_prop;
 	}
 }
 
+// Use only in debug preset
 void dt_print_tree(const dt_node_t* node, u8 depth) {
-	gap(depth);
-	sbi_puts("NODE: ");
-	sbi_puts(node->name);
-	sbi_puts("\n");
-	gap(depth);
-	sbi_puts("PROPERTIES:\n");
+	DEBUG_PUTGAP(depth);
+	DEBUG_PRINTF("NODE: %s\n", node->name);
+	DEBUG_PUTGAP(depth);
+
+	DEBUG_PRINTF("PROPERTIES:\n");
 	dt_print_props(node, depth + 1);
-	sbi_puts("\n");
+	DEBUG_PUTC('\n');
 	dt_node_t* next = node->first_child;
 	while (next) {
 		dt_print_tree(next, depth + 1);

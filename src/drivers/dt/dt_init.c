@@ -1,11 +1,20 @@
 #include <drivers/dt/dt.h>
+#include <stdbigos/bitutils.h>
 #include <stdbigos/buffer.h>
 #include <stdbigos/types.h>
 
 #include "dt_alloc.h"
 #include "dt_parser.h"
 
-dt_node_t* root_node = nullptr;
+static dt_node_t* root_node = nullptr;
+
+dt_node_t* dt_get_root(void) {
+	return root_node;
+}
+
+void dt_reset_root(void) {
+	root_node = nullptr;
+}
 
 #define FDT_MAGIC                 0xd00dfeed
 #define FDT_OFF_MAGIC             0x00
@@ -19,33 +28,39 @@ dt_node_t* root_node = nullptr;
 #define FDT_OFF_SIZE_DT_STRINGS   0x20
 #define FDT_OFF_SIZE_DT_STRUCT    0x24
 
-// HACK: WARNING, the handling on big endian native machines not implemented, the second argument is ignored for now
-int dt_init(buffer_t fdt_buf, [[maybe_unused]] endianness_t machine_big_endian) {
-	if (!fdt_buf.data || fdt_buf.size < (FDT_OFF_OFF_DT_STRINGS + 4))
+// TODO: implement reading dependent on endianness of the machine
+int dt_init(const void* fdt, [[maybe_unused]] endianness_t machine_big_endian) {
+	u32 magic = read_be32(fdt);
+	if (magic != FDT_MAGIC)
 		return -1;
 
-	u32 magic;
-	if (buffer_read_u32_be(&fdt_buf, 0, &magic) != BUFFER_OK || magic != FDT_MAGIC)
-		return -2;
+	u32 fdt_size = read_be32((u8*)fdt + 4);
+
+	buffer_t fdt_buf = make_buffer(fdt, fdt_size);
+
+	if (fdt_buf.size < (FDT_OFF_OFF_DT_STRINGS + 4))
+		return -1;
 
 	u32 total_size;
-	if (buffer_read_u32_be(&fdt_buf, FDT_OFF_TOTAL_SIZE, &total_size) != BUFFER_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_TOTAL_SIZE, &total_size) != BUFFER_OK)
 		return -2;
 
 	u32 struct_off;
-	if (buffer_read_u32_be(&fdt_buf, FDT_OFF_OFF_DT_STRUCT, &struct_off) != BUFFER_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRUCT, &struct_off) != BUFFER_OK)
 		return -2;
 
 	u32 strings_off;
-	if (buffer_read_u32_be(&fdt_buf, FDT_OFF_OFF_DT_STRINGS, &strings_off) != BUFFER_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRINGS, &strings_off) != BUFFER_OK)
 		return -2;
 
 	u32 struct_size;
-	if (buffer_read_u32_be(&fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &struct_size) != BUFFER_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &struct_size) != BUFFER_OK)
 		return -2;
 
 	if (struct_off + struct_size > total_size)
 		return -3;
+
+	u8* dt_arena_buffer = dt_get_arena_buffer();
 
 	if (dt_arena_init(dt_arena_buffer, DT_ARENA_SIZE) < 0)
 		return -4;

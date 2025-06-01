@@ -3,6 +3,7 @@
 
 void dputc(char c);
 void dputs(const char* s);
+void dputgap(unsigned int gap_size);
 
 [[gnu::format(printf, 1, 2)]]
 void dprintf(const char* fmt, ...);
@@ -12,6 +13,7 @@ void dprintf(const char* fmt, ...);
 	#define DEBUG_PUTC(c)          dputc(c)
 	#define DEBUG_PUTS(s)          dputs(s)
 	#define DEBUG_PRINTF(fmt, ...) dprintf(fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define DEBUG_PUTGAP(n)        dputgap(n)
 
 #else
 

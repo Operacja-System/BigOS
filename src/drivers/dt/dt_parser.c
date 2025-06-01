@@ -1,12 +1,12 @@
 #include "dt_parser.h"
 
+#include <drivers/dt/dt_node.h>
 #include <stdbigos/bitutils.h>
 #include <stdbigos/buffer.h>
 #include <stdbigos/string.h>
 #include <stdbigos/types.h>
 
 #include "dt_alloc.h"
-#include "dt_node.h"
 
 // FDT token values
 typedef enum FdtToken : u32 {
@@ -20,7 +20,7 @@ typedef enum FdtToken : u32 {
 
 // Function to parse a block of properties starting at props_offset with props_size size in the FDT with fdt
 // being a ptr to the start of the flattened device tree blob
-dt_prop_t* parse_props(buffer_t* fdt_buf, u32 props_offset, u32 props_size, u32 str_offset) {
+dt_prop_t* parse_props(const buffer_t* fdt_buf, u32 props_offset, u32 props_size, u32 str_offset) {
 	u32 curr_offset = props_offset;
 
 	dt_prop_t* head = nullptr;
@@ -28,7 +28,7 @@ dt_prop_t* parse_props(buffer_t* fdt_buf, u32 props_offset, u32 props_size, u32 
 
 	while (curr_offset < props_offset + props_size) {
 		u32 tag;
-		buffer_read_u32_be(fdt_buf, curr_offset, &tag);
+		buffer_read_u32_be(*fdt_buf, curr_offset, &tag);
 
 		// Because of the separation of parsing properties and nodes, we don't want to parse non-properties
 		if ((FdtToken)tag != FDT_PROP)
@@ -36,16 +36,16 @@ dt_prop_t* parse_props(buffer_t* fdt_buf, u32 props_offset, u32 props_size, u32 
 
 		curr_offset += 4;
 		u32 len;
-		buffer_read_u32_be(fdt_buf, curr_offset, &len);
+		buffer_read_u32_be(*fdt_buf, curr_offset, &len);
 		curr_offset += 4;
 		u32 name_offset;
-		buffer_read_u32_be(fdt_buf, curr_offset, &name_offset);
+		buffer_read_u32_be(*fdt_buf, curr_offset, &name_offset);
 		curr_offset += 4;
 		dt_prop_t* new_prop = dt_alloc(sizeof(*new_prop));
 		new_prop->data_length = len;
 		new_prop->next_prop = nullptr;
 
-		buffer_read_cstring(fdt_buf, str_offset + name_offset, &new_prop->name);
+		buffer_read_cstring(*fdt_buf, str_offset + name_offset, &new_prop->name);
 		// sbi_puts(new_prop->name);
 		// sbi_puts("\n");
 
@@ -63,7 +63,7 @@ dt_prop_t* parse_props(buffer_t* fdt_buf, u32 props_offset, u32 props_size, u32 
 }
 
 // Function to recursively parse a subtree at the given offset
-dt_node_t* parse_subtree(buffer_t* fdt_buf, u32* offset, u32 max_offset, u32 str_offset, dt_node_t* parent) {
+dt_node_t* parse_subtree(const buffer_t* fdt_buf, u32* offset, u32 max_offset, u32 str_offset, dt_node_t* parent) {
 	dt_node_t* node = dt_alloc(sizeof(*node));
 
 	if (!node)
@@ -79,11 +79,11 @@ dt_node_t* parse_subtree(buffer_t* fdt_buf, u32* offset, u32 max_offset, u32 str
 
 	u32 tag;
 
-	if (buffer_read_u32_be(fdt_buf, curr_offset - 4, &tag) != BUFFER_OK || (FdtToken)tag != FDT_BEGIN_NODE)
+	if (buffer_read_u32_be(*fdt_buf, curr_offset - 4, &tag) != BUFFER_OK || (FdtToken)tag != FDT_BEGIN_NODE)
 		return nullptr;
 
 	const char* name;
-	if (buffer_read_cstring(fdt_buf, curr_offset, &name) != BUFFER_OK)
+	if (buffer_read_cstring(*fdt_buf, curr_offset, &name) != BUFFER_OK)
 		return nullptr;
 
 	// After this point all reads from the buffer should be correct
@@ -97,12 +97,12 @@ dt_node_t* parse_subtree(buffer_t* fdt_buf, u32* offset, u32 max_offset, u32 str
 	u32 props_off = curr_offset;
 	while (curr_offset < max_offset) {
 		u32 tag;
-		buffer_read_u32_be(fdt_buf, curr_offset, &tag);
+		buffer_read_u32_be(*fdt_buf, curr_offset, &tag);
 		if ((FdtToken)tag != FDT_PROP)
 			break;
 
 		u32 p_len;
-		buffer_read_u32_be(fdt_buf, curr_offset + 4, &p_len);
+		buffer_read_u32_be(*fdt_buf, curr_offset + 4, &p_len);
 
 		curr_offset += 12; // Skip tag, length, name_offset
 		curr_offset = alignu32(curr_offset + p_len, 4);
@@ -115,7 +115,7 @@ dt_node_t* parse_subtree(buffer_t* fdt_buf, u32* offset, u32 max_offset, u32 str
 
 	while (curr_offset < max_offset) {
 		u32 tag;
-		buffer_read_u32_be(fdt_buf, curr_offset, &tag);
+		buffer_read_u32_be(*fdt_buf, curr_offset, &tag);
 
 		curr_offset += 4;
 		switch ((FdtToken)tag) {
