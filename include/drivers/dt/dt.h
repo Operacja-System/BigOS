@@ -1,15 +1,15 @@
 #ifndef DT_H
 #define DT_H
 
-#include <drivers/dt/dt_node.h>
 #include <stdbigos/buffer.h>
 #include <stdbigos/types.h>
 
-// Initializes the device tree driver, the second argument specifies, whether the machine operates on big endian numbers
-// natively
+typedef struct dt_node_t dt_node_t;
+
+// Initializes the device tree driver
 // TODO: Currently parses the entire FDT at init, maybe change to lazy parsing later
 // Builds the actual tree structure handleable by the driver, 0 if success, <0 if error
-int dt_init(const void* fdt, endianness_t machine_big_endian);
+int dt_init(const void* fdt);
 
 // Frees all memory used by the arena
 void dt_cleanup(void);

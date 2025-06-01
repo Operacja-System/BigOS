@@ -1,13 +1,13 @@
 #ifndef DT_NODE_H
 #define DT_NODE_H
 
+#include <stdbigos/buffer.h>
 #include <stdbigos/types.h>
 
 // Both prop and node structures are lists with outside pointers only to the first element
 typedef struct dt_prop_t {
 	const char* name;
-	const void* value;
-	u32 data_length;
+	buffer_t data;
 	struct dt_prop_t* next_prop;
 } dt_prop_t;
 
