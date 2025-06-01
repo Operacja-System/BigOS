@@ -42,19 +42,19 @@ int dt_init(const void* fdt, [[maybe_unused]] endianness_t machine_big_endian) {
 		return -1;
 
 	u32 total_size;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_TOTAL_SIZE, &total_size) != BUFFER_ERROR_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_TOTAL_SIZE, &total_size) != BUF_ERR_OK)
 		return -2;
 
 	u32 struct_off;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRUCT, &struct_off) != BUFFER_ERROR_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRUCT, &struct_off) != BUF_ERR_OK)
 		return -2;
 
 	u32 strings_off;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRINGS, &strings_off) != BUFFER_ERROR_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRINGS, &strings_off) != BUF_ERR_OK)
 		return -2;
 
 	u32 struct_size;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &struct_size) != BUFFER_ERROR_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &struct_size) != BUF_ERR_OK)
 		return -2;
 
 	if (struct_off + struct_size > total_size)

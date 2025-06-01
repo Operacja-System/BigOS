@@ -36,7 +36,7 @@ void* dt_alloc(u32 size) {
 		return nullptr;
 
 	// Align to 4 bytes
-	u32 align = alignu32(size, 4);
+	u32 align = align_u32(size, 4);
 
 	if (arena_offset + align > arena_size)
 		return nullptr;

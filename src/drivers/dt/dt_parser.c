@@ -16,7 +16,7 @@ typedef enum : u32 {
 	FDT_NOP = 0x4,
 	// Unused/Reserved 0x5 - 0x8
 	FDT_END = 0x9
-} FDT_TOKEN;
+} fdt_token_t;
 
 // Function to parse a block of properties starting at props_offset with props_size size in the FDT with fdt
 // being a ptr to the start of the flattened device tree blob
@@ -28,26 +28,26 @@ dt_prop_t* parse_props(const buffer_t* fdt_buf, u32 props_offset, u32 props_size
 
 	while (curr_offset < props_offset + props_size) {
 		u32 tag;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUFFER_ERROR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUF_ERR_OK)
 			return nullptr;
 
 		// Because of the separation of parsing properties and nodes, we don't want to parse non-properties
-		if ((FDT_TOKEN)tag != FDT_PROP)
+		if ((fdt_token_t)tag != FDT_PROP)
 			break;
 
 		curr_offset += 4;
 		u32 len;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &len) != BUFFER_ERROR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &len) != BUF_ERR_OK)
 			return nullptr;
 		curr_offset += 4;
 		u32 name_offset;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &name_offset) != BUFFER_ERROR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &name_offset) != BUF_ERR_OK)
 			return nullptr;
 		curr_offset += 4;
 		dt_prop_t* new_prop = dt_alloc(sizeof(*new_prop));
 		new_prop->data_length = len;
 		new_prop->next_prop = nullptr;
-		if (buffer_read_cstring(*fdt_buf, str_offset + name_offset, &new_prop->name) != BUFFER_ERROR_OK)
+		if (buffer_read_cstring(*fdt_buf, str_offset + name_offset, &new_prop->name) != BUF_ERR_OK)
 			return nullptr;
 		// sbi_puts(new_prop->name);
 		// sbi_puts("\n");
@@ -60,7 +60,7 @@ dt_prop_t* parse_props(const buffer_t* fdt_buf, u32 props_offset, u32 props_size
 		*pp = new_prop;
 		pp = &new_prop->next_prop;
 
-		curr_offset = alignu32(curr_offset + len, 4);
+		curr_offset = align_u32(curr_offset + len, sizeof(u32));
 	}
 	return head;
 }
@@ -81,11 +81,11 @@ dt_node_t* parse_subtree(const buffer_t* fdt_buf, u32* offset, u32 max_offset, u
 	u32 curr_offset = *offset;
 
 	u32 tag;
-	if (buffer_read_u32_be(*fdt_buf, curr_offset - 4, &tag) != BUFFER_ERROR_OK || (FDT_TOKEN)tag != FDT_BEGIN_NODE)
+	if (buffer_read_u32_be(*fdt_buf, curr_offset - 4, &tag) != BUF_ERR_OK || (fdt_token_t)tag != FDT_BEGIN_NODE)
 		return nullptr;
 
 	const char* name;
-	if (buffer_read_cstring(*fdt_buf, curr_offset, &name) != BUFFER_ERROR_OK)
+	if (buffer_read_cstring(*fdt_buf, curr_offset, &name) != BUF_ERR_OK)
 		return nullptr;
 
 	// After this point all reads from the buffer should be correct
@@ -94,37 +94,37 @@ dt_node_t* parse_subtree(const buffer_t* fdt_buf, u32* offset, u32 max_offset, u
 
 	node->name = name;
 
-	curr_offset = alignu32(curr_offset + name_len, 4);
+	curr_offset = align_u32(curr_offset + name_len, sizeof(u32));
 
 	u32 props_off = curr_offset;
 	while (curr_offset < max_offset) {
 		u32 tag;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUFFER_ERROR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUF_ERR_OK)
 			return nullptr;
 
-		if ((FDT_TOKEN)tag != FDT_PROP)
+		if ((fdt_token_t)tag != FDT_PROP)
 			break;
 
 		u32 p_len;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset + 4, &p_len) != BUFFER_ERROR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset + 4, &p_len) != BUF_ERR_OK)
 			return nullptr;
 
 		curr_offset += 12; // Skip tag, length, name_offset
-		curr_offset = alignu32(curr_offset + p_len, 4);
+		curr_offset = align_u32(curr_offset + p_len, sizeof(u32));
 	}
 	u32 props_len = curr_offset - props_off;
 
 	node->props = parse_props(fdt_buf, props_off, props_len, str_offset);
 
-	curr_offset = alignu32(props_off + props_len, 4);
+	curr_offset = align_u32(props_off + props_len, sizeof(u32));
 
 	while (curr_offset < max_offset) {
 		u32 tag;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUFFER_ERROR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUF_ERR_OK)
 			return nullptr;
 
 		curr_offset += 4;
-		switch ((FDT_TOKEN)tag) {
+		switch ((fdt_token_t)tag) {
 		case FDT_BEGIN_NODE:
 			dt_node_t* child = parse_subtree(fdt_buf, &curr_offset, max_offset, str_offset, node);
 

@@ -89,7 +89,7 @@ dt_prop_t* dt_find_prop(const dt_node_t* node, const char* name) {
 }
 
 buffer_t dt_prop_get_buffer(const dt_node_t* node, const char* name) {
-	buffer_t buffer = make_buffer_err(nullptr, 0, BUFFER_ERROR_FETCH);
+	buffer_t buffer = make_buffer_err(nullptr, 0, BUF_ERR_FETCH);
 
 	dt_prop_t* prop = dt_find_prop(node, name);
 	if (!prop || !prop->value)
@@ -97,7 +97,7 @@ buffer_t dt_prop_get_buffer(const dt_node_t* node, const char* name) {
 
 	buffer.data = prop->value;
 	buffer.size = prop->data_length;
-	buffer.error = BUFFER_ERROR_OK;
+	buffer.error = BUF_ERR_OK;
 
 	return buffer;
 }

@@ -27,7 +27,7 @@ void main([[maybe_unused]] u32 hartid, const void* fdt) {
 		DEBUG_PRINTF("Found UART node: %s\n", dt_node_get_name(uart));
 
 		buffer_t buffer = dt_prop_get_buffer(uart, "reg");
-		if (buffer.error == BUFFER_ERROR_OK) {
+		if (buffer.error == BUF_ERR_OK) {
 			// Or other easy conversion methods, up to user
 			u64 val = read_be64(buffer.data);
 			DEBUG_PRINTF("UART base: %lu\n", val);

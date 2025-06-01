@@ -11,6 +11,6 @@ u64 read_be64(const void* addr) {
 	       ((u64)bytes[4] << 24) | ((u64)bytes[5] << 16) | ((u64)bytes[6] << 8) | ((u64)bytes[7] << 0);
 };
 
-u32 alignu32(u32 num, u32 align) {
+u32 align_u32(u32 num, u32 align) {
 	return (num + (align - 1)) & ~(align - 1);
 }
