@@ -3,10 +3,10 @@
 
 #include "types.h"
 
-#define SBI_SPEC_VERSION_DEFAULT	 0x1
+#define SBI_SPEC_VERSION_DEFAULT     0x1
 #define SBI_SPEC_VERSION_MAJOR_SHIFT 24
-#define SBI_SPEC_VERSION_MAJOR_MASK	 0x7f
-#define SBI_SPEC_VERSION_MINOR_MASK	 0xffffff
+#define SBI_SPEC_VERSION_MAJOR_MASK  0x7f
+#define SBI_SPEC_VERSION_MINOR_MASK  0xffffff
 
 typedef enum : ireg_t {
 	SbiSuccess = 0,

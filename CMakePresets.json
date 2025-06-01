@@ -1,66 +1,177 @@
 {
-  "version": 5,
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 24,
-    "patch": 0
-  },
-  "configurePresets": [
-    {
-      "name": "base",
-      "hidden": true,
-      "binaryDir": "${sourceDir}/build",
-      "installDir": "${sourceDir}/build/install",
-      "toolchainFile": "${sourceDir}/CMake/riscv64-cmake-toolchain.cmake",
-      "environment": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      }
+    "version": 5,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 24,
+        "patch": 0
     },
-    {
-      "name": "ninja-multi",
-      "inherits": "base",
-      "generator": "Ninja Multi-Config"
-    },
-    {
-      "name": "debug",
-      "inherits": "base",
-      "environment": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "release",
-      "inherits": "base",
-      "environment": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "ninja",
-      "inherits": "base",
-      "generator": "Ninja"
-    },
-    {
-      "name": "ci-ninja",
-      "inherits": "ninja",
-      "environment": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "OFF"
-      },
-      "cacheVariables": {
-        "BIGOS_WARNINGS_AS_ERRORS": "ON"
-      }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "ci-ninja",
-      "configurePreset": "ci-ninja"
-    }
-  ],
-  "testPresets": [
-    {
-      "name": "ci-ninja",
-      "configurePreset": "ci-ninja"
-    }
-  ]
+    "include": [
+        "CMake/preset-mixins.json"
+    ],
+    "configurePresets": [
+        {
+            "name": "debug",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc",
+                "debug-type"
+            ],
+            "displayName": "Debug Configuration",
+            "description": "Debug configuration with debug build."
+        },
+        {
+            "name": "release",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc",
+                "release-type"
+            ],
+            "displayName": "Release Configuration",
+            "description": "Release configuration with optimized build."
+        },
+        {
+            "name": "release-size",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc",
+                "release-size-type"
+            ],
+            "displayName": "Release Configuration for size",
+            "description": "Release configuration with optimized build for size."
+        },
+        {
+            "name": "release-debug",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc",
+                "release-debug-type"
+            ],
+            "displayName": "Release Configuration for debugging",
+            "description": "Release configuration with debug symbols."
+        },
+        {
+            "name": "debug-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "debug-type",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "Debug Configuration (clang)",
+            "description": "Debug configuration with debug build (clang)."
+        },
+        {
+            "name": "release-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "release-type",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "Release Configuration (clang)",
+            "description": "Release configuration with optimized build (clang)."
+        },
+        {
+            "name": "release-size-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "release-size-type",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "Release Configuration for size (clang)",
+            "description": "Release configuration with optimized build for size (clang)."
+        },
+        {
+            "name": "release-debug-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "release-debug-type",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "Release Configuration for debugging (clang)",
+            "description": "Release configuration with debug symbols (clang)."
+        },
+        {
+            "name": "ninja-multi",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-gcc"
+            ],
+            "generator": "Ninja Multi-Config",
+            "displayName": "Ninja Multi-Config",
+            "description": "Configuration using Ninja Multi-Config generator. (add --config <CONFIG> to build)"
+        },
+        {
+            "name": "ninja-multi-clang",
+            "inherits": [
+                "build-dirs",
+                "compile-commands",
+                "cross-clang",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "generator": "Ninja Multi-Config",
+            "displayName": "Ninja Multi-Config with clang",
+            "description": "Configuration using Ninja Multi-Config generator and clang. (add --config <CONFIG> to build)"
+        },
+        {
+            "name": "ci-gcc",
+            "inherits": [
+                "build-dirs",
+                "cross-gcc",
+                "warnings-as-errors"
+            ],
+            "displayName": "CI GCC Configuration",
+            "description": "CI configuration using Ninja with warnings as errors."
+        },
+        {
+            "name": "ci-clang",
+            "inherits": [
+                "build-dirs",
+                "cross-clang",
+                "warnings-as-errors",
+                "clang-tidy",
+                "include-what-you-use"
+            ],
+            "displayName": "CI Ninja Configuration",
+            "description": "CI configuration using Ninja with warnings as errors."
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "ci-gcc",
+            "configurePreset": "ci-gcc",
+            "displayName": "CI Ninja Build - GCC",
+            "description": "Build using CI Ninja configuration (GCC)."
+        },
+        {
+            "name": "ci-clang",
+            "configurePreset": "ci-clang",
+            "displayName": "CI Ninja Build - clang",
+            "description": "Build using CI Ninja configuration (clang)."
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "ci-gcc",
+            "configurePreset": "ci-gcc",
+            "displayName": "CI Ninja Test - GCC",
+            "description": "Test using CI Ninja configuration (GCC)."
+        }
+    ]
 }

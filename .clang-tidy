@@ -1,0 +1,32 @@
+Checks: >
+    readability-*,
+    modernize-*,
+    bugprone-*,
+    misc-*,
+    google-runtime-int,
+    -misc-no-recursion,
+    -readability-magic-numbers,
+    -clang-analyzer-security.insecureAPI.strcpy,
+    -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+    -bugprone-easily-swappable-parameters,
+    -readability-identifier-length,
+    -readability-uppercase-literal-suffix,
+    -misc-include-cleaner,
+    -bugprone-reserved-identifier
+
+
+FormatStyle: 'file'
+CheckOptions:
+# allow for
+# if (condition)
+#    stmt;
+  - key:             readability-braces-around-statements.ShortStatementLines
+    value:           '2'
+
+# use int names from stdbigos/types.h
+  - key:             google-runtime-int.UnsignedTypePrefix
+    value:           'u'
+  - key:             google-runtime-int.SignedTypePrefix
+    value:           'i'
+  - key:             google-runtime-int.TypeSuffix
+    value:           ''

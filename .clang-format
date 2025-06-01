@@ -1,7 +1,7 @@
 IndentWidth: 4
 TabWidth: 4
-ColumnLimit: 121
-UseTab: Always
+ColumnLimit: 120
+UseTab: ForIndentation
 SortIncludes: true
 IncludeCategories:
   - Regex:      '^\<.*\>'          # stdlib
@@ -16,10 +16,10 @@ IncludeCategories:
 MaxEmptyLinesToKeep: 1
 SpacesBeforeTrailingComments: 1
 # ---
-AllowShortEnumsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: true
-AllowShortIfStatementsOnASingleLine: true
-AllowShortBlocksOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortFunctionsOnASingleLine: Empty
@@ -30,7 +30,7 @@ AlignConsecutiveAssignments: false
 AlignConsecutiveMacros:
   Enabled: true
   AcrossEmptyLines: false
-  AcrossComments: true
+  AcrossComments: false
 AlignConsecutiveShortCaseStatements:
   Enabled: true
   AcrossEmptyLines: false
@@ -70,7 +70,7 @@ SpaceBeforeAssignmentOperators: true
 SpaceBeforeCaseColon: false
 SpaceBeforeParens: Custom
 SpaceBeforeParensOptions:
-  AfterControlStatements: false
+  AfterControlStatements: true
   AfterForeachMacros: false
   AfterFunctionDeclarationName: false
   AfterIfMacros: false

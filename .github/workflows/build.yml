@@ -13,7 +13,7 @@ env:
   CMAKE_BUILD_TYPE: "Release"
 
 jobs:
-  build-and-test:
+  build-gcc-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install -y \
             gcc-riscv64-unknown-elf dosfstools e2fsprogs mtools \
             qemu-system-misc
@@ -34,12 +35,45 @@ jobs:
       - name: Generate, build and test
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: 'ci-ninja'
-          buildPreset: 'ci-ninja'
-          testPreset: 'ci-ninja'
+          configurePreset: 'ci-gcc'
+          buildPreset: 'ci-gcc'
+          testPreset: 'ci-gcc'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
+          path: build/
+
+  build-clang:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: '~3.24.0'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang llvm \
+            iwyu \
+            gcc-riscv64-unknown-elf dosfstools e2fsprogs mtools \
+            qemu-system-misc
+
+      - name: Generate, build and test
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: 'ci-clang'
+          buildPreset: 'ci-clang'
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-clang
           path: build/

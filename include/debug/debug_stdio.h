@@ -9,8 +9,8 @@ void dprintf(const char* fmt, ...);
 
 #ifndef NDEBUG
 
-	#define DEBUG_PUTC(c)		   dputc(c)
-	#define DEBUG_PUTS(s)		   dputs(s)
+	#define DEBUG_PUTC(c)          dputc(c)
+	#define DEBUG_PUTS(s)          dputs(s)
 	#define DEBUG_PRINTF(fmt, ...) dprintf(fmt __VA_OPT__(, ) __VA_ARGS__)
 
 #else

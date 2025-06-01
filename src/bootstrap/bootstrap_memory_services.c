@@ -207,7 +207,7 @@ typedef struct [[gnu::packed]] {
 	u32 info;
 	u64 addr_align;
 	u64 entry_size;
-} elf64_section_header;
+} elf64_section_header_t;
 
 static void load_elf_segment_at_address(void* elf_img, elf64_program_header_t ph, void* target_addr) {
 	const void* segment_start = elf_img + ph.offset;
