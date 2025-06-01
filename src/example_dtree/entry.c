@@ -26,16 +26,20 @@ void main([[maybe_unused]] u32 hartid, const void* fdt) {
 	} else {
 		DEBUG_PRINTF("Found UART node: %s\n", dt_node_get_name(uart));
 
-		u64 base;
-		if (dt_prop_read_u64(uart, "reg", &base) == 0) {
-			DEBUG_PRINTF("UART base: %ld\n", base);
+		buffer_t buffer = dt_prop_get_buffer(uart, "reg");
+		if (buffer.error == BUFFER_ERROR_OK) {
+			// Or other easy conversion methods, up to user
+			u64 val = read_be64(buffer.data);
+			DEBUG_PRINTF("UART base: %lu\n", val);
 		} else {
 			DEBUG_PRINTF("\"reg\" prop missing or invalid\n");
 		}
 	}
 
-	// Showcasing that the tree works
+// Showcasing that the tree works
+#ifndef NDEBUG
 	dt_print_tree(root, 0);
+#endif
 
 	dt_cleanup();
 }

@@ -23,6 +23,7 @@ void dprintf(const char* fmt, ...);
 	#define DEBUG_PUTC(c)
 	#define DEBUG_PUTS(s)
 	#define DEBUG_PRINTF(fmt, ...) noop_printf(fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define DEBUG_PUTGAP(n)
 
 #endif
 #endif

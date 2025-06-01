@@ -1,13 +1,14 @@
 #include <debug/debug_stdio.h>
 #include <drivers/dt/dt.h>
 #include <drivers/dt/dt_node.h>
+#include <drivers/dt/dt_props.h>
 #include <stdbigos/bitutils.h>
 #include <stdbigos/string.h>
 
 #include "dt_alloc.h"
 #include "dt_parser.h"
 
-static dt_node_t* find_child_by_name(dt_node_t* parent, const char* name) {
+static dt_node_t* find_child_by_name_s(dt_node_t* parent, const char* name) {
 	for (dt_node_t* child = parent->first_child; child; child = child->next_sibling) {
 		if (strcmp(child->name, name) == 0) {
 			return child;
@@ -43,7 +44,7 @@ dt_node_t* dt_node_find(const char* path) {
 		memcpy(segment, p, len);
 		segment[len] = '\0';
 
-		current = find_child_by_name(current, segment);
+		current = find_child_by_name_s(current, segment);
 		if (!current)
 			return nullptr;
 
@@ -87,53 +88,48 @@ dt_prop_t* dt_find_prop(const dt_node_t* node, const char* name) {
 	return nullptr;
 }
 
-int dt_prop_read_u32(const dt_node_t* node, const char* name, u32* out) {
+buffer_t dt_prop_get_buffer(const dt_node_t* node, const char* name) {
+	buffer_t buffer = make_buffer_err(nullptr, 0, BUFFER_ERROR_FETCH);
+
 	dt_prop_t* prop = dt_find_prop(node, name);
+	if (!prop || !prop->value)
+		return buffer;
 
-	if (!prop || prop->data_length < 4 || !prop->value)
-		return -1;
+	buffer.data = prop->value;
+	buffer.size = prop->data_length;
+	buffer.error = BUFFER_ERROR_OK;
 
-	u32 val = read_be32(prop->value);
-
-	*out = val;
-
-	return 0;
+	return buffer;
 }
 
-int dt_prop_read_u64(const dt_node_t* node, const char* name, u64* out) {
-	dt_prop_t* prop = dt_find_prop(node, name);
+#ifndef NDEBUG
 
-	if (!prop || prop->data_length < 8 || !prop->value)
-		return -1;
-
-	u64 val = read_be64(prop->value);
-
-	*out = val;
-
-	return 0;
-}
-
-void dt_print_props(const dt_node_t* node, u8 depth) {
+// Use only in debug preset
+void dt_print_props(const dt_node_t* node, [[maybe_unused]] u8 depth) {
 	dt_prop_t* next = node->props;
 	while (next) {
-		DEBUG_PUTGAP(depth);
-		DEBUG_PRINTF("%s\n", next->name);
+		dputgap(depth);
+		dprintf("%s\n", next->name);
 		next = next->next_prop;
 	}
 }
 
 // Use only in debug preset
-void dt_print_tree(const dt_node_t* node, u8 depth) {
-	DEBUG_PUTGAP(depth);
-	DEBUG_PRINTF("NODE: %s\n", node->name);
-	DEBUG_PUTGAP(depth);
+void dt_print_tree(const dt_node_t* node, [[maybe_unused]] u8 depth) {
+	dputgap(depth);
+	dprintf("NODE: %s\n", node->name);
+	dputgap(depth);
 
-	DEBUG_PRINTF("PROPERTIES:\n");
+	dprintf("PROPERTIES:\n");
 	dt_print_props(node, depth + 1);
-	DEBUG_PUTC('\n');
+	dputc('\n');
 	dt_node_t* next = node->first_child;
 	while (next) {
 		dt_print_tree(next, depth + 1);
 		next = next->next_sibling;
 	}
 }
+#else
+void dt_print_props(const dt_node_t* node, [[maybe_unused]] u8 depth);
+void dt_print_tree(const dt_node_t* node, [[maybe_unused]] u8 depth);
+#endif

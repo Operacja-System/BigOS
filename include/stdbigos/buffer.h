@@ -4,17 +4,26 @@
 #include <stdbigos/types.h>
 
 // Error codes
-#define BUFFER_OK            0
-#define BUFFER_OUT_OF_BOUNDS -1
+typedef enum : u32 {
+	BUFFER_ERROR_OK = 0,
+	BUFFER_ERROR_OUT_OF_BOUNDS = 1,
+	BUFFER_ERROR_FETCH = 2
+} BufferError_t;
 
 typedef struct buffer_t {
 	const void* data;
 	size_t size;
+	BufferError_t error;
 } buffer_t;
 
-// Helper to create a buffer
+// Helpers to create buffers
 static inline buffer_t make_buffer(const void* data, size_t size) {
-	buffer_t buf = {.data = data, .size = size};
+	buffer_t buf = {.data = data, .size = size, .error = BUFFER_ERROR_OK};
+	return buf;
+}
+
+static inline buffer_t make_buffer_err(const void* data, size_t size, BufferError_t error) {
+	buffer_t buf = {.data = data, .size = size, .error = error};
 	return buf;
 }
 
