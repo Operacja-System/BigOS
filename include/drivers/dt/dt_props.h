@@ -1,6 +1,7 @@
 #ifndef DT_PROPS_H
 #define DT_PROPS_H
 
+#include <drivers/dt/dt_node.h>
 #include <stdbigos/types.h>
 
 #include "dt.h"

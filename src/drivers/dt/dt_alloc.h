@@ -4,8 +4,6 @@
 #include <drivers/dt/dt_node.h>
 #include <stdbigos/types.h>
 
-#include "dt_node.h"
-
 #define DT_ARENA_SIZE 32760
 
 u8* dt_get_arena_buffer(void);
