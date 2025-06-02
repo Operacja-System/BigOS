@@ -15,6 +15,7 @@ typedef struct {
 #define GiB (1ull << 30)
 
 u64 align_up(u64 val, u64 align);
+bool is_aligned(u64 val, u64 align);
 void set_ram_params(void* ram_start, u64 ram_size);
 void* get_ram_start();
 u64 get_ram_size();

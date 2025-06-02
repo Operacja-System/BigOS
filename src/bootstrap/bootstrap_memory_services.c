@@ -8,6 +8,11 @@ u64 align_up(u64 val, u64 align) {
 	return (val + align - 1) & ~(align - 1);
 }
 
+//TODO: This is possibly stupid (and also shouldn't be here)
+bool is_aligned(u64 val, u64 align) {
+	return (val % align) == 0;
+}
+
 static void* s_mem_start = nullptr;
 static u64 s_mem_size = 0;
 

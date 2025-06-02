@@ -48,7 +48,7 @@ static void page_table_add_entry(u64 root_pt_ppn, page_size_t ps, vpn_t vpn, ppn
 		(vpn >> 9 * 3) & 0x1ff, (vpn >> 9 * 4) & 0x1ff,
 	};
 	u64(*current_page)[512] = (u64(*)[512])(root_pt_ppn << 12);
-	for(i8 lvl = s_active_vms + 2; lvl >= ps; --lvl) {
+	for(i8 lvl = s_active_vms + 2; lvl > ps; --lvl) {
 		u8 flags = 0;
 		ppn_t current_ppn = 0;
 		u64* current_pte = &(*current_page)[vpn_slice[lvl]];
@@ -151,15 +151,51 @@ ppn_t create_page_table(region_t regions[], u64 regions_amount) {
 		u64 size_left = regions[i].size;
 		u64 curr_addr = regions[i].addr;
 		u64 map_addr = regions[i].map_address;
+		const u64 page_size = (4 * kiB) << (9 * regions[i].ps);
 		while(size_left > 0) {
 			ppn_t use_ppn = (regions[i].mapped) ? (map_addr >> 12) : get_page_frame(regions[i].ps);
 			page_table_add_entry(root_ppn, regions[i].ps, curr_addr >> 12, use_ppn, true, true, true);
-			const u64 size_dif = (4 * kiB) << (9 * regions[i].ps);
-			if(regions[i].mapped) map_addr += size_dif;
-			curr_addr += size_dif;
-			if(size_left < size_dif) size_left = size_dif;
-			size_left -= size_dif;
+			if(regions[i].mapped) map_addr += page_size;
+			curr_addr += page_size;
+			if(size_left < page_size) size_left = page_size;
+			size_left -= page_size;
 		}
 	}
 	return root_ppn;
+}
+
+void print_page_table(ppn_t root_ppn, u8 start_lvl, vpn_t vpn) {
+	u64(*page_table)[512] = (u64(*)[512])(root_ppn << 12);
+	for(u16 i = 0; i < 512; ++i) {
+		ppn_t pte_ppn = 0;
+		u8 pte_rsw = 0;
+		u8 pte_flags = 0;
+		read_page_table_entry((*page_table)[i], &pte_flags, &pte_rsw, &pte_ppn);
+		if(!(pte_flags & PTEF_V)) continue;
+		vpn_t new_vpn = (vpn << 9) | i;
+		if((pte_flags & PTEF_X) || (pte_flags & PTEF_W) || (pte_flags & PTEF_R)) {
+			u64 va = (new_vpn << 9 * (s_active_vms + 2 - start_lvl)) << 12;
+			char rsw_str[2 + 1] = {0} ;
+			rsw_str[0] = (pte_rsw & (1 << 0)) ? 'X' : '-';
+			rsw_str[1] = (pte_rsw & (1 << 1)) ? 'X' : '-';
+			char flags_str[8 + 1] = {0} ;
+			flags_str[0] = (pte_flags & PTEF_D) ? 'D' : '-';
+			flags_str[1] = (pte_flags & PTEF_A) ? 'A' : '-';
+			flags_str[2] = (pte_flags & PTEF_G) ? 'G' : '-';
+			flags_str[3] = (pte_flags & PTEF_U) ? 'U' : '-';
+			flags_str[4] = (pte_flags & PTEF_X) ? 'X' : '-';
+			flags_str[5] = (pte_flags & PTEF_W) ? 'W' : '-';
+			flags_str[6] = (pte_flags & PTEF_R) ? 'R' : '-';
+			flags_str[7] = (pte_flags & PTEF_V) ? 'V' : '-';
+			const u64 page_size = (4 * kiB) << 9 * (s_active_vms + 2 - start_lvl);
+			char* ps_str = {0};
+			if(page_size == (4 * kiB)) ps_str = " kilo ";
+			else if(page_size == (2 * MiB)) ps_str = " mega ";
+			else if(page_size == GiB) ps_str = " giga ";
+			else ps_str = "broken";
+			DEBUG_PRINTF("%016lx - %016lx | page size: %s | ppn: 0x%lx | rsw: %s | flags: %s\n" ,
+				va, va + page_size, ps_str, pte_ppn, rsw_str, flags_str);
+		}
+		else print_page_table(pte_ppn, start_lvl + 1, new_vpn);
+	}
 }
