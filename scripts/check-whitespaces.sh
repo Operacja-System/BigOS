@@ -5,6 +5,8 @@
 # by providing an output file path and url as additional arguments.
 #
 
+PROJ_DIR="$( dirname -- "${BASH_SOURCE[0]}" )/.."
+
 baseCommit=$1
 outputFile=$2
 url=$3
