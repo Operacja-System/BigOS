@@ -211,7 +211,7 @@ typedef struct [[gnu::packed]] {
 
 static void load_elf_segment_at_address(void* elf_img, elf64_program_header_t ph, void* target_addr) {
 	const void* segment_start = elf_img + ph.offset;
-	void* load_addr = target_addr + align_up((u64)(ph.vaddr), ph.align);
+	void* load_addr = target_addr + align_up(ph.vaddr, ph.align);
 	memcpy(load_addr, segment_start, ph.filesz);
 	memset(load_addr + ph.filesz, 0, ph.memsz - ph.filesz);
 }
