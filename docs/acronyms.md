@@ -1,18 +1,21 @@
 ## A
-Arg - Argument  
+addr - address  
+arg - argument  
 ASCII - American Standard Code for Information Interchange  
+ASID - Address Space IDentifier  
 
 ## B
-BIOS - Basic input/output system  
+BIOS - Basic Input/Output System  
 
 ## C
 CLI - Command Line Interface  
-CPU - Central processing unit  
+CPU - Central Processing Unit  
+CSR - Control and Status Register  
 
 ## E
 ELF - Executable and Linkable Format  
-EOF - End of File  
-Exec - Execute  
+EOF - End Of File  
+exec - execute  
 EXT - Extended File System (ext2, ext3, ext4)  
 
 ## F
@@ -28,24 +31,27 @@ i16 - 16-bit signed integer
 i32 - 32-bit signed integer  
 i64 - 64-bit signed integer  
 i8 - 8-bit signed integer  
-Inx - Index  
+inx - index  
 
 ## M
-Max - Maximum  
-Min - Minimum  
-Msg - Message  
+max - maximum  
+mem - memory  
+min - minimum  
+msg - message  
 
 ## N
-Num - Number  
+num - number  
 
 ## O
-Opt - Option  
-OS - Operating system  
+opt - option  
+OS - Operating System  
 
 ## P
-PID - Process Identifier  
-Pos - Position  
-Ptr - Pointer  
+phys - physical  
+PID - Process IDentifier  
+PMM - Physical Memory Manager  
+pos - position  
+ptr - pointer  
 
 ## U
 u16 - 16-bit unsigned integer  
@@ -53,9 +59,10 @@ u32 - 32-bit unsigned integer
 u64 - 64-bit unsigned integer  
 u8 - 8-bit unsigned integer  
 UEFI - Unified Extensible Firmware Interface  
-uefi - Unified Extensible Firmware Interface  
 
 ## V
-Val - Value  
+val - value  
 VFS - Virtual File System  
+virt - virtual  
+VMM - Virtual Memory Manager  
 
