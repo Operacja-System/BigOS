@@ -37,6 +37,12 @@ static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 	u64 text_addr = 1ull << (39 + 9 * TARGET_VMS - 1);
 	u64 ram_map_addr = heap_addr - ram_size;
 
+	DEBUG_PRINTF("kernel address: %lx\n", text_addr);
+	DEBUG_PRINTF("heap   address: %lx\n", heap_addr);
+	DEBUG_PRINTF("stack  address: %lx\n", stack_top_addr);
+	DEBUG_PRINTF("rammap address: %lx\n", ram_map_addr);
+	DEBUG_PRINTF("ident  address: %lx\n", ram_start);
+
 	physical_memory_region_t busy_mem_regions[PAGE_SIZE_AMOUNT + 1] = {0};
 	physical_memory_region_t* kernel_pmr = &busy_mem_regions[0];
 	error_t pmr_alloc_err = ERR_NONE;
@@ -55,6 +61,11 @@ static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 	*ram_map_region = (region_t){
 		.addr = ram_map_addr, .size = ram_size, .mapped = true, .map_address = ram_start, .ps = PAGE_SIZE_1GB};
 
+	for(u64 i = 0; i < sizeof(regions) / sizeof(regions[0]); ++i) {
+		if(!is_aligned(regions[i].addr, (4 * kiB) << (9 * regions[i].ps)))
+			PANIC("region is not aligned to page size\n");
+	}
+
 	required_memory_space_t mem_reg = calc_required_memory_for_page_table(regions, sizeof(regions) / sizeof(regions[0]));
 	if(mem_reg.error) PANIC("calculation of required memory space for page table failed");
 
@@ -71,6 +82,7 @@ static constexpr virtual_memory_scheme_t TARGET_VMS = VMS_SV_48;
 
 	ppn_t root_ppn = create_page_table(regions, sizeof(regions) / sizeof(regions[0]));
 	DEBUG_PRINTF("[✔] Bootstrap page table was created successfully\n");
+	print_page_table(root_ppn, 0, 0);
 
 	void* kernel_entry_point_addr = nullptr;
 	const error_t elf_loading_err =
