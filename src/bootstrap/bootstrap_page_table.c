@@ -38,7 +38,8 @@ static inline void read_page_table_entry(u64 pte, u8* flagsOUT, u8* rswOUT, ppn_
 
 ppn_t get_page_frame(page_size_t ps) {
 	static u64 number_of_allocated_pages[PAGE_SIZE_AMOUNT] = {0};
-	return (u64)(s_page_mem_regs[ps].address + (number_of_allocated_pages[ps]++) * ((4 * kiB) << (9 * ps))) >> 12;
+	const u64 region_offset = (number_of_allocated_pages[ps]++) * ((4 * kiB) << (9 * ps));
+	return (u64)(s_page_mem_regs[ps].address + region_offset) >> 12;
 }
 
 static void page_table_add_entry(u64 root_pt_ppn, page_size_t ps, vpn_t vpn, ppn_t ppn, bool R, bool W, bool X) {
@@ -71,12 +72,11 @@ static bool add_to_vpn_reg(u64 vpn_reg[], u32* inx, u64 val, u64 size) {
 		if(vpn_reg[i] == val) return true;
 	}
 	vpn_reg[(*inx)++] = val;
-	if(*inx >= size) return false;
-	return true;
+	return *inx < size;
 }
 
 //===============================
-//===    !!! INTERNAL !!!    ====
+//===      ! INTERNAL        ====
 //===============================
 
 u16 initialize_virtual_memory(virtual_memory_scheme_t vms) {
@@ -101,9 +101,10 @@ required_memory_space_t calc_required_memory_for_page_table(region_t* regions, u
 		if(vpn_reg_inx > max_vpn_reg_inx) max_vpn_reg_inx = vpn_reg_inx;
 		u64 new_vpn_reg[vpn_reg_size] = {0};
 		u32 new_vpn_reg_inx = 0;
-		for(u32 i = 0; i < vpn_reg_inx; ++i)
+		for(u32 i = 0; i < vpn_reg_inx; ++i) {
 			if(!add_to_vpn_reg(new_vpn_reg, &new_vpn_reg_inx, vpn_reg[i] >> 9, vpn_reg_size))
 				return (required_memory_space_t){{0}, .error = ERR_CRITICAL_INTERNAL_FAILURE};
+		}
 		page_amounts[PAGE_SIZE_4kB] += new_vpn_reg_inx;
 		for(u64 i = 0; i < regions_amount; ++i) {
 			if(regions[i].ps == lvl) {
@@ -118,7 +119,7 @@ required_memory_space_t calc_required_memory_for_page_table(region_t* regions, u
 						DEBUG_PRINTF("overaping mem regions, i: %lu page: %lu\n", i,
 									 (curr_addr - regions[i].addr) / size_dif);
 					}
-					if(regions[i].mapped == false) ++page_amounts[lvl];
+					if(!regions[i].mapped) ++page_amounts[lvl];
 					curr_addr += size_dif;
 					if(size_left < size_dif) size_left = size_dif;
 					size_left -= size_dif;
@@ -138,7 +139,7 @@ void set_page_memory_regions(physical_memory_region_t mem_regions[5]) {
 	const char* page_names[] = {"kilo", "mega", "giga", "tera", "peta"};
 	DEBUG_PRINTF("[i] page memory region set:\n");
 	for(u8 i = 0; i < 5; ++i) {
-		DEBUG_PRINTF("\t[i] %s page to: 0x%lx, size: %lu\n", page_names[i], (u64)mem_regions[i].address,
+		DEBUG_PRINTF("\t[i] %s page to: 0x%lx, size: 0x%lx\n", page_names[i], (u64)mem_regions[i].address,
 					 mem_regions[i].size);
 	}
 }
@@ -152,7 +153,7 @@ ppn_t create_page_table(region_t regions[], u64 regions_amount) {
 		u64 map_addr = regions[i].map_address;
 		while(size_left > 0) {
 			ppn_t use_ppn = (regions[i].mapped) ? (map_addr >> 12) : get_page_frame(regions[i].ps);
-			page_table_add_entry(root_ppn, regions[i].ps, curr_addr >> 12, use_ppn, 1, 1, 1);
+			page_table_add_entry(root_ppn, regions[i].ps, curr_addr >> 12, use_ppn, true, true, true);
 			const u64 size_dif = (4 * kiB) << (9 * regions[i].ps);
 			if(regions[i].mapped) map_addr += size_dif;
 			curr_addr += size_dif;
