@@ -16,6 +16,7 @@ Checks: >
 
 
 FormatStyle: 'file'
+# WarningsAsErrors: 'readability-identifier-naming'
 CheckOptions:
 # allow for
 # if (condition)
@@ -30,3 +31,35 @@ CheckOptions:
     value:           'i'
   - key:             google-runtime-int.TypeSuffix
     value:           ''
+# Naming/casing conventions
+# Use snake_case for names (including file names).
+  - key:             readability-identifier-naming.FunctionCase
+    value:           lower_case
+  - key:             readability-identifier-naming.TypedefCase
+    value:           lower_case
+  - key:             readability-identifier-naming.StructCase
+    value:           lower_case
+  - key:             readability-identifier-naming.UnionCase
+    value:           lower_case
+  - key:             readability-identifier-naming.FileCase
+    value:           lower_case
+  - key:             readability-identifier-naming.VariableCase
+    value:           lower_case
+  - key:             readability-identifier-naming.GlobalVariableCase
+    value:           lower_case
+  - key:             readability-identifier-naming.EnumCase
+    value:           lower_case
+# Use _t at the end of typedef definitions.
+  - key:             readability-identifier-naming.TypedefSuffix
+    value:           _t
+# Use ALL_CAPS for MACROS.
+  - key:             readability-identifier-naming.MacroDefinitionCase
+    value:           UPPER_CASE
+# Use ALL_CAPS for enum values and include the name of the enum at the beginning of the value name.
+# I haven't found a way to enforce enum members containing a prefix of the
+# enum name without a custom clang-tidy plugin
+  - key:             readability-identifier-naming.EnumConstantCase
+    value:           UPPER_CASE
+# Prefix global variables with g_.
+  - key:             readability-identifier-naming.GlobalVariablePrefix
+    value:           g_
