@@ -4,15 +4,20 @@
 #include <stdbigos/types.h>
 
 #include "dt_alloc.h"
+#include "dt_node.h"
 #include "dt_parser.h"
 
 static dt_node_t* root_node = nullptr;
+
+#define DT_ARENA_SIZE 32760
+static u8 dt_arena_buffer[DT_ARENA_SIZE];
 
 dt_node_t* dt_get_root(void) {
 	return root_node;
 }
 
-void dt_reset_root(void) {
+void dt_cleanup(void) {
+	dt_arena_reset();
 	root_node = nullptr;
 }
 
@@ -28,8 +33,12 @@ void dt_reset_root(void) {
 #define FDT_OFF_SIZE_DT_STRINGS   0x20
 #define FDT_OFF_SIZE_DT_STRUCT    0x24
 
-// TODO: implement reading dependent on endianness of the machine
-int dt_init(const void* fdt, [[maybe_unused]] endianness_t machine_big_endian) {
+static const u32 fdt_compatible_version = 17;
+
+int dt_init(const void* fdt) {
+	if (!fdt)
+		return -1;
+
 	u32 magic = read_be32(fdt);
 	if (magic != FDT_MAGIC)
 		return -1;
@@ -42,27 +51,24 @@ int dt_init(const void* fdt, [[maybe_unused]] endianness_t machine_big_endian) {
 		return -1;
 
 	u32 total_size;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_TOTAL_SIZE, &total_size) != BUF_ERR_OK)
-		return -2;
-
 	u32 struct_off;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRUCT, &struct_off) != BUF_ERR_OK)
-		return -2;
-
 	u32 strings_off;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRINGS, &strings_off) != BUF_ERR_OK)
+	u32 struct_size;
+	u32 fdt_version;
+	if (!buffer_read_u32_be(fdt_buf, FDT_OFF_TOTAL_SIZE, &total_size) ||
+	    !buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRUCT, &struct_off) ||
+	    !buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRINGS, &strings_off) ||
+	    !buffer_read_u32_be(fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &struct_size) ||
+	    !buffer_read_u32_be(fdt_buf, FDT_OFF_VERSION, &fdt_version))
 		return -2;
 
-	u32 struct_size;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &struct_size) != BUF_ERR_OK)
-		return -2;
+	if (fdt_version > fdt_compatible_version)
+		return -3;
 
 	if (struct_off + struct_size > total_size)
 		return -3;
 
-	u8* dt_arena_buffer = dt_get_arena_buffer();
-
-	if (dt_arena_init(dt_arena_buffer, DT_ARENA_SIZE) < 0)
+	if (!dt_arena_init(dt_arena_buffer, DT_ARENA_SIZE))
 		return -4;
 
 	u32 offset = struct_off + 4;

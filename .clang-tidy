@@ -12,7 +12,9 @@ Checks: >
     -readability-identifier-length,
     -readability-uppercase-literal-suffix,
     -misc-include-cleaner,
-    -bugprone-reserved-identifier
+    -bugprone-reserved-identifier,
+    -modernize-macro-to-enum,
+    -readability-implicit-bool-conversion
 
 
 FormatStyle: 'file'

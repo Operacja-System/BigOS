@@ -1,52 +1,55 @@
+#include <stdbigos/bitutils.h>
 #include <stdbigos/buffer.h>
+#include <stdbigos/math.h>
+#include <stdbigos/string.h>
+#include <stdbigos/types.h>
+#include <stddef.h>
 
-int buffer_read_u32_be(buffer_t buf, size_t offset, u32* out) {
-	if (!out || offset + 4 > buf.size)
-		return BUF_ERR_OUT_OF_BOUNDS;
-	const u8* b = (const u8*)buf.data + offset;
-	*out = ((u32)b[0] << 24) | ((u32)b[1] << 16) | ((u32)b[2] << 8) | (u32)b[3];
-	return BUF_ERR_OK;
+bool buffer_read_u32_be(buffer_t buf, size_t offset, u32* out) {
+	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
+	if (ok)
+		*out = read_be32((const u8*)buf.data + offset);
+	return ok;
 }
 
-int buffer_read_u64_be(buffer_t buf, size_t offset, u64* out) {
-	if (!out || offset + 8 > buf.size)
-		return BUF_ERR_OUT_OF_BOUNDS;
-	const u8* b = (const u8*)buf.data + offset;
-	*out = ((u64)b[0] << 56) | ((u64)b[1] << 48) | ((u64)b[2] << 40) | ((u64)b[3] << 32) | ((u64)b[4] << 24) |
-	       ((u64)b[5] << 16) | ((u64)b[6] << 8) | (u64)b[7];
-	return BUF_ERR_OK;
+bool buffer_read_u32_le(buffer_t buf, size_t offset, u32* out) {
+	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
+	if (ok)
+		*out = read_le32((const u8*)buf.data + offset);
+	return ok;
+}
+bool buffer_read_u64_be(buffer_t buf, size_t offset, u64* out) {
+	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
+	if (ok)
+		*out = read_be64((const u8*)buf.data + offset);
+	return ok;
+}
+bool buffer_read_u64_le(buffer_t buf, size_t offset, u64* out) {
+	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
+	if (ok)
+		*out = read_le64((const u8*)buf.data + offset);
+	return ok;
 }
 
-int buffer_read_u32_le(buffer_t buf, size_t offset, u32* out) {
-	if (!out || offset + 4 > buf.size)
-		return BUF_ERR_OUT_OF_BOUNDS;
-	const u8* b = (const u8*)buf.data + offset;
-	*out = ((u32)b[3] << 24) | ((u32)b[2] << 16) | ((u32)b[1] << 8) | (u32)b[0];
-	return BUF_ERR_OK;
+bool buffer_read_cstring(buffer_t buf, size_t offset, const char** out_str) {
+	if (!buffer_is_valid(buf) || !out_str || offset >= buf.size)
+		return false;
+
+	const char* beg = (const char*)buf.data + offset;
+	const void* end = memchr(beg, '\0', buf.size - offset);
+
+	if (!end)
+		return false;
+
+	// found null
+	*out_str = beg;
+	return true;
 }
 
-int buffer_read_u64_le(buffer_t buf, size_t offset, u64* out) {
-	if (!out || offset + 8 > buf.size)
-		return BUF_ERR_OUT_OF_BOUNDS;
-	const u8* b = (const u8*)buf.data + offset;
-	*out = ((u64)b[7] << 56) | ((u64)b[6] << 48) | ((u64)b[5] << 40) | ((u64)b[4] << 32) | ((u64)b[3] << 24) |
-	       ((u64)b[2] << 16) | ((u64)b[1] << 8) | (u64)b[0];
-	return BUF_ERR_OK;
-}
+buffer_t buffer_sub_buffer(buffer_t buf, size_t offset, size_t max_size) {
+	if (!buffer_is_valid(buf) || buf.size < offset)
+		return make_buffer(nullptr, 0);
 
-int buffer_read_cstring(buffer_t buf, size_t offset, const char** out_str) {
-	if (!buf.data || !out_str || offset >= buf.size)
-		return BUF_ERR_OUT_OF_BOUNDS;
-
-	const char* base = (const char*)buf.data;
-	size_t i = offset;
-	// scan until '\0' or end‐of‐buffer
-	while (i < buf.size && base[i] != '\0') {
-		i++;
-	}
-	if (i >= buf.size)
-		return BUF_ERR_OUT_OF_BOUNDS; // no terminator inside buffer
-
-	*out_str = base + offset;
-	return BUF_ERR_OK;
+	size_t rest = buf.size - offset;
+	return make_buffer((const u8*)buf.data + offset, min(rest, max_size));
 }

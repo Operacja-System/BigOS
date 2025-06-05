@@ -1,11 +1,6 @@
 SETUP_LIBRARY(dt)
 
-target_link_libraries(dt PRIVATE stdbigos)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-target_link_libraries(dt PRIVATE Debug)
-endif()
-
+target_link_libraries(dt PUBLIC stdbigos Debug)
 
 target_include_directories(dt
   PUBLIC
