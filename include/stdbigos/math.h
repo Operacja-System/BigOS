@@ -1,12 +1,14 @@
-#ifndef _STDBIGOS_MATH_H
-#define _STDBIGOS_MATH_H
+#ifndef BIGOS_INCLUDE_STDBIGOS_MATH
+#define BIGOS_INCLUDE_STDBIGOS_MATH
 
-#ifndef min
-	#define min(a, b) ((a) < (b) ? (a) : (b))
-#endif
+#include <stdbigos/types.h>
 
-#ifndef max
-	#define max(a, b) ((a) > (b) ? (a) : (b))
-#endif
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-#endif
+#define CEIL_DIV(val, div) (u64)(((val) + (div) - 1) / (div))
+
+inline u64 align_up(u64 val, u64 alignment) { return CEIL_DIV(val, alignment); }
+inline u64 align_up_pow2(u64 val, u64 pow) { const u64 align = (1 << pow) - 1; return (val + align) & ~align; }
+
+#endif // !BIGOS_INCLUDE_STDBIGOS_MATH

@@ -45,5 +45,6 @@ typedef enum {
 } kercfg_field_t;
 
 buffer_t kernel_config_get(kercfg_field_t field);
+buffer_t kernel_config_read_device_tree(const char* node_path, const char* arg_name);
 
 #endif // !BIGOS_KERNEL_KERNEL_CONFIG

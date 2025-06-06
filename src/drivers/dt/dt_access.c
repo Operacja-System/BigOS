@@ -88,12 +88,26 @@ static dt_prop_t* dt_find_prop(const dt_node_t* node, const char* name) {
 	return nullptr;
 }
 
+<<<<<<< HEAD
 buffer_t dt_prop_get(const dt_node_t* node, const char* name) {
+=======
+buffer_t dt_prop_get_buffer(const dt_node_t* node, const char* name) {
+	buffer_t buffer = make_buffer_err(nullptr, 0, BUFF_ERR_FETCH);
+
+>>>>>>> 55c287c (implemented kernel config, ram map and finding physical regions)
 	dt_prop_t* prop = dt_find_prop(node, name);
 	if (!prop)
 		return make_buffer(nullptr, 0); // invalid buffer
 
+<<<<<<< HEAD
 	return prop->data;
+=======
+	buffer.data = prop->value;
+	buffer.size = prop->data_length;
+	buffer.error = BUFF_ERR_OK;
+
+	return buffer;
+>>>>>>> 55c287c (implemented kernel config, ram map and finding physical regions)
 }
 
 void dt_print_props(const dt_node_t* node, [[maybe_unused]] u8 depth) {

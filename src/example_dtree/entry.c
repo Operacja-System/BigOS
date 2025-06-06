@@ -25,10 +25,18 @@ void main([[maybe_unused]] u32 hartid, const void* fdt) {
 	} else {
 		dprintf("Found UART node: %s\n", dt_node_get_name(uart));
 
+<<<<<<< HEAD
 		buffer_t buffer = dt_prop_get(uart, "reg");
 		u64 val;
 		if (buffer_read_u64_be(buffer, 0, &val)) {
 			dprintf("UART base: 0x%lx\n", val);
+=======
+		buffer_t buffer = dt_prop_get_buffer(uart, "reg");
+		if (buffer.error == BUFF_ERR_OK) {
+			// Or other easy conversion methods, up to user
+			u64 val = read_be64(buffer.data);
+			DEBUG_PRINTF("UART base: %lu\n", val);
+>>>>>>> 55c287c (implemented kernel config, ram map and finding physical regions)
 		} else {
 			dprintf("\"reg\" prop missing or invalid\n");
 		}

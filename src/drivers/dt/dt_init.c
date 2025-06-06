@@ -51,6 +51,7 @@ int dt_init(const void* fdt) {
 		return -1;
 
 	u32 total_size;
+<<<<<<< HEAD
 	u32 struct_off;
 	u32 strings_off;
 	u32 struct_size;
@@ -64,6 +65,22 @@ int dt_init(const void* fdt) {
 
 	if (fdt_version > fdt_compatible_version)
 		return -3;
+=======
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_TOTAL_SIZE, &total_size) != BUFF_ERR_OK)
+		return -2;
+
+	u32 struct_off;
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRUCT, &struct_off) != BUFF_ERR_OK)
+		return -2;
+
+	u32 strings_off;
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRINGS, &strings_off) != BUFF_ERR_OK)
+		return -2;
+
+	u32 struct_size;
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &struct_size) != BUFF_ERR_OK)
+		return -2;
+>>>>>>> 55c287c (implemented kernel config, ram map and finding physical regions)
 
 	if (struct_off + struct_size > total_size)
 		return -3;
