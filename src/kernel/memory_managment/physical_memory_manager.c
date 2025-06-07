@@ -5,7 +5,7 @@ error_t phys_mem_init() {
 
 }
 
-error_t phys_mem_alloc_frame(page_size_t ps, ppn_t ppnOUT) {
+error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 
 }
 

@@ -49,6 +49,6 @@ bool buffer_read_cstring(buffer_t buf, size_t offset, const char** out_str) {
 buffer_t buffer_sub_buffer(buffer_t buf, size_t offset, size_t max_size) {
 	if (!buffer_is_valid(buf) || buf.size < offset)
 		return make_buffer(nullptr, 0);
-
 	size_t rest = buf.size - offset;
 	return make_buffer((const u8*)buf.data + offset, min(rest, max_size));
+}
