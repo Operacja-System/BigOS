@@ -19,10 +19,10 @@ buffer_t kernel_config_get(kercfg_field_t field) {
 	if(is_set) [[clang::unlikely]] return (buffer_t){.data = nullptr, .size = 0, .error = BUFF_ERR_NOT_VALID};
 	if(!is_set) //TODO: dt_init(physical_to_effective(kercfg.device_tree), little);
 	switch (field) {
-		case KC_MODE: return (buffer_t){.data = &kercfg.mode, .size = sizeof(kercfg.mode), BUFF_ERR_OK};
-		case KC_MACHINE: return (buffer_t){.data = &kercfg.machine, .size = sizeof(kercfg.machine), BUFF_ERR_OK};
-		case KC_PAGING_LVL: return (buffer_t){.data = &kercfg.paging_lvl, .size = sizeof(kercfg.paging_lvl), BUFF_ERR_OK};
-		case KC_CPU_ENDIAN: return (buffer_t){.data = &kercfg.cpu_endian, .size = sizeof(kercfg.cpu_endian), BUFF_ERR_OK};
+		case KERCFG_MODE: return (buffer_t){.data = &kercfg.mode, .size = sizeof(kercfg.mode), BUFF_ERR_OK};
+		case KERCFG_MACHINE: return (buffer_t){.data = &kercfg.machine, .size = sizeof(kercfg.machine), BUFF_ERR_OK};
+		case KERCFG_PT_HEIGHT: return (buffer_t){.data = &kercfg.paging_lvl, .size = sizeof(kercfg.paging_lvl), BUFF_ERR_OK};
+		case KERCFG_CPU_ENDIAN: return (buffer_t){.data = &kercfg.cpu_endian, .size = sizeof(kercfg.cpu_endian), BUFF_ERR_OK};
 		default: return (buffer_t){.data = nullptr, .size = 0, .error = BUFF_ERR_NOT_VALID};
 	}
 }
