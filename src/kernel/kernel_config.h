@@ -17,10 +17,10 @@ typedef enum : u8 {
 } kerconf_machine_t;
 
 typedef enum : u8 {
-	KC_PAGING_LVL_3 = 3,
-	KC_PAGING_LVL_4 = 4,
-	KC_PAGING_LVL_5 = 5,
-} kerconf_paging_level_t;
+	KC_PT_HEIGHT_3 = 3,
+	KC_PT_HEIGHT_4 = 4,
+	KC_PT_HEIGHT_5 = 5,
+} kerconf_page_table_height_t;
 
 typedef enum : u8 {
 	KC_CPU_ENDIAN_LITTLE_ENDIAN = 1,
@@ -30,7 +30,7 @@ typedef enum : u8 {
 typedef struct {
 	kerconf_mode_t mode;
 	kerconf_machine_t machine;
-	kerconf_paging_level_t paging_lvl;
+	kerconf_page_table_height_t paging_lvl;
 	kerconf_cpu_endian_t cpu_endian;
 	phys_addr_t device_tree_phys_addr;
 } kernel_config_t;
@@ -38,10 +38,10 @@ typedef struct {
 error_t kernel_config_set(kernel_config_t cfg);
 
 typedef enum {
-	KC_MODE,
-	KC_MACHINE,
-	KC_PAGING_LVL,
-	KC_CPU_ENDIAN,
+	KERCFG_MODE,
+	KERCFG_MACHINE,
+	KERCFG_PT_HEIGHT,
+	KERCFG_CPU_ENDIAN,
 } kercfg_field_t;
 
 buffer_t kernel_config_get(kercfg_field_t field);

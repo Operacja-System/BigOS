@@ -41,9 +41,9 @@ typedef struct {
 	phys_mem_region_t map_region;
 } virt_mem_region_t;
 
-error_t page_table_create(page_table_entry_t page_tableOUT);
-error_t page_table_destroy(page_table_entry_t page_table);
-error_t page_table_add_region(page_table_entry_t root_pte, virt_mem_region_t region);
-error_t page_table_remove_region(page_table_entry_t root_pte, virt_mem_region_t region);
+error_t page_table_create(page_table_entry_t* page_tableOUT);
+error_t page_table_destroy(page_table_entry_t* page_table);
+error_t page_table_add_region(page_table_entry_t* root_pte, virt_mem_region_t region);
+error_t page_table_remove_region(page_table_entry_t* root_pte, virt_mem_region_t region);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGER_PAGE_TABLE

@@ -2,6 +2,7 @@
 #define _STDBIGOS_BUFFER_H
 
 #include <stdbigos/types.h>
+#include <stdbigos/error.h>
 
 typedef struct buffer_t {
 	const void* data;
