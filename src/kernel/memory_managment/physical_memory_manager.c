@@ -1,8 +1,12 @@
 #include "physical_memory_manager.h"
 #include <stdbigos/math.h>
 
-error_t phys_mem_init() {
+static phys_addr_t s_ram_start = 0;
+static phys_addr_t s_ram_size = 0;
 
+error_t phys_mem_init(phys_addr_t ram_start, size_t ram_size) {
+	s_ram_start = ram_start;
+	s_ram_size = ram_size;
 }
 
 error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
