@@ -35,6 +35,8 @@ typedef struct {
 	bool read;
 	bool write;
 	bool execute;
+	bool user;
+	bool global;
 	page_size_t ps;
 	void* start;
 	size_t size;
@@ -47,5 +49,6 @@ error_t page_table_create(page_table_entry_t* page_tableOUT);
 error_t page_table_destroy(page_table_entry_t* page_table);
 error_t page_table_add_region(page_table_entry_t* root_pte, virt_mem_region_t region);
 error_t page_table_remove_region(page_table_entry_t* root_pte, virt_mem_region_t region);
+void page_table_print(page_table_entry_t root_pte);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGER_PAGE_TABLE

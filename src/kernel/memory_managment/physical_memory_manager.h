@@ -25,7 +25,7 @@ typedef struct {
 	phys_mem_region_t regions[];
 } phys_buffer_t; //starts at 0x0 and not at the address where ram is mapped
 
-error_t phys_mem_init();
+error_t phys_mem_init(phys_addr_t ram_start, size_t ram_size);
 error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT);
 error_t phys_mem_free_frame(ppn_t ppn);
 error_t phys_mem_find_free_region(u64 alignment, phys_buffer_t busy_regions, phys_mem_region_t* regionOUT);
