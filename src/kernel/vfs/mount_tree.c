@@ -1,75 +1,126 @@
 #include "mount_tree.h"
 
 #include <debug/debug_stdio.h>
-#include <stdbigos/string.h>
+#include <stdbigos/error.h>
+#include <stdbigos/pstring.h>
 
 #include "vfs.h"
+#include "vfs_alloc.h"
 
-MT_NODE nodes[MT_MAX_NODES]; // temporary solution, while allocator is not available
-int free_node_idx;
+error_t mt_init(MtNode_t** res) {
+	*res = vfs_malloc(sizeof(MtNode_t));
+	if (!*res) {
+		return ERR_MALLOC_FAILED;
+	}
 
-MT_NODE* mt_init()           // placeholder for now
-{
-	free_node_idx = 0;
-	return nodes;
+	// TODO: Fill in service information for the mount tree root
+	(*res)->edge_list = nullptr;
+
+	return ERR_NONE;
 }
 
-bool mt_find_edge_by_label(MT_NODE* node, char* label, MT_NODE** out) {
-	if (!node)
+// Currently this only frees the subtree.
+// In the future we will most likely need to do more 'stuff' here
+void mt_free(MtNode_t* node) {
+	if (!node) {
+		return;
+	}
+
+	MtEdgeList_t* edge_list = node->edge_list;
+	while (edge_list) {
+		vfs_free(edge_list->edge.label.data);
+		mt_free(edge_list->edge.to);
+
+		MtEdgeList_t* curr = edge_list;
+		edge_list = edge_list->next;
+		vfs_free(curr);
+	}
+}
+
+bool mt_step(const MtNode_t* node, const pstring_t* label, MtNode_t** out) {
+	if (!node || !label)
 		return false;
 
-	for (int i = 0; i < node->edges_size; i++) {
-		if (strcmp(node->edges[i].label, label) == 0) {
-			*out = node->edges[i].to;
+	for (MtEdgeList_t* curr = node->edge_list; curr; curr = curr->next) {
+		if (pstring_strcmp(&curr->edge.label, label) == 0) {
+			*out = curr->edge.to;
 			return true;
 		}
 	}
+
 	return false;
 }
 
-MT_ADD_NODE_STATUS mt_add_node(MT_NODE* node, char* label, SERVICE_HANDLE service) {
-	MT_ADD_NODE_STATUS ret;
-	MT_NODE* dummy = nullptr;
-	if (mt_find_edge_by_label(node, label, &dummy)) {
-		ret.err = ERROR_MT_TRIED_TO_ADD_EDGE_WHICH_EXISTS;
-		return ret;
+bool mt_walk(const MtNode_t* node, VfsPath_t* path, MtNode_t** out) {
+	VfsPath_t curr_path = *path;
+	pstring_t curr;
+	while (vfs_path_next(&curr_path, &curr)) {
+		if (!mt_step(node, &curr, out)) {
+			return false;
+		}
+
+		*path = curr_path;
 	}
-	MT_NODE* new_node = nodes + free_node_idx++;
-	MT_EDGE new_edge;
-	new_edge.label = label;
-	new_edge.to = new_node;
-	node->edges[node->edges_size++] = new_edge;
-	new_node->edges_size = 0;
-	new_node->service = service;
-	ret.err = 0;
-	ret.res = new_node;
-	return ret;
+
+	return true;
 }
 
-MT_ADD_MOUNTPOINT_STATUS mt_add_mountpoint(MT_NODE* root, VFS_PATH* path, SERVICE_HANDLE service) {
-	MT_ADD_MOUNTPOINT_STATUS ret;
-	MT_NODE* node = root;
-	int idx = 0;
-	MT_NODE* next_node = nullptr;
-	while (idx < path->size && mt_find_edge_by_label(node, path->path[idx], &next_node)) {
-		node = next_node;
-		idx++;
+// TODO: Error handling? In case of an error we probably need to clean the partially created subtree.
+//       But nothing really happens if we don't so its only 'TODO'
+/// Adds nodes so the `new_node` is accessible by walking `path` from `node`
+static error_t mt_add_nodes(MtNode_t* node, VfsPath_t path, MtNode_t** new_node) {
+	bool res = mt_walk(node, &path, new_node);
+
+	// Path already walkable -> nothing to do
+	if (res) {
+		return ERR_NONE;
 	}
-	for (int i = idx; i < path->size; i++) {
-		MT_ADD_NODE_STATUS status;
-		status = mt_add_node(node, path->path[i], nullptr);
-		if (status.err) {
-			ret.err = ERROR_MT_TRIED_TO_ADD_EDGE_WHICH_EXISTS;
-			return ret;
+
+	node = *new_node;
+	pstring_t curr_label;
+	while (vfs_path_next(&path, &curr_label)) {
+		*new_node = vfs_malloc(sizeof(MtNode_t));
+		if (!*new_node) {
+			return ERR_MALLOC_FAILED;
 		}
-		node = status.res;
+		(*new_node)->edge_list = nullptr;
+
+		// Copy the current label to own the memory behind it
+		pstring_t curr_label_copy = (pstring_t){.len = curr_label.len, .data = vfs_malloc(curr_label.len)};
+		if (!curr_label_copy.data) {
+			return ERR_MALLOC_FAILED;
+		}
+		pstring_memcpy(&curr_label_copy, &curr_label);
+
+		MtEdgeList_t* new_list_element = vfs_malloc(sizeof(MtEdgeList_t));
+		if (!*new_node) {
+			return ERR_MALLOC_FAILED;
+		}
+		new_list_element->edge = (MtEdge_t){
+		    .label = curr_label_copy,
+		    .to = *new_node,
+		};
+
+		// Add new list element to the front
+		new_list_element->next = node->edge_list;
+		node->edge_list = new_list_element;
+
+		node = *new_node;
 	}
-	if (node->service) {
-		ret.err = ERROR_MT_MOUNTPOINT_EXSITS;
-		return ret;
+
+	return ERR_NONE;
+}
+
+error_t mt_add_mountpoint(MtNode_t* root, VfsPath_t path, ServiceHandle_t service, MtNode_t** out) {
+	error_t res = mt_add_nodes(root, path, out);
+	if (res != ERR_NONE) {
+		return res;
 	}
-	node->service = service;
-	ret.err = 0;
-	ret.res = node;
-	return ret;
+
+	if ((*out)->service != nullptr) {
+		return ERR_MT_MOUNTPOINT_EXSITS;
+	}
+
+	(*out)->service = service;
+	return ERR_NONE;
 }

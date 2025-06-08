@@ -1,44 +1,43 @@
-#ifndef _MOUNT_TREE_
-#define _MOUNT_TREE_
+#ifndef _MOUNT_TREE_H_
+#define _MOUNT_TREE_H_
 
+#include <stdbigos/error.h>
+#include <stdbigos/pstring.h>
 #include <stdbigos/types.h>
 
 #include "vfs.h"
 
-#define ERROR_MT_MOUNTPOINT_EXSITS              213721476969ull // randomly generated UID
-#define ERROR_MT_TRIED_TO_ADD_EDGE_WHICH_EXISTS 10444484387115746230ull
-#define ERROR_MT_UNKNOWN                        15645921380825118731ull
+typedef struct MtEdge_t {
+	pstring_t label;
+	struct MtNode_t* to;
+} MtEdge_t;
 
-#define MT_MAX_CHILDREN 32
-#define MT_MAX_NODES    1024
+typedef struct MtEdgeList_t {
+	MtEdge_t edge;
+	struct MtEdgeList_t* next;
+} MtEdgeList_t;
 
-struct MT_EDGE;
-struct MT_NODE;
+typedef struct MtNode_t {
+	ServiceHandle_t service;
+	MtEdgeList_t* edge_list;
+} MtNode_t;
 
-typedef struct MT_EDGE {
-	char* label;
-	struct MT_NODE* to;
-} MT_EDGE;
+/// Initializes the mount tree; does basic setup
+error_t mt_init(MtNode_t** res);
 
-typedef struct MT_NODE {
-	SERVICE_HANDLE service;
-	MT_EDGE edges[MT_MAX_CHILDREN]; // TODO: change it to linked list (when allocator will be available)
-	u16 edges_size;
-} MT_NODE;
+/// Deallocate the MtNode subtree
+void mt_free(MtNode_t* node);
 
-typedef struct MT_ADD_MOUNTPOINT_STATUS {
-	MT_NODE* res;
-	u64 err;
-} MT_ADD_MOUNTPOINT_STATUS;
+/// Attempts to step over `label` to next node.
+bool mt_step(const MtNode_t* node, const pstring_t* label, MtNode_t** out);
 
-typedef struct MT_ADD_NODE_STATUS {
-	MT_NODE* res;
-	u64 err;
-} MT_ADD_NODE_STATUS;
+/// Attempts to walk `path` starting from `node`.
+/// On fail returns false and `path` is modified to point to not-walked sufix
+bool mt_walk(const MtNode_t* node, VfsPath_t* path, MtNode_t** out);
 
-MT_NODE* mt_init();
-bool mt_find_edge_by_label(MT_NODE* node, char* label, MT_NODE** out);
-MT_ADD_NODE_STATUS mt_add_node(MT_NODE* node, char* label, SERVICE_HANDLE service);
-MT_ADD_MOUNTPOINT_STATUS mt_add_mountpoint(MT_NODE* root, VFS_PATH* path, SERVICE_HANDLE service);
+/// Ads a new node for handling a service below `node` accessible via `label`
+// error_t mt_add_node(MtNode_t* node, pstring_t label, ServiceHandle_t service, MtNode_t** new_node);
+
+error_t mt_add_mountpoint(MtNode_t* root, VfsPath_t path, ServiceHandle_t service, MtNode_t** out);
 
 #endif
