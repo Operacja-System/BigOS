@@ -35,7 +35,7 @@ typedef struct {
 	phys_addr_t device_tree_phys_addr;
 } kernel_config_t;
 
-error_t kernel_config_set(kernel_config_t cfg);
+[[nodiscard]] error_t kernel_config_set(kernel_config_t cfg);
 
 typedef enum {
 	KERCFG_MODE,
@@ -44,7 +44,7 @@ typedef enum {
 	KERCFG_CPU_ENDIAN,
 } kercfg_field_t;
 
-buffer_t kernel_config_get(kercfg_field_t field);
-buffer_t kernel_config_read_device_tree(const char* node_path, const char* arg_name);
+[[nodiscard]] buffer_t kernel_config_get(kercfg_field_t field);
+[[nodiscard]] buffer_t kernel_config_read_device_tree(const char* node_path, const char* arg_name);
 
 #endif // !BIGOS_KERNEL_KERNEL_CONFIG
