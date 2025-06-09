@@ -19,15 +19,15 @@ bool vfs_path_next(VfsPath_t* path, pstring_t* edge) {
 	}
 
 	const pstring_t vpath = path->path;
-	char* split = pstring_strchr(&vpath, '/');
-	if (split == nullptr) {
+	pstring_t split = ERRX_UNWRAP(pstring_strchr(&vpath, '/'));
+	if (split.len == 0) {
 		path->path.data = nullptr;
 		path->path.len = 0;
 		*edge = vpath;
 	}
 
-	u32 split_pos = vpath.data - split;
-	*edge = pstring_slice_view(&vpath, 0, split_pos);
-	path->path = pstring_slice_view(&vpath, split_pos + 1, vpath.len);
+	size_t split_pos = vpath.len - split.len;
+	*edge = ERRX_UNWRAP(pstring_slice_view(&vpath, 0, split_pos));
+	path->path = ERRX_UNWRAP(pstring_slice_view(&vpath, split_pos + 1, vpath.len));
 	return true;
 }

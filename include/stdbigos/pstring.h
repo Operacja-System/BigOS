@@ -4,7 +4,9 @@
 #include <stdbigos/meta/err_x_t.h>
 #include <stdbigos/types.h>
 
-/// Pascal-like length based string
+/// pstring_t:
+/// either (P)ascal-like length based string
+/// or (p)edantically checked string
 typedef struct {
 	size_t len;
 	char* data;
@@ -13,6 +15,10 @@ typedef struct {
 ERRX_WRAPPER_T(pstring, pstring_t);
 ERRX_WRAPPER_T(size, size_t);
 ERRX_WRAPPER_T(int, int);
+
+// Some of the following functions that are string.h lookalikes are
+// more-or-less analogous to their [xxx]n[yyy] counterparts but check
+// correctness of the pstring_t argument.
 
 /// Wrap null terminated string in `pstring_t` stuct
 [[nodiscard]]
@@ -26,9 +32,6 @@ size_or_err_t pstring_len(const pstring_t* ps);
 /// If ps is `NULL` or does not have `data` then `0` will be returned
 [[nodiscard]]
 size_t pstring_len_silenterr(const pstring_t* ps);
-
-// The following functions are more-or-less analogous to their [xxx]n[yyy]
-// string.h counterparts but check correctness of the pstring_t argument.
 
 [[nodiscard]]
 size_or_err_t pstring_memcpy(pstring_t* dest, const pstring_t* src);

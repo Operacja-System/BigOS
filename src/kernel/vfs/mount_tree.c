@@ -42,7 +42,7 @@ bool mt_step(const MtNode_t* node, const pstring_t* label, MtNode_t** out) {
 		return false;
 
 	for (MtEdgeList_t* curr = node->edge_list; curr; curr = curr->next) {
-		if (pstring_strcmp(&curr->edge.label, label) == 0) {
+		if (ERRX_UNWRAP(pstring_strcmp(&curr->edge.label, label)) == 0) {
 			*out = curr->edge.to;
 			return true;
 		}
@@ -90,7 +90,7 @@ static error_t mt_add_nodes(MtNode_t* node, VfsPath_t path, MtNode_t** new_node)
 		if (!curr_label_copy.data) {
 			return ERR_MALLOC_FAILED;
 		}
-		pstring_memcpy(&curr_label_copy, &curr_label);
+		ERRX_UNWRAP(pstring_memcpy(&curr_label_copy, &curr_label));
 
 		MtEdgeList_t* new_list_element = vfs_malloc(sizeof(MtEdgeList_t));
 		if (!*new_node) {
