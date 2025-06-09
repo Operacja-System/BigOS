@@ -57,4 +57,14 @@ pstring_or_err_t pstring_strchr(const pstring_t* ps, char ch);
 [[nodiscard]]
 pstring_or_err_t pstring_slice_view(const pstring_t* ps, u32 start, u32 end);
 
+/// Writes bytes from `src2` into `src1` starting at position `from` in `src1`.
+/// Returns the number of bytes from `src2` written to `src1`.
+[[nodiscard]]
+size_or_err_t pstring_cat(pstring_t* src1, size_t from, const pstring_t* src2);
+
+/// Concatenates two pstrings into `dest`.
+/// Returns the number of bytes written into dest.
+[[nodiscard]]
+size_or_err_t pstring_concat(pstring_t* dest, const pstring_t* first, const pstring_t* second);
+
 #endif

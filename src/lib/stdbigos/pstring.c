@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdbigos/pstring.h>
 #include <stdbigos/string.h>
 #include <stddef.h>
@@ -125,4 +126,33 @@ pstring_or_err_t pstring_slice_view(const pstring_t* ps, u32 start, u32 end) {
 	return (pstring_or_err_t){
 	    .val = {.len = new_len, .data = ps->data + start}
     };
+}
+
+size_or_err_t pstring_cat(pstring_t* src1, size_t from, const pstring_t* src2) {
+	ASSERT_PS_OR_ERR_T(size_or_err_t, src1);
+	ASSERT_PS_OR_ERR_T(size_or_err_t, src2);
+
+	size_t num_written = 0;
+	size_t i = from;
+	while (i < src1->len && num_written < src2->len) {
+		src1->data[i++] = src2->data[num_written++];
+	}
+
+	return (size_or_err_t){.val = num_written};
+}
+
+size_or_err_t pstring_concat(pstring_t* dest, const pstring_t* first, const pstring_t* second) {
+	ASSERT_PS_OR_ERR_T(size_or_err_t, dest);
+	ASSERT_PS_OR_ERR_T(size_or_err_t, first);
+	ASSERT_PS_OR_ERR_T(size_or_err_t, second);
+
+	size_t num_copied = 0;
+	for (size_t i = 0; i < first->len && num_copied < dest->len; i++, num_copied++) {
+		dest->data[num_copied] = first->data[i];
+	}
+	for (size_t i = 0; i < second->len && num_copied < dest->len; i++, num_copied++) {
+		dest->data[num_copied] = second->data[i];
+	}
+
+	return (size_or_err_t){.val = num_copied};
 }
