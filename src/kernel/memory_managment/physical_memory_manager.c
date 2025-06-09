@@ -4,7 +4,7 @@
 static phys_addr_t s_ram_start = 0;
 static phys_addr_t s_ram_size = 0;
 
-error_t phys_mem_init(phys_addr_t ram_start, size_t ram_size) {
+error_t phys_mem_init(phys_addr_t ram_start, size_t ram_size, phys_mem_region_t* mgr_regionOUT) {
 	s_ram_start = ram_start;
 	s_ram_size = ram_size;
 }

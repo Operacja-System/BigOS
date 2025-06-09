@@ -12,9 +12,9 @@ typedef enum {
 	PAGE_MODE_GIGANTIC,
 } page_mode_t;
 
-error_t address_space_managment_init();
-error_t address_space_create(asid_t* asidOUT);
-error_t address_space_destroy(asid_t asidOUT);
-error_t address_space_resolve_page_fault(asid_t asid, void* fault_addr, bool read, bool write, bool execute);
+[[nodiscard]] error_t address_space_managment_init();
+[[nodiscard]] error_t address_space_create(asid_t* asidOUT);
+[[nodiscard]] error_t address_space_destroy(asid_t asidOUT);
+[[nodiscard]] error_t address_space_resolve_page_fault(asid_t asid, void* fault_addr, bool read, bool write, bool execute);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGMENT_ADDRESS_SPACE_MANAGER
