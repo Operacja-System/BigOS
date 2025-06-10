@@ -1,20 +1,7 @@
 #ifndef STDBIGOS_PSTRING_H
 #define STDBIGOS_PSTRING_H
 
-#include <stdbigos/meta/err_x_t.h>
 #include <stdbigos/types.h>
-
-/// pstring_t:
-/// either (P)ascal-like length based string
-/// or (p)edantically checked string
-typedef struct {
-	size_t len;
-	char* data;
-} pstring_t;
-
-ERRX_WRAPPER_T(pstring, pstring_t);
-ERRX_WRAPPER_T(size, size_t);
-ERRX_WRAPPER_T(int, int);
 
 // Some of the following functions that are string.h lookalikes are
 // more-or-less analogous to their [xxx]n[yyy] counterparts but check
