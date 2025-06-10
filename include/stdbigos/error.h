@@ -10,6 +10,7 @@ typedef enum {
 	ERR_PHYSICAL_MEMORY_FULL,
 	ERR_OUT_OF_BOUNDS,
 	ERR_INTERNAL_FAILURE,
+	ERR_NOT_INITIALIZED,
 } error_t;
 
 const char* get_error_msg(error_t err);

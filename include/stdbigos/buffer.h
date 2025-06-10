@@ -1,8 +1,8 @@
 #ifndef _STDBIGOS_BUFFER_H
 #define _STDBIGOS_BUFFER_H
 
-#include <stdbigos/types.h>
 #include <stdbigos/error.h>
+#include <stdbigos/types.h>
 
 typedef struct buffer_t {
 	const void* data;

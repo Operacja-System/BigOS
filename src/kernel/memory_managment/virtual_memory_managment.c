@@ -1,4 +1,5 @@
 #include "virtual_memory_managment.h"
+
 #include <stdbigos/csr.h>
 
 // ========================================
@@ -8,7 +9,7 @@
 typedef struct [[gnu::packed]] {
 	ppn_t page_table : 44;
 	u16 asid : 16;
-	virt_mem_scheme_t vms : 4;
+	u8 vms : 4;
 } reg_satp_t;
 static_assert(sizeof(reg_satp_t) == 8);
 
@@ -32,7 +33,7 @@ reg_satp_t read_satp(reg_t satp) {
 // ========================================
 
 u16 virt_mem_get_max_asid() {
-	reg_satp_t satp_struct = {.vms = VMS_BARE, .asid = UINT16_MAX, .page_table = 0};
+	reg_satp_t satp_struct = {.vms = 0, .asid = UINT16_MAX, .page_table = 0};
 	volatile reg_t satp = write_satp(satp_struct);
 	CSR_WRITE(satp, satp);
 	satp = CSR_READ(satp);
@@ -40,6 +41,22 @@ u16 virt_mem_get_max_asid() {
 	return satp_struct.asid;
 }
 
-void virt_mem_set_satp(u16 asid, virt_mem_scheme_t vms, ppn_t page_table) {
+void virt_mem_set_satp(u16 asid, u8 vms, ppn_t page_table) {
+	reg_satp_t satp_struct = {.vms = vms, .asid = asid, .page_table = page_table};
+	volatile reg_t satp = write_satp(satp_struct);
+	CSR_WRITE(satp, satp);
+}
 
+void virt_mem_flush_TLB() {
+	asm volatile("sfence.vma x0, x0" ::: "memory");
+}
+
+void virt_mem_flush_TLB_entry(void* va) {
+	register u64 r_va asm("a0") = (reg_t)va;
+	asm volatile("sfence.vma %0, x0" :: "r"(r_va) : "memory");
+}
+
+void virt_mem_flush_TLB_address_space(u64 asid) {
+	register u64 r_asid asm("a0") = (reg_t)asid;
+	asm volatile("sfence.vma x0, %0" :: "r"(r_asid) : "memory");
 }
