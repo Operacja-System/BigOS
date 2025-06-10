@@ -10,3 +10,8 @@ FtEntry_t* ft_add_entry(ServiceHandle_t handle, u64 file_id, int attributes) {
 	ret->attributes = attributes;
 	return ret;
 }
+
+// There could be more stuff here in future
+void ft_free_entry(FtEntry_t* entry) {
+	vfs_free(entry);
+}
