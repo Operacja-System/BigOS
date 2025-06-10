@@ -2,8 +2,9 @@
 #define BIGOS_KERNEL_MEMORY_MANAGER_PAGE_TABLE
 
 #include <stdbigos/error.h>
+#include <stdbigos/types.h>
 
-#include "memory_managment/physical_memory_manager.h"
+#include "mm_types.h"
 
 typedef enum : u8 {
 	PTEF_VALID = (1 << 0),
@@ -30,25 +31,9 @@ typedef struct [[gnu::packed]] {
 } page_table_entry_t;
 static_assert(sizeof(page_table_entry_t) == 8);
 
-typedef struct {
-	bool mapped;
-	bool read;
-	bool write;
-	bool execute;
-	bool user;
-	bool global;
-	page_size_t ps;
-	void* start;
-	size_t size;
-	phys_mem_region_t map_region;
-} virt_mem_region_t;
-
-typedef u64 vpn_t;
-
 [[nodiscard]] error_t page_table_create(page_table_entry_t* page_tableOUT);
 [[nodiscard]] error_t page_table_destroy(page_table_entry_t* page_table);
-[[nodiscard]] error_t page_table_add_region(page_table_entry_t* root_pte, virt_mem_region_t region);
-[[nodiscard]] error_t page_table_remove_region(page_table_entry_t* root_pte, virt_mem_region_t region);
+[[nodiscard]] error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn_t vpn, page_table_entry_t entry);
 void page_table_print(page_table_entry_t root_pte);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGER_PAGE_TABLE

@@ -2,16 +2,13 @@
 #define BIGOS_KERNEL_MEMORY_MANAGMENT_VIRTUAL_MEMORY_MANAGMENT
 
 #include <stdbigos/types.h>
-#include "memory_managment/physical_memory_manager.h"
 
-typedef enum : u8 {
-	VMS_BARE = 0,
-	VMS_SV39 = 8,
-	VMS_SV48 = 9,
-	VMS_SV57 = 10,
-} virt_mem_scheme_t;
+#include "mm_types.h"
 
 [[nodiscard]] u16 virt_mem_get_max_asid();
-void virt_mem_set_satp(u16 asid, virt_mem_scheme_t vms, ppn_t page_table);
+void virt_mem_set_satp(u16 asid, u8 vms, ppn_t page_table);
+void virt_mem_flush_TLB();
+void virt_mem_flush_TLB_entry(void* va);
+void virt_mem_flush_TLB_address_space(u64 asid);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGMENT_VIRTUAL_MEMORY_MANAGMENT
