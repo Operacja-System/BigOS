@@ -1,0 +1,24 @@
+// Copy form frogrammer9/BigOs as we might want to use this
+
+#ifndef _STDBIGOS_ERROR_H_
+#define _STDBIGOS_ERROR_H_
+
+typedef enum {
+	ERR_NONE = 0,
+	ERR_INVALID_ARGUMENT,
+	ERR_ASSERTION_FAILED,
+	ERR_CRITICAL_INTERNAL_FAILURE,
+	ERR_HARDWARE_NOT_COMPATIBLE,
+	ERR_ALL_ADDRESS_SPACES_IN_USE,
+	ERR_PHYSICAL_MEMORY_FULL,
+
+	ERR_MALLOC_FAILED,
+
+	ERR_MT_MOUNTPOINT_EXSITS,
+	ERR_MT_TRIED_TO_ADD_EDGE_WHICH_EXISTS,
+	ERR_MT_UNKNOWN,
+} error_t;
+
+const char* get_error_msg(error_t err);
+
+#endif //_STDBIGOS_ERROR_H_

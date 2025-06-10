@@ -23,4 +23,11 @@ typedef enum {
 	ENDIAN_BIG = 1,
 } endianness_t;
 
+#include <stdbigos/meta/err_x_t.h>
+#include <stdbigos/pstring_t.h>
+
+ERRX_WRAPPER_T(pstring, pstring_t);
+ERRX_WRAPPER_T(size, size_t);
+ERRX_WRAPPER_T(int, int);
+
 #endif
