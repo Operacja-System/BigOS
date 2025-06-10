@@ -11,6 +11,12 @@ void vfsmain();
 // TODO: Implement
 #define ServiceHandle_t void* // placeholder for now
 
+typedef struct FtEntry_t {
+	ServiceHandle_t handle;
+	u64 file_id;
+	u64 attributes;
+} FtEntry_t;
+
 /// Memory-owning representation of path
 typedef pstring_t VfsPathBuff_t;
 
