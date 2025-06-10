@@ -30,8 +30,6 @@ void vfsmain() {
 		}
 		DEBUG_PUTC('\n');
 	}
-	kassert("foo" == nullptr); // Just for testing
-	PANIC("This should not be reached");
 
 	ServiceHandle_t example_driver;
 
