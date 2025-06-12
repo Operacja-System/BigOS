@@ -7,6 +7,7 @@ BigOS is an operating system developed by students at the University of Wrocław
 - **CMake** (3.24) + makefile generator
 - **qemu-system-riscv**
 - **riscv64-elf-gcc**
+- **riscv64-linux-gnu-gcc**
 - **clang-format** (19.0)
 - **MkDocs** (1.4.2) – only for documentation
 

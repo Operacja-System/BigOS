@@ -5,6 +5,8 @@
 # by providing an output file path and url as additional arguments.
 #
 
+PROJ_DIR="$( dirname -- "${BASH_SOURCE[0]}" )/.."
+
 baseCommit=$1
 outputFile=$2
 url=$3
@@ -64,7 +66,7 @@ do
 		echo "${dash} ${sha} ${etc}"
 		;;
 	esac
-done <<< "$(git log --check --pretty=format:"---% h% s" "${baseCommit}".. -- ":!external")"
+done <<< "$(git log --check --pretty=format:"---% h% s" "${baseCommit}".. -- "$PROJ_DIR" ':!external')"
 
 if test ${#problems[*]} -gt 0
 then
