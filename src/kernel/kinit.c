@@ -3,7 +3,6 @@
 #include "kernel_config.h"
 #include "memory_managment/address_space_manager.h"
 #include "memory_managment/mm_types.h"
-#include "memory_managment/page_table.h"
 #include "memory_managment/physical_memory_manager.h"
 #include "memory_managment/virtual_memory_managment.h"
 #include "ram_map.h"
@@ -13,6 +12,7 @@
 [[noreturn]] void kinit(phys_addr_t device_tree) {
 	kernel_config_t kercfg = {0};
 	phys_addr_t ram_start = 0x80000000;      // TODO: Read from DT
+	size_t ram_size = 1;				     // TODO: Read from DT
 	endianness_t endianness = ENDIAN_LITTLE; // TODO: Read from DT
 	kercfg.device_tree_phys_addr = device_tree;
 	kercfg.cpu_endian = endianness;
@@ -25,8 +25,8 @@
 
 	ram_map_data_t ram_data = {0};
 	ram_data.size = 1;                 // TODO: Read from DT
-	ram_data.addr = (void*)0x80000000; // TODO: Read from DT
-	ram_data.phys_addr = 0x80000000;   // TODO: Read from DT
+	ram_data.addr = (void*)ram_start;
+	ram_data.phys_addr = ram_start;
 	ram_map_set_data(ram_data);
 
 	err = phys_mem_init();
@@ -52,7 +52,7 @@
 	void* ram_map_addr = heap_addr - ram_data.size;
 
 	phys_addr_t text_phys_addr = 0x80000000; // TODO: Read from DT
-	size_t text_size = 2 * (1ull << 20);     // Read from DT
+	size_t text_size = 2 * (1ull << 20);     // TODO: Read from DT
 	phys_mem_region_t ram_map_phys_region = (phys_mem_region_t){.size = ram_data.size, .addr = ram_data.phys_addr};
 	phys_mem_region_t text_phys_region = (phys_mem_region_t){.size = text_size, .addr = text_phys_addr};
 
