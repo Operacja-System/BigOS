@@ -42,9 +42,9 @@ function(SETUP_EXECUTABLE name)
     add_executable(${name})
     SETUP_COMMON(${name})
 
-    file(GLOB SOURCES CONFIGURE_DEPENDS *.c)
-    file(GLOB HEADERS CONFIGURE_DEPENDS *.h)
-    file(GLOB AS_SOURCES CONFIGURE_DEPENDS *.s)
+	file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS *.c)
+    file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS *.h)
+    file(GLOB_RECURSE AS_SOURCES CONFIGURE_DEPENDS *.s)
 
     target_sources(${name}
       PRIVATE
