@@ -8,7 +8,7 @@ static bool is_set = false;
 void ram_map_set_data(ram_map_data_t data) {
 #ifdef __DEBUG__
 	if (is_set) [[clang::unlikely]]
-		DEBUG_PRINTF("ram map data changed to addr: %lx, size: 0x%lx\n", (u64)data.start, data.size);
+		DEBUG_PRINTF("ram map data changed to addr: %lx, size: 0x%lx\n", (u64)data.addr, data.size);
 #endif
 	ram_data = data;
 	is_set = true;
@@ -28,5 +28,5 @@ void* physical_to_effective(phys_addr_t paddr) {
 	if (paddr > ram_data.size) [[clang::unlikely]]
 		DEBUG_PRINTF("ERROR: phys_addr exceeded ram map size\n");
 #endif
-	return ram_data.start + paddr;
+	return ram_data.addr + paddr;
 }

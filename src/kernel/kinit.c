@@ -29,7 +29,9 @@
 	ram_data.phys_addr = ram_start;
 	ram_map_set_data(ram_data);
 
-	err = phys_mem_init();
+	// NOTE: if any regions are allocated in phys memory before initializing phys_mem_mgr they need to be added to this buffer
+	phys_buffer_t phys_buffer = (phys_buffer_t){.count = 0, .regions = nullptr};
+	err = phys_mem_init(phys_buffer);
 	if (err) { /*TODO: Panic*/ }
 
 	u16 max_asid = virt_mem_get_max_asid();
