@@ -33,7 +33,8 @@ static_assert(sizeof(page_table_entry_t) == 8);
 
 [[nodiscard]] error_t page_table_create(page_table_entry_t* page_tableOUT);
 [[nodiscard]] error_t page_table_destroy(page_table_entry_t* page_table);
-[[nodiscard]] error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn_t vpn, page_table_entry_t entry);
+[[nodiscard]] error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn_t vpn,
+                                           page_table_entry_t entry);
 void page_table_print(page_table_entry_t root_pte);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGER_PAGE_TABLE

@@ -13,7 +13,7 @@ static u8 s_pt_height = 0;
 
 error_t kernel_config_set(kernel_config_t cfg) {
 #ifdef __DEBUG__
-	if (s_is_set) [[clang::unlikely]]
+	if (s_is_set)
 		DEBUG_PRINTF("Kernel configuration has changed\n");
 #endif
 	s_kercfg = cfg;
@@ -40,9 +40,9 @@ error_t kernel_config_set(kernel_config_t cfg) {
 }
 
 buffer_t kernel_config_get(kercfg_field_t field) {
-	if (s_is_set) [[clang::unlikely]]
+	if (!s_is_set)
 		return (buffer_t){.data = nullptr, .size = 0, .error = BUFF_ERR_NOT_VALID};
-	if (!s_is_set) // TODO: dt_init(physical_to_effective(kercfg.device_tree), little);
+	//if (s_is_set) // TODO: dt_init(physical_to_effective(kercfg.device_tree), little); ???
 		switch (field) {
 		case KERCFG_MODE: return (buffer_t){.data = &s_kercfg.mode, .size = sizeof(s_kercfg.mode), BUFF_ERR_OK};
 		case KERCFG_MACHINE:

@@ -53,10 +53,10 @@ void virt_mem_flush_TLB() {
 
 void virt_mem_flush_TLB_entry(void* va) {
 	register u64 r_va asm("a0") = (reg_t)va;
-	asm volatile("sfence.vma %0, x0" :: "r"(r_va) : "memory");
+	asm volatile("sfence.vma %0, x0" ::"r"(r_va) : "memory");
 }
 
 void virt_mem_flush_TLB_address_space(u64 asid) {
 	register u64 r_asid asm("a0") = (reg_t)asid;
-	asm volatile("sfence.vma x0, %0" :: "r"(r_asid) : "memory");
+	asm volatile("sfence.vma x0, %0" ::"r"(r_asid) : "memory");
 }
