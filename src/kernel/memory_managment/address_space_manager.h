@@ -24,7 +24,8 @@ typedef struct {
 [[nodiscard]] error_t address_space_destroy(as_handle_t* ash);
 [[nodiscard]] error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region);
 [[nodiscard]] error_t address_sapce_delete_region(as_handle_t* ash, virt_mem_region_t region);
-[[nodiscard]] error_t address_space_resolve_page_fault(as_handle_t* ash, void* fault_addr, bool read, bool write, bool execute);
+[[nodiscard]] error_t address_space_resolve_page_fault(as_handle_t* ash, void* fault_addr, bool read, bool write,
+                                                       bool execute);
 [[nodiscard]] error_t address_space_set_stack_data(as_handle_t* ash, void* stack_start, size_t stack_size);
 [[nodiscard]] error_t address_space_set_heap_data(as_handle_t* ash, void* heap_start, size_t heap_size);
 

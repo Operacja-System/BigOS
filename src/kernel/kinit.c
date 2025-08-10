@@ -10,9 +10,11 @@
 [[noreturn]] extern void kmain();
 
 [[noreturn]] void kinit(phys_addr_t device_tree) {
+	DEBUG_PRINTF("========== kinit start ==========\n");
+
 	kernel_config_t kercfg = {0};
 	phys_addr_t ram_start = 0x80000000;      // TODO: Read from DT
-	size_t ram_size = 1;				     // TODO: Read from DT
+	size_t ram_size = 1;                     // TODO: Read from DT
 	endianness_t endianness = ENDIAN_LITTLE; // TODO: Read from DT
 	kercfg.device_tree_phys_addr = device_tree;
 	kercfg.cpu_endian = endianness;
@@ -21,28 +23,34 @@
 	kercfg.target_vms = KC_VMS_SV48;
 	kercfg.active_vms = KC_VMS_BARE;
 	error_t err = kernel_config_set(kercfg);
-	if (err) { /*TODO: Panic*/ }
+	if (err) { /*TODO: Panic*/
+	}
 
 	ram_map_data_t ram_data = {0};
-	ram_data.size = 1;                 // TODO: Read from DT
+	ram_data.size_GB = ram_size;
 	ram_data.addr = (void*)ram_start;
 	ram_data.phys_addr = ram_start;
 	ram_map_set_data(ram_data);
 
-	// NOTE: if any regions are allocated in phys memory before initializing phys_mem_mgr they need to be added to this buffer
+	// NOTE: if any regions are allocated in phys memory before initializing phys_mem_mgr they need to be added to this
+	// buffer
 	phys_buffer_t phys_buffer = (phys_buffer_t){.count = 0, .regions = nullptr};
 	err = phys_mem_init(phys_buffer);
-	if (err) { /*TODO: Panic*/ }
+	if (err) { /*TODO: Panic*/
+	}
 
 	u16 max_asid = virt_mem_get_max_asid();
 	err = address_space_managment_init(max_asid);
-	if (err) { /*TODO: Panic*/ }
+	if (err) { /*TODO: Panic*/
+	}
 
 	u8 as_bits = 0;
 	buffer_t as_bits_buffer = kernel_config_get(KERCFG_ADDRESS_SPACE_BITS);
-	if (as_bits_buffer.error) { /*TODO: Panic*/ }
+	if (as_bits_buffer.error) { /*TODO: Panic*/
+	}
 	err = buffer_read_u8(as_bits_buffer, 0, &as_bits);
-	if (err) { /*TODO: Panic*/ }
+	if (err) {                  /*TODO: Panic*/
+	}
 
 	size_t stack_size = 8 * (1ull << 20);
 	size_t heap_size = 8 * (1ull << 20);
@@ -51,11 +59,12 @@
 	void* stack_top_addr = stack_bottom_addr - stack_size;
 	void* heap_addr = (void*)(3ull << (as_bits - 2));
 	void* text_addr = (void*)(1ull << (as_bits - 1));
-	void* ram_map_addr = heap_addr - ram_data.size;
+	void* ram_map_addr = heap_addr - (ram_data.size_GB << 18);
 
 	phys_addr_t text_phys_addr = 0x80000000; // TODO: Read from DT
 	size_t text_size = 2 * (1ull << 20);     // TODO: Read from DT
-	phys_mem_region_t ram_map_phys_region = (phys_mem_region_t){.size = ram_data.size, .addr = ram_data.phys_addr};
+	phys_mem_region_t ram_map_phys_region =
+	    (phys_mem_region_t){.size = ram_data.size_GB << 18, .addr = ram_data.phys_addr};
 	phys_mem_region_t text_phys_region = (phys_mem_region_t){.size = text_size, .addr = text_phys_addr};
 
 	virt_mem_region_t kernel_address_space_regions[4] = {
@@ -97,7 +106,7 @@
 	                        },
 	    (virt_mem_region_t){
 	                        .addr = ram_map_addr,
-	                        .size = ram_data.size,
+	                        .size = ram_data.size_GB << 18,
 	                        .mapped = true,
 	                        .map_region = ram_map_phys_region,
 	                        .ps = PAGE_SIZE_1GB,
@@ -111,18 +120,23 @@
 
 	as_handle_t kernel_ash = {0};
 	err = address_space_create(&kernel_ash, false, true);
-	if (err) { /*TODO: Panic*/ }
+	if (err) { /*TODO: Panic*/
+	}
 
-	for(u32 i = 0; i < sizeof(kernel_address_space_regions) / sizeof(kernel_address_space_regions[0]); ++i) {
+	for (u32 i = 0; i < sizeof(kernel_address_space_regions) / sizeof(kernel_address_space_regions[0]); ++i) {
 		error_t err = address_sapce_add_region(&kernel_ash, kernel_address_space_regions[i]);
-		if (err) { /*TODO: Panic*/ }
+		if (err) { /*TODO: Panic*/
+		}
 	}
 
 	err = address_space_set_stack_data(&kernel_ash, stack_bottom_addr, stack_size);
-	if (err) { /*TODO: Panic*/ }
+	if (err) { /*TODO: Panic*/
+	}
 	err = address_space_set_heap_data(&kernel_ash, heap_addr, heap_size);
-	if (err) { /*TODO: Panic*/ }
+	if (err) { /*TODO: Panic*/
+	}
 
+	// NOTE: As it is done now between kinit and kmain the stack will change.
 
 	kmain();
 	DEBUG_PRINTF("[CRITICAL ERROR] kmain returned. This should never happen\n");

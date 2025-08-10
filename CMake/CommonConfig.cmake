@@ -4,7 +4,7 @@ find_program(QEMU_FOUND_PATH "qemu-system-riscv64")
 
 set(BIGOS_WARNINGS_AS_ERRORS OFF CACHE BOOL "Treat warnings as errors")
 set(BIGOS_QEMU_PATH "${QEMU_FOUND_PATH}" CACHE PATH "path to qemu")
-set(BIGOS_QEMU_OPTIONS "-machine virt -serial mon:stdio -nographic" CACHE STRING "options for qemu")
+set(BIGOS_QEMU_OPTIONS "-machine virt -serial mon:stdio -nographic -m 2G -bios none" CACHE STRING "options for qemu")
 
 separate_arguments(BIGOS_QEMU_OPTIONS_LIST UNIX_COMMAND "${BIGOS_QEMU_OPTIONS}")
 
