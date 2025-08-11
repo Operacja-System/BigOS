@@ -4,6 +4,7 @@
 #include <stdbigos/string.h>
 #include <stdint.h>
 
+#include "debug/debug_stdio.h"
 #include "ram_map.h"
 #include "stdbigos/error.h"
 
@@ -127,7 +128,7 @@ error_t phys_mem_init(phys_buffer_t busy_regions) {
 		return ERR_INTERNAL_FAILURE;
 	size_t kiloframe_bitmap_size = ram_data.size_GB << 18; // ram size in GB * 2^30 / 2^12 (4kB)
 	size_t megaframe_data_size = (ram_data.size_GB << 9);
-	size_t gigaframe_data_size = (ram_data.size_GB);
+	size_t gigaframe_data_size = ram_data.size_GB;
 	size_t alloc_size = kiloframe_bitmap_size + (megaframe_data_size * sizeof(megaframe_data_t)) +
 	                    (gigaframe_data_size * sizeof(gigaframe_data_t));
 	phys_mem_region_t mem_reg = {.size = alloc_size, .addr = 0};
@@ -159,6 +160,7 @@ error_t phys_mem_init(phys_buffer_t busy_regions) {
 #ifdef __DEBUG__
 	s_is_init = true;
 #endif
+	DEBUG_PRINTF("Physical memory manager initialized\n");
 	return ERR_NONE;
 }
 
@@ -198,13 +200,17 @@ error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 	megaframe_data_t* megaframe_data = physical_to_effective(s_megaframe_data);
 	gigaframe_data_t* gigaframe_data = physical_to_effective(s_gigaframe_data);
 
+	ram_map_data_t ram_data = {0};
+	(void)ram_map_get_data(&ram_data);
+
 	u64 GB_idx = 0;
 	error_t err = scan_for_suitable_GB_frame(ps, &GB_idx);
 	if (err)
 		return err;
 	if (ps == PAGE_SIZE_1GB) {
 		gigaframe_data[GB_idx].allocated = true;
-		*ppnOUT = (GB_idx << 18);
+		*ppnOUT = (GB_idx << 18) + (ram_data.phys_addr >> 12);
+		DEBUG_PRINTF("PPN #%lx allocated\n", *ppnOUT);
 		return ERR_NONE;
 	}
 	u64 MB_idx = 0;
@@ -214,7 +220,8 @@ error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 	if (ps == PAGE_SIZE_2MB) {
 		megaframe_data[MB_idx].allocated = true;
 		--gigaframe_data[GB_idx].available_megaframes;
-		*ppnOUT = (MB_idx << 9);
+		*ppnOUT = (MB_idx << 9) + (ram_data.phys_addr >> 12);
+		DEBUG_PRINTF("PPN #%lx allocated\n", *ppnOUT);
 		return ERR_NONE;
 	}
 	u64 kB_idx = scan_for_suitable_kB_frame(GB_idx, MB_idx);
@@ -223,19 +230,22 @@ error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 	if (megaframe_data[MB_idx].available_kiloframes == 511)
 		--gigaframe_data[GB_idx].available_megaframes;
 	set_bitmap(true, kB_idx, kiloframe_bitmap);
-	*ppnOUT = kB_idx;
+	*ppnOUT = kB_idx + (ram_data.phys_addr >> 12);
+	DEBUG_PRINTF("PPN #%lx allocated\n", *ppnOUT);
 	return ERR_NONE;
 }
 
 error_t phys_mem_free_frame(ppn_t ppn) {
+	ram_map_data_t ram_data = {0};
+	(void)ram_map_get_data(&ram_data);
 #ifdef __DEBUG__
 	if (!s_is_init)
 		return ERR_NOT_INITIALIZED;
-	ram_map_data_t ram_data = {0};
-	(void)ram_map_get_data(&ram_data);
 	if ((ram_data.size_GB << 18) < ppn)
 		return ERR_BAD_ARG;
 #endif
+
+	ppn -= ram_data.phys_addr >> 12;
 
 	const u64 MB_idx = ppn >> 9;
 	const u64 GB_idx = ppn >> 18;
@@ -248,15 +258,18 @@ error_t phys_mem_free_frame(ppn_t ppn) {
 		++gigaframe_data[GB_idx].available_kiloframes;
 		if (megaframe_data[MB_idx].available_kiloframes == 512)
 			++gigaframe_data[GB_idx].available_megaframes;
+		DEBUG_PRINTF("PPN #%lx was freed\n", ppn);
 		return ERR_NONE;
 	}
 	if (megaframe_data[MB_idx].allocated) {
 		megaframe_data[MB_idx].allocated = false;
 		++gigaframe_data[GB_idx].available_megaframes;
+		DEBUG_PRINTF("PPN #%lx was freed\n", ppn);
 		return ERR_NONE;
 	}
 	if (gigaframe_data[GB_idx].allocated) {
 		gigaframe_data[GB_idx].allocated = false;
+		DEBUG_PRINTF("PPN #%lx was freed\n", ppn);
 		return ERR_NONE;
 	}
 	return ERR_NOT_VALID;
@@ -265,11 +278,14 @@ error_t phys_mem_free_frame(ppn_t ppn) {
 error_t phys_mem_find_free_region(u64 alignment, phys_buffer_t busy_regions, phys_mem_region_t* regOUT) {
 	phys_buffer_t reserved_regions = {0};
 	// TODO: Read reserved regions from device tree
-	u64 ram_size = 0; // TODO: Read ram size from device tree
 	phys_buffer_t unavailable_regions[2] = {reserved_regions, busy_regions};
-	phys_addr_t curr_region_start = 0;
+	ram_map_data_t ram_data = {0};
+	error_t err = ram_map_get_data(&ram_data);
+	if (err)
+		return ERR_INTERNAL_FAILURE;
+	phys_addr_t curr_region_start = ram_data.phys_addr;
 	bool overlap = false;
-	while (curr_region_start + regOUT->size < ram_size) {
+	while (curr_region_start + regOUT->size < (ram_data.size_GB << 18)) {
 		for (u32 buff_idx = 0; buff_idx < sizeof(unavailable_regions) / sizeof(unavailable_regions[0]); ++buff_idx) {
 			for (size_t reg_idx = 0; reg_idx < unavailable_regions[buff_idx].count; ++reg_idx) {
 				phys_addr_t unavailable_region_start = unavailable_regions[buff_idx].regions[reg_idx].addr;
@@ -287,6 +303,7 @@ error_t phys_mem_find_free_region(u64 alignment, phys_buffer_t busy_regions, phy
 				break;
 		}
 		if (!overlap) {
+			DEBUG_PRINTF("Found regions of size %z at %lx\n", regOUT->size, curr_region_start);
 			regOUT->addr = curr_region_start;
 			return ERR_NONE;
 		}

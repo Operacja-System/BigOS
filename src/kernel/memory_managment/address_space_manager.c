@@ -3,6 +3,7 @@
 #include <stdbigos/buffer.h>
 #include <stdbigos/string.h>
 
+#include "debug/debug_stdio.h"
 #include "kernel_config.h"
 #include "memory_managment/page_table.h"
 #include "memory_managment/virtual_memory_managment.h"
@@ -30,6 +31,7 @@ static void address_space_update_asid(as_handle_t* ash) {
 		}
 		virt_mem_flush_TLB();
 	}
+	DEBUG_PRINTF("ASID updated\n");
 }
 
 // Necessary after every time the address space is set active (will create more problems if concurency is allowed)
@@ -76,6 +78,7 @@ error_t address_space_destroy(as_handle_t* ash) {
 	if (err)
 		return err;
 	*ash = (as_handle_t){.asid = 0, .root_pte = 0, .valid = false, .global = false, .user = false};
+	DEBUG_PRINTF("Address space manager initialized\n");
 	return ERR_NONE;
 }
 
