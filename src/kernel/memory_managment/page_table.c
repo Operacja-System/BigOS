@@ -14,23 +14,23 @@
 
 static constexpr u32 pt_entries_amount = 512;
 
-static page_table_entry_t read_riscv_pte(u64 rv_pte) {
-	u8 flags = rv_pte & 0xff;
-	u8 rsw = (rv_pte >> 8) & 0b11;
-	ppn_t ppn = (rv_pte >> 10) & 0xfffffffffff;
-	u8 pbmt = (rv_pte >> 60) & 0b11;
-	u8 N = (rv_pte >> 62) & 0b1;
+static page_table_entry_t read_riscv_pte(u64 riscv_pte) {
+	u8 flags = riscv_pte & 0xff;
+	u8 rsw = (riscv_pte >> 8) & 0b11;
+	ppn_t ppn = (riscv_pte >> 10) & 0xfffffffffff;
+	u8 pbmt = (riscv_pte >> 60) & 0b11;
+	u8 N = (riscv_pte >> 62) & 0b1;
 	return (page_table_entry_t){.flags = flags, .N = N, .ppn = ppn, .pbmt = pbmt, .os_flags = rsw};
 }
 
 static u64 write_riscv_pte(page_table_entry_t pte) {
-	u64 rv_pte = 0;
-	rv_pte |= (u64)pte.flags & 0xff;
-	rv_pte |= (u64)(pte.os_flags & 0b11) << 8;
-	rv_pte |= (u64)(pte.ppn & 0xfffffffffff) << 10;
-	rv_pte |= (u64)(pte.pbmt & 0b11) << 61;
-	rv_pte |= (u64)(pte.N & 0b1) << 63;
-	return rv_pte;
+	u64 riscv_pte = 0;
+	riscv_pte |= (u64)pte.flags & 0xff;
+	riscv_pte |= (u64)(pte.os_flags & 0b11) << 8;
+	riscv_pte |= (u64)(pte.ppn & 0xfffffffffff) << 10;
+	riscv_pte |= (u64)(pte.pbmt & 0b11) << 61;
+	riscv_pte |= (u64)(pte.N & 0b1) << 63;
+	return riscv_pte;
 }
 
 static inline bool is_pte_leaf(page_table_entry_t pte) {
@@ -88,8 +88,8 @@ void print_pte(page_table_entry_t pte, u8 lvl, u64 virt_addr) {
 	ppn_t ppn = pte.ppn;
 	u64(*current_page)[pt_entries_amount] = (u64(*)[pt_entries_amount])(ppn << 12);
 	for (u32 i = 0; i < pt_entries_amount; ++i) {
-		u64 rv_pte = (*current_page)[i];
-		page_table_entry_t new_pte = read_riscv_pte(rv_pte);
+		u64 riscv_pte = (*current_page)[i];
+		page_table_entry_t new_pte = read_riscv_pte(riscv_pte);
 		print_pte(new_pte, lvl + 1, (virt_addr << 9) | i);
 	}
 }
@@ -125,8 +125,8 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 	if (err)
 		return ERR_INTERNAL_FAILURE;
 	for (i32 lvl = pt_height - 1; lvl > ps; --lvl) {
-		u64* current_rv_pte = &(*current_page)[vpn_slice[lvl]];
-		page_table_entry_t current_pte = read_riscv_pte(*current_rv_pte);
+		u64* current_riscv_pte = &(*current_page)[vpn_slice[lvl]];
+		page_table_entry_t current_pte = read_riscv_pte(*current_riscv_pte);
 		if ((current_pte.flags & PTEF_VALID) == 0) {
 			ppn_t new_ppn = 0;
 			error_t err = phys_mem_alloc_frame(PAGE_SIZE_4kB, &new_ppn);
@@ -136,7 +136,7 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 			memset(physical_to_effective(current_pte.ppn << 12), 0, 0x1000);
 			current_pte.flags = PTEF_VALID;
 			current_pte.flags |= entry.flags & (PTEF_GLOBAL | PTEF_USER);
-			*current_rv_pte = write_riscv_pte(current_pte);
+			*current_riscv_pte = write_riscv_pte(current_pte);
 		}
 		current_page = (u64(*)[pt_entries_amount])(current_pte.ppn << 12);
 	}
