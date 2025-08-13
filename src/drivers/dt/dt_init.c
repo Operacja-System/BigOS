@@ -29,7 +29,7 @@ void dt_reset_root(void) {
 #define FDT_OFF_SIZE_DT_STRUCT    0x24
 
 // TODO: implement reading dependent on endianness of the machine
-int dt_init(const void* fdt, [[maybe_unused]] endianness_t machine_big_endian) {
+int dt_init(const void* fdt) {
 	u32 magic = read_be32(fdt);
 	if (magic != FDT_MAGIC)
 		return -1;

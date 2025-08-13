@@ -7,7 +7,7 @@
 
 // The nature of this main necessitates compilation in debug preset
 void main([[maybe_unused]] u32 hartid, const void* fdt) {
-	if (dt_init(fdt, ENDIAN_LITTLE) < 0) {
+	if (dt_init(fdt) < 0) {
 		DEBUG_PRINTF("DT_INIT FAILED");
 		return;
 	}

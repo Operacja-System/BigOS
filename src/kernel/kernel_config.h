@@ -11,8 +11,7 @@ typedef enum : u8 {
 	KC_MODE_64 = 64,
 } kerconf_mode_t;
 
-typedef enum : u8 {
-	KC_MACHINE_RISCV = 1,
+typedef enum : u8 { KC_MACHINE_RISCV = 1,
 } kerconf_machine_t;
 
 typedef enum : u8 {
@@ -50,5 +49,7 @@ typedef enum {
 
 [[nodiscard]] buffer_t kernel_config_get(kercfg_field_t field);
 [[nodiscard]] buffer_t kernel_config_read_device_tree(const char* node_path, const char* arg_name);
+
+void kernel_config_log();
 
 #endif // !BIGOS_KERNEL_KERNEL_CONFIG

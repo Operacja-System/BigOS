@@ -30,8 +30,8 @@ static void address_space_update_asid(as_handle_t* ash) {
 			// 58454204.608 years, generation overflow will allow ASIDs that have not beed used since boot to alias.
 		}
 		virt_mem_flush_TLB();
+		DEBUG_PRINTF("[NOTE] ASID generation advanced to: %lu, TLB flushed\n", s_generation);
 	}
-	DEBUG_PRINTF("ASID updated\n");
 }
 
 // Necessary after every time the address space is set active (will create more problems if concurency is allowed)
@@ -78,7 +78,6 @@ error_t address_space_destroy(as_handle_t* ash) {
 	if (err)
 		return err;
 	*ash = (as_handle_t){.asid = 0, .root_pte = 0, .valid = false, .global = false, .user = false};
-	DEBUG_PRINTF("Address space manager initialized\n");
 	return ERR_NONE;
 }
 
@@ -88,7 +87,6 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		return ERR_NOT_INITIALIZED;
 #endif
 	if (!ash->valid) {
-		u8 flags = PTEF_VALID | PTEF_GLOBAL;
 		ppn_t ppn = 0;
 		error_t err = phys_mem_alloc_frame(PAGE_SIZE_4kB, &ppn);
 		if (err)
@@ -96,6 +94,7 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		void* page_table_page = physical_to_effective(ppn << 12);
 		memset(page_table_page, 0, 0x1000);
 		ash->root_pte = ppn;
+		ash->valid = true;
 	}
 	void* curr_addr = region.addr;
 	size_t size_left = region.size;
@@ -110,7 +109,7 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 	if (err)
 		return ERR_INTERNAL_FAILURE;
 
-	u8 flags = 0;
+	u8 flags = PTEF_VALID;
 	if (region.read)
 		flags |= PTEF_READ;
 	if (region.write)
@@ -122,9 +121,9 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 	if (region.global)
 		flags |= PTEF_GLOBAL;
 
+	const size_t delta_size = 0x1000 << (9 * region.ps);
 	while (size_left > 0) {
 		ppn_t ppn = 0;
-		const size_t delta_size = 0x1000 << (9 * region.ps);
 		if (region.mapped) {
 			ppn = curr_map_addr >> 12;
 			curr_map_addr += delta_size;
@@ -133,7 +132,8 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 			if (err)
 				return err;
 		}
-		page_table_entry_t* root_pte = physical_to_effective(ash->root_pte);
+		const u8 root_flags = PTEF_VALID | ((int)(ash->global) ? PTEF_GLOBAL : 0) | ((int)(ash->user) ? PTEF_USER : 0);
+		page_table_entry_t root_pte = {.flags = root_flags, .os_flags = 0, .ppn = ash->root_pte, .pbmt = 0, .N = 0};
 		page_table_entry_t new_entry = {
 		    .flags = flags,
 		    .os_flags = 0,
@@ -141,9 +141,11 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		    .pbmt = 0,
 		    .N = 0,
 		};
-		error_t err = page_table_add_entry(root_pte, region.ps, (u64)curr_addr >> 12, new_entry);
+		error_t err = page_table_add_entry(&root_pte, region.ps, (u64)curr_addr >> 12, new_entry);
 		if (err)
 			return err;
+		size_left -= delta_size;
+		curr_addr += delta_size;
 	}
 	return ERR_NONE;
 }
