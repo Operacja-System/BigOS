@@ -63,3 +63,24 @@ buffer_t kernel_config_get(kercfg_field_t field) {
 buffer_t kernel_config_read_device_tree(const char* node_path, const char* arg_name) {
 	return (buffer_t){.data = nullptr, .size = 0, .error = BUFF_ERR_NOT_VALID};
 }
+
+void kernel_config_log() {
+	if(!s_is_set) {
+		dprintf("KERNEL CONFIG IS NOT SET. CANNOT LOG.");
+		return;
+	}
+	char* target_vms = "";
+	switch (s_kercfg.target_vms) {
+	case KC_VMS_BARE: target_vms = "bare"; break;
+	case KC_VMS_SV39: target_vms = "Sv39"; break;
+	case KC_VMS_SV48: target_vms = "Sv48"; break;
+	case KC_VMS_SV57: target_vms = "Sv57"; break;
+	}
+	dprintf("KERNEL CONFIG\n");
+	dprintf("MODE:\t\t%u\n", s_kercfg.mode);
+	dprintf("MACHINE:\triscv\n");
+	dprintf("ENDIANNES:\t%s\n", (s_kercfg.cpu_endian == 1) ? "little" : "big");
+	dprintf("TARGET VMS:\t%s\n", target_vms);
+	dprintf("PT HEIGHT:\t%u\n", s_pt_height);
+	dprintf("DT ADDR:\t0x%lx\n", s_kercfg.device_tree_phys_addr);
+}

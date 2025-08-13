@@ -25,8 +25,8 @@ void* physical_to_effective(phys_addr_t paddr) {
 #ifdef __DEBUG__
 	if (!is_set)
 		DEBUG_PRINTF("ERROR: physical_to_effective was called before set_ram_map_data\n");
-	if (paddr > (ram_data.size_GB << 18))
-		DEBUG_PRINTF("ERROR: phys_addr exceeded ram map size\n");
+	if (paddr > ((ram_data.phys_addr + ram_data.size_GB) << 30))
+		DEBUG_PRINTF("ERROR: phys_addr exceeded ram map size; addr: 0x%lx\n", paddr);
 #endif
-	return ram_data.addr + paddr;
+	return paddr - ram_data.phys_addr + ram_data.addr;
 }

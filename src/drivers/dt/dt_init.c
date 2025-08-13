@@ -33,12 +33,17 @@ void dt_cleanup(void) {
 #define FDT_OFF_SIZE_DT_STRINGS   0x20
 #define FDT_OFF_SIZE_DT_STRUCT    0x24
 
+<<<<<<< HEAD
 static const u32 fdt_compatible_version = 17;
 
 int dt_init(const void* fdt) {
 	if (!fdt)
 		return -1;
 
+=======
+// TODO: implement reading dependent on endianness of the machine
+int dt_init(const void* fdt) {
+>>>>>>> 3966aa8 (debuging and adding logs)
 	u32 magic = read_be32(fdt);
 	if (magic != FDT_MAGIC)
 		return -1;

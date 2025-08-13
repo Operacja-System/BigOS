@@ -13,7 +13,7 @@ typedef enum : u8 {
 	PTEF_EXECUTE = (1 << 3),
 	PTEF_USER = (1 << 4),
 	PTEF_GLOBAL = (1 << 5),
-	PTEF_ACCESED = (1 << 6),
+	PTEF_ACCESSED = (1 << 6),
 	PTEF_DIRTY = (1 << 7),
 } page_table_entry_flags_t;
 

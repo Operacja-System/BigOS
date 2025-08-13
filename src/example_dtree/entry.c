@@ -6,7 +6,11 @@
 
 void main([[maybe_unused]] u32 hartid, const void* fdt) {
 	if (dt_init(fdt) < 0) {
+<<<<<<< HEAD
 		dprintf("DT_INIT FAILED");
+=======
+		DEBUG_PRINTF("DT_INIT FAILED");
+>>>>>>> 3966aa8 (debuging and adding logs)
 		return;
 	}
 
