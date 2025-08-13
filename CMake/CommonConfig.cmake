@@ -68,6 +68,7 @@ function(COMPILE_BINARY name)
     )
 
     install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${name}.bin" TYPE BIN)
+    install(TARGETS ${name})
 endfunction()
 
 function(ADD_QEMU_TARGET name)

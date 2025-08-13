@@ -11,6 +11,7 @@
 		DEBUG_PRINTF("PANIC - error: %s", get_error_msg(err)); \
 		for(;;) { continue; }                                  \
 	}
+	kernel_config_log();
 
 // TEST:
 #include <stdbigos/csr.h>

@@ -21,9 +21,4 @@ typedef unsigned long reg_t;
 typedef signed long ireg_t;
 static_assert(sizeof(reg_t) * 8 == __riscv_xlen);
 
-typedef enum {
-	ENDIAN_LITTLE = 0,
-	ENDIAN_BIG = 1,
-} endianness_t;
-
 #endif

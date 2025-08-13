@@ -55,9 +55,10 @@ static void delete_pte(page_table_entry_t pte) {
 	}
 }
 
-void print_pte(page_table_entry_t pte, u8 lvl, u64 virt_addr) {
-	if (!(pte.flags & PTEF_VALID))
+void print_pte(page_table_entry_t pte, u8 lvl, u8 h, u64 virt_addr) {
+	if (!(pte.flags & PTEF_VALID)) {
 		return;
+	}
 	if (is_pte_leaf(pte)) {
 		for (u8 i = 0; i < lvl; ++i) DEBUG_PUTC('\t');
 		char os_flags[2 + 1] = "--";
@@ -74,23 +75,22 @@ void print_pte(page_table_entry_t pte, u8 lvl, u64 virt_addr) {
 			flags[3] = 'U';
 		if (pte.flags & PTEF_GLOBAL)
 			flags[2] = 'G';
-		if (pte.flags & PTEF_ACCESED)
+		if (pte.flags & PTEF_ACCESSED)
 			flags[1] = 'A';
 		if (pte.flags & PTEF_DIRTY)
 			flags[0] = 'D';
-		const char* ps_prefix[5] = {
-		    "kilo", "mega", "giga", "tera", "peta",
-		};
-		DEBUG_PRINTF("addr: %016lx - ps: %s_page - os_flags: %s - flags: %s\n", virt_addr, ps_prefix[lvl], os_flags,
+		const char* ps_prefix[5] = {"peta", "tera", "giga", "mega", "kilo"};
+		u64 va_print = virt_addr << ((9 * (h - lvl)) + 12);
+		DEBUG_PRINTF("addr: %016lx - ps: %spage - os flags: %s - flags: %s\n", va_print, ps_prefix[lvl], os_flags,
 		             flags);
 		return;
 	}
 	ppn_t ppn = pte.ppn;
-	u64(*current_page)[pt_entries_amount] = (u64(*)[pt_entries_amount])(ppn << 12);
+	u64* current_page = physical_to_effective(ppn << 12);
 	for (u32 i = 0; i < pt_entries_amount; ++i) {
-		u64 riscv_pte = (*current_page)[i];
+		u64 riscv_pte = current_page[i];
 		page_table_entry_t new_pte = read_riscv_pte(riscv_pte);
-		print_pte(new_pte, lvl + 1, (virt_addr << 9) | i);
+		print_pte(new_pte, lvl + 1, h, (virt_addr << 9) | i);
 	}
 }
 
@@ -116,7 +116,7 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 	    (vpn >> 9 * 0) & 0x1ff, (vpn >> 9 * 1) & 0x1ff, (vpn >> 9 * 2) & 0x1ff,
 	    (vpn >> 9 * 3) & 0x1ff, (vpn >> 9 * 4) & 0x1ff,
 	};
-	u64(*current_page)[pt_entries_amount] = (u64(*)[pt_entries_amount])((ppn_t)(page_table->ppn) << 12);
+	u64* current_page = physical_to_effective(page_table->ppn << 12);
 	u8 pt_height = 0;
 	buffer_t pth_buff = kernel_config_get(KERCFG_PT_HEIGHT);
 	if (pth_buff.error)
@@ -125,7 +125,7 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 	if (err)
 		return ERR_INTERNAL_FAILURE;
 	for (i32 lvl = pt_height - 1; lvl > ps; --lvl) {
-		u64* current_riscv_pte = &(*current_page)[vpn_slice[lvl]];
+		u64* current_riscv_pte = &(current_page[vpn_slice[lvl]]);
 		page_table_entry_t current_pte = read_riscv_pte(*current_riscv_pte);
 		if ((current_pte.flags & PTEF_VALID) == 0) {
 			ppn_t new_ppn = 0;
@@ -138,9 +138,11 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 			current_pte.flags |= entry.flags & (PTEF_GLOBAL | PTEF_USER);
 			*current_riscv_pte = write_riscv_pte(current_pte);
 		}
-		current_page = (u64(*)[pt_entries_amount])(current_pte.ppn << 12);
+		current_page = physical_to_effective(current_pte.ppn << 12);
 	}
-	(*current_page)[vpn_slice[ps]] = write_riscv_pte(entry);
+	page_table_entry_t target_pte = read_riscv_pte(current_page[vpn_slice[ps]]);
+	if(target_pte.flags & PTEF_VALID) return ERR_NOT_VALID;
+	current_page[vpn_slice[ps]] = write_riscv_pte(entry);
 	return ERR_NONE;
 }
 
@@ -148,6 +150,18 @@ error_t page_table_remove_region(page_table_entry_t* root_pte, virt_mem_region_t
 	return ERR_NOT_IMPLEMENTED;
 }
 
-void page_table_print(page_table_entry_t root_pte) {
-	print_pte(root_pte, 0, 0);
+void page_table_print(page_table_entry_t root_pte) { // TODO: This is awfull and needs a rewrite
+	buffer_t h_buff = {0};
+	h_buff = kernel_config_get(KERCFG_PT_HEIGHT);
+	if (h_buff.error) {
+		DEBUG_PRINTF("This is not good\n");
+		return;
+	}
+	u8 h = 0;
+	const error_t err = buffer_read_u8(h_buff, 0, &h);
+	if (err) {
+		DEBUG_PRINTF("This is not good\n");
+		return;
+	}
+	print_pte(root_pte, 0, h, 0);
 }
