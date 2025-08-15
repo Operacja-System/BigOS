@@ -71,6 +71,7 @@ static error_t scan_for_suitable_GB_frame(page_size_t ps, u64* found) {
 				*found = i;
 				return ERR_NONE;
 			}
+			break;
 		default: return ERR_PHYSICAL_MEMORY_FULL;
 		}
 	}
@@ -264,7 +265,7 @@ error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 	if (ps == PAGE_SIZE_1GB) {
 		gigaframe_data[GB_idx].allocated = true;
 		*ppnOUT = (GB_idx << 18) + (ram_data.phys_addr >> 12);
-		KLOGLN_TRACE("Frame #%lx (hex) allocated.", *ppnOUT);
+		KLOGLN_TRACE("Frame #%lx allocated.", *ppnOUT);
 		KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 	}
 	u64 MB_idx = 0;
@@ -278,7 +279,7 @@ error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 		--gigaframe_data[GB_idx].free_megaframes;
 		gigaframe_data[GB_idx].free_kiloframes -= 512;
 		*ppnOUT = (MB_idx << 9) + (ram_data.phys_addr >> 12);
-		KLOGLN_TRACE("Frame #%lx (hex) allocated.", *ppnOUT);
+		KLOGLN_TRACE("Frame #%lx allocated.", *ppnOUT);
 		KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 	}
 	u64 kB_idx = scan_for_suitable_kB_frame(GB_idx, MB_idx);
@@ -288,7 +289,7 @@ error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 		--gigaframe_data[GB_idx].free_megaframes;
 	set_bitmap(true, kB_idx, kiloframe_bitmap);
 	*ppnOUT = kB_idx + (ram_data.phys_addr >> 12);
-	KLOGLN_TRACE("Frame #%lx (hex) allocated.", *ppnOUT);
+	KLOGLN_TRACE("Frame #%lx allocated.", *ppnOUT);
 	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 }
 
@@ -315,19 +316,19 @@ error_t phys_mem_free_frame(ppn_t ppn) {
 		++gigaframe_data[GB_idx].free_kiloframes;
 		if (megaframe_data[MB_idx].free_kiloframes == 512)
 			++gigaframe_data[GB_idx].free_megaframes;
-		KLOGLN_TRACE("Frame #%lx (hex) was freed.", ppn);
+		KLOGLN_TRACE("Frame #%lx was freed.", ppn);
 		return ERR_NONE;
 	}
 	if (megaframe_data[MB_idx].allocated) {
 		megaframe_data[MB_idx].allocated = false;
 		++gigaframe_data[GB_idx].free_megaframes;
 		gigaframe_data[GB_idx].free_kiloframes += 512;
-		KLOGLN_TRACE("Frame #%lx (hex) was freed.", ppn);
+		KLOGLN_TRACE("Frame #%lx was freed.", ppn);
 		return ERR_NONE;
 	}
 	if (gigaframe_data[GB_idx].allocated) {
 		gigaframe_data[GB_idx].allocated = false;
-		KLOGLN_TRACE("Frame #%lx (hex) was freed.", ppn);
+		KLOGLN_TRACE("Frame #%lx was freed.", ppn);
 		return ERR_NONE;
 	}
 	return ERR_NOT_VALID;

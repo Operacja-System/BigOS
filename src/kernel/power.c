@@ -2,10 +2,12 @@
 
 void shutdown() {
 // TODO:
+	halt();
 }
 
 void reboot() {
 // TODO:
+	halt();
 }
 
 void halt() {
