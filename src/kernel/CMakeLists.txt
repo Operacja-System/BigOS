@@ -11,7 +11,7 @@ target_link_libraries(kernel PRIVATE Debug)
 endif()
 
 target_link_options(kernel PRIVATE -pie -e kinit)
-target_compile_options(kernel PRIVATE -fPIE -static -std=gnu23)
+target_compile_options(kernel PRIVATE -fPIE -static -std=gnu23 -D__LOGLVL__=3)
 
 COMPILE_BINARY(kernel)
 ADD_QEMU_TARGET(kernel)
