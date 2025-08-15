@@ -7,6 +7,7 @@
 #include "kernel_config.h"
 #include "memory_managment/physical_memory_manager.h"
 #include "ram_map.h"
+#include "klog.h"
 
 // ========================================
 //				  Private
@@ -116,34 +117,47 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 	    (vpn >> 9 * 0) & 0x1ff, (vpn >> 9 * 1) & 0x1ff, (vpn >> 9 * 2) & 0x1ff,
 	    (vpn >> 9 * 3) & 0x1ff, (vpn >> 9 * 4) & 0x1ff,
 	};
+	#ifdef __LOG_TRACE__
+		const char* page_size_prefix[] = {"kilo", "mega", "giga", "tera", "peta"};
+		KLOGLN_TRACE("Adding a %sframe #%lx to page table with root ppn: #%lx.", page_size_prefix[ps], entry.ppn, page_table->ppn);
+	#endif
+	KLOG_INDENT_BLOCK_START;
 	u64* current_page = physical_to_effective(page_table->ppn << 12);
 	u8 pt_height = 0;
 	buffer_t pth_buff = kernel_config_get(KERCFG_PT_HEIGHT);
-	if (pth_buff.error)
-		return ERR_INTERNAL_FAILURE;
+	if (pth_buff.error) {
+		KLOGLN_TRACE("Failed to read kernel config.");
+		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
+	}
 	error_t err = buffer_read_u8(pth_buff, 0, &pt_height);
-	if (err)
-		return ERR_INTERNAL_FAILURE;
+	if (err) {
+		KLOGLN_TRACE("Failed to read kernel config.");
+		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
+	}
 	for (i32 lvl = pt_height - 1; lvl > ps; --lvl) {
 		u64* current_riscv_pte = &(current_page[vpn_slice[lvl]]);
 		page_table_entry_t current_pte = read_riscv_pte(*current_riscv_pte);
 		if ((current_pte.flags & PTEF_VALID) == 0) {
 			ppn_t new_ppn = 0;
 			error_t err = phys_mem_alloc_frame(PAGE_SIZE_4kB, &new_ppn);
-			if (err)
-				return err;
+			if (err) {
+				KLOGLN_TRACE("Failed to allocate a frame.");
+				KLOG_END_BLOCK_AND_RETURN(err);
+			}
 			current_pte.ppn = new_ppn;
 			memset(physical_to_effective(current_pte.ppn << 12), 0, 0x1000);
 			current_pte.flags = PTEF_VALID;
 			current_pte.flags |= entry.flags & (PTEF_GLOBAL | PTEF_USER);
+			KLOGLN_TRACE("Adding a pointer frame of ppn: #%lx...", new_ppn);
 			*current_riscv_pte = write_riscv_pte(current_pte);
 		}
 		current_page = physical_to_effective(current_pte.ppn << 12);
 	}
 	page_table_entry_t target_pte = read_riscv_pte(current_page[vpn_slice[ps]]);
-	if(target_pte.flags & PTEF_VALID) return ERR_NOT_VALID;
+	if(target_pte.flags & PTEF_VALID) KLOG_END_BLOCK_AND_RETURN(ERR_NOT_VALID);
+	KLOGLN_TRACE("Adding a target frame of ppn: #%lx...", entry.ppn);
 	current_page[vpn_slice[ps]] = write_riscv_pte(entry);
-	return ERR_NONE;
+	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 }
 
 error_t page_table_remove_region(page_table_entry_t* root_pte, virt_mem_region_t region) {

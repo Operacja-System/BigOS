@@ -8,6 +8,7 @@
 #include "memory_managment/page_table.h"
 #include "memory_managment/virtual_memory_managment.h"
 #include "ram_map.h"
+#include "klog.h"
 
 static u16 s_max_asid = 0;
 static u16 s_next_asid = 0;
@@ -30,7 +31,7 @@ static void address_space_update_asid(as_handle_t* ash) {
 			// 58454204.608 years, generation overflow will allow ASIDs that have not beed used since boot to alias.
 		}
 		virt_mem_flush_TLB();
-		DEBUG_PRINTF("[NOTE] ASID generation advanced to: %lu, TLB flushed\n", s_generation);
+		KLOGLN_TRACE("ASID generation advanced to: %lu; TLB flushed.", s_generation);
 	}
 }
 
@@ -86,11 +87,15 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 	if (!s_is_init)
 		return ERR_NOT_INITIALIZED;
 #endif
+	KLOGLN_TRACE("Adding a region to address space");
+	KLOG_INDENT_BLOCK_START;
 	if (!ash->valid) {
 		ppn_t ppn = 0;
 		error_t err = phys_mem_alloc_frame(PAGE_SIZE_4kB, &ppn);
-		if (err)
-			return err;
+		if (err) {
+			KLOGLN_TRACE("Failed to allocate a frame for the root page");
+			KLOG_END_BLOCK_AND_RETURN(err);
+		}
 		void* page_table_page = physical_to_effective(ppn << 12);
 		memset(page_table_page, 0, 0x1000);
 		ash->root_pte = ppn;
@@ -104,10 +109,10 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 
 	buffer_t pt_height_buffer = kernel_config_get(KERCFG_PT_HEIGHT);
 	if (pt_height_buffer.error)
-		return ERR_INTERNAL_FAILURE;
+		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
 	const error_t err = buffer_read_u8(pt_height_buffer, 0, &pt_height);
 	if (err)
-		return ERR_INTERNAL_FAILURE;
+		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
 
 	u8 flags = PTEF_VALID;
 	if (region.read)
@@ -130,7 +135,7 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		} else {
 			error_t err = phys_mem_alloc_frame(region.ps, &ppn);
 			if (err)
-				return err;
+				KLOG_END_BLOCK_AND_RETURN(err);
 		}
 		const u8 root_flags = PTEF_VALID | ((int)(ash->global) ? PTEF_GLOBAL : 0) | ((int)(ash->user) ? PTEF_USER : 0);
 		page_table_entry_t root_pte = {.flags = root_flags, .os_flags = 0, .ppn = ash->root_pte, .pbmt = 0, .N = 0};
@@ -143,11 +148,11 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		};
 		error_t err = page_table_add_entry(&root_pte, region.ps, (u64)curr_addr >> 12, new_entry);
 		if (err)
-			return err;
+			KLOG_END_BLOCK_AND_RETURN(err);
 		size_left -= delta_size;
 		curr_addr += delta_size;
 	}
-	return ERR_NONE;
+	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 }
 
 error_t address_space_set_stack_data(as_handle_t* ash, void* stack_start, size_t stack_size) {

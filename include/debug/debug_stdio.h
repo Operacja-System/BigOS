@@ -1,12 +1,15 @@
 #ifndef _DEBUG_STDIO_
 #define _DEBUG_STDIO_
 
+#include <stdarg.h>
+
 void dputc(char c);
 void dputs(const char* s);
 void dputgap(unsigned int gap_size);
 
 [[gnu::format(printf, 1, 2)]]
 void dprintf(const char* fmt, ...);
+void dvprintf(const char* fmt, va_list args);
 
 #ifndef NDEBUG
 

@@ -41,3 +41,8 @@ void dprintf(const char* fmt, ...) {
 	vsprintfcb(uart_output_handler, buf, buf, fmt, va);
 	va_end(va);
 }
+
+void dvprintf(const char* fmt, va_list args) {
+	char buf[STB_SPRINTF_MIN];
+	vsprintfcb(uart_output_handler, buf, buf, fmt, args);
+}
