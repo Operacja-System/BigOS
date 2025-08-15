@@ -76,11 +76,11 @@
 	size_t stack_size = 8 * (1ull << 20);
 	size_t heap_size = 8 * (1ull << 20);
 
-	void* stack_bottom_addr = (void*)((1ull << as_bits) - (1ull << 30));
+	void* stack_bottom_addr = (void*)((1ull << as_bits) - (1ull << 30)); //NOTE: 1GB buffer
 	void* stack_top_addr = stack_bottom_addr - stack_size;
 	void* heap_addr = (void*)(3ull << (as_bits - 2));
-	void* text_addr = (void*)(1ull << (as_bits - 1));
-	void* ram_map_addr = heap_addr - (ram_data.size_GB << 18);
+	void* text_addr = (void*)(1ull << (as_bits - 1)) + (1ull << 30); //NOTE: 1GB buffer
+	void* ram_map_addr = heap_addr - (ram_data.size_GB << 30);
 
 	phys_addr_t text_phys_addr = 0x80000000; // TODO: Read from DT
 	size_t text_size = 2 * (1ull << 20);     // TODO: Read from DT

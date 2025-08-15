@@ -15,8 +15,8 @@ static u8 s_pt_height = 0;
 error_t kernel_config_set(kernel_config_t cfg) {
 #ifdef __DEBUG__
 	if (s_is_set)
-		DEBUG_PRINTF("Kernel configuration has changed\n");
 #endif
+	KLOGLN_WARNING("Kernel configuration has changed. It most likely shouldn't.");
 	s_kercfg = cfg;
 	switch (s_kercfg.target_vms) {
 	case KC_VMS_BARE:
