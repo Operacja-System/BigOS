@@ -1,36 +1,29 @@
 #include "dt_alloc.h"
 
 #include <stdbigos/bitutils.h>
-#include <stdbigos/buffer.h>
 #include <stdbigos/types.h>
 
 // Arena proper
-static u8 dt_arena_buffer[DT_ARENA_SIZE];
-
 static u32* arena_start = nullptr;
 
 // Arena size in bytes
-static u32 arena_size;
+static size_t arena_size;
 
 // Used area size in bytes
-static u32 arena_offset;
+static size_t arena_offset;
 
-u8* dt_get_arena_buffer(void) {
-	return dt_arena_buffer;
-}
-
-int dt_arena_init(void* start, u32 size) {
+bool dt_arena_init(void* start, size_t size) {
 	if (start == nullptr || size == 0)
-		return -1;
+		return false;
 
 	arena_start = (u32*)start;
 	arena_size = size;
 	arena_offset = 0;
 
-	return 0;
+	return true;
 }
 
-void* dt_alloc(u32 size) {
+void* dt_alloc(size_t size) {
 	//  May not be needed
 	if (size == 0)
 		return nullptr;

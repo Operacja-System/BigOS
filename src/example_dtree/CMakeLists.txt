@@ -7,12 +7,7 @@ set_target_properties(example_dtree
     PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 
 
-target_link_libraries(example_dtree PRIVATE stdbigos)
-target_link_libraries(example_dtree PRIVATE drivers)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-target_link_libraries(example_dtree PRIVATE Debug)
-endif()
+target_link_libraries(example_dtree PRIVATE stdbigos drivers Debug)
 
 COMPILE_BINARY(example_dtree)
 ADD_QEMU_TARGET(example_dtree)
