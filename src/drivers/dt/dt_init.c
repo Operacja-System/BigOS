@@ -29,7 +29,7 @@ void dt_reset_root(void) {
 #define FDT_OFF_SIZE_DT_STRUCT    0x24
 
 // TODO: implement reading dependent on endianness of the machine
-int dt_init(const void* fdt, [[maybe_unused]] endianness_t machine_big_endian) {
+int dt_init(const void* fdt) {
 	u32 magic = read_be32(fdt);
 	if (magic != FDT_MAGIC)
 		return -1;
@@ -42,19 +42,19 @@ int dt_init(const void* fdt, [[maybe_unused]] endianness_t machine_big_endian) {
 		return -1;
 
 	u32 total_size;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_TOTAL_SIZE, &total_size) != BUF_ERR_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_TOTAL_SIZE, &total_size) != BUFF_ERR_OK)
 		return -2;
 
 	u32 struct_off;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRUCT, &struct_off) != BUF_ERR_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRUCT, &struct_off) != BUFF_ERR_OK)
 		return -2;
 
 	u32 strings_off;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRINGS, &strings_off) != BUF_ERR_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRINGS, &strings_off) != BUFF_ERR_OK)
 		return -2;
 
 	u32 struct_size;
-	if (buffer_read_u32_be(fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &struct_size) != BUF_ERR_OK)
+	if (buffer_read_u32_be(fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &struct_size) != BUFF_ERR_OK)
 		return -2;
 
 	if (struct_off + struct_size > total_size)

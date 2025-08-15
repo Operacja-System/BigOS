@@ -54,6 +54,7 @@ dkms.conf
 # Debug files and memory dumps
 *.debug
 *.mem
+*.log
 .gdb_history
 
 # Build

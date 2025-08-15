@@ -28,7 +28,7 @@ dt_prop_t* parse_props(const buffer_t* fdt_buf, u32 props_offset, u32 props_size
 
 	while (curr_offset < props_offset + props_size) {
 		u32 tag;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUF_ERR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUFF_ERR_OK)
 			return nullptr;
 
 		// Because of the separation of parsing properties and nodes, we don't want to parse non-properties
@@ -37,17 +37,17 @@ dt_prop_t* parse_props(const buffer_t* fdt_buf, u32 props_offset, u32 props_size
 
 		curr_offset += 4;
 		u32 len;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &len) != BUF_ERR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &len) != BUFF_ERR_OK)
 			return nullptr;
 		curr_offset += 4;
 		u32 name_offset;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &name_offset) != BUF_ERR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &name_offset) != BUFF_ERR_OK)
 			return nullptr;
 		curr_offset += 4;
 		dt_prop_t* new_prop = dt_alloc(sizeof(*new_prop));
 		new_prop->data_length = len;
 		new_prop->next_prop = nullptr;
-		if (buffer_read_cstring(*fdt_buf, str_offset + name_offset, &new_prop->name) != BUF_ERR_OK)
+		if (buffer_read_cstring(*fdt_buf, str_offset + name_offset, &new_prop->name) != BUFF_ERR_OK)
 			return nullptr;
 		// sbi_puts(new_prop->name);
 		// sbi_puts("\n");
@@ -81,11 +81,11 @@ dt_node_t* parse_subtree(const buffer_t* fdt_buf, u32* offset, u32 max_offset, u
 	u32 curr_offset = *offset;
 
 	u32 tag;
-	if (buffer_read_u32_be(*fdt_buf, curr_offset - 4, &tag) != BUF_ERR_OK || (fdt_token_t)tag != FDT_BEGIN_NODE)
+	if (buffer_read_u32_be(*fdt_buf, curr_offset - 4, &tag) != BUFF_ERR_OK || (fdt_token_t)tag != FDT_BEGIN_NODE)
 		return nullptr;
 
 	const char* name;
-	if (buffer_read_cstring(*fdt_buf, curr_offset, &name) != BUF_ERR_OK)
+	if (buffer_read_cstring(*fdt_buf, curr_offset, &name) != BUFF_ERR_OK)
 		return nullptr;
 
 	// After this point all reads from the buffer should be correct
@@ -99,14 +99,14 @@ dt_node_t* parse_subtree(const buffer_t* fdt_buf, u32* offset, u32 max_offset, u
 	u32 props_off = curr_offset;
 	while (curr_offset < max_offset) {
 		u32 tag;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUF_ERR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUFF_ERR_OK)
 			return nullptr;
 
 		if ((fdt_token_t)tag != FDT_PROP)
 			break;
 
 		u32 p_len;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset + 4, &p_len) != BUF_ERR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset + 4, &p_len) != BUFF_ERR_OK)
 			return nullptr;
 
 		curr_offset += 12; // Skip tag, length, name_offset
@@ -120,7 +120,7 @@ dt_node_t* parse_subtree(const buffer_t* fdt_buf, u32* offset, u32 max_offset, u
 
 	while (curr_offset < max_offset) {
 		u32 tag;
-		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUF_ERR_OK)
+		if (buffer_read_u32_be(*fdt_buf, curr_offset, &tag) != BUFF_ERR_OK)
 			return nullptr;
 
 		curr_offset += 4;
