@@ -1,12 +1,12 @@
 #include "physical_memory_manager.h"
 
+#include <stdbigos/error.h>
 #include <stdbigos/math.h>
 #include <stdbigos/string.h>
-#include <stdint.h>
 
 #include "debug/debug_stdio.h"
+#include "klog.h"
 #include "ram_map.h"
-#include "stdbigos/error.h"
 
 typedef struct {
 	u16 free_kiloframes;
@@ -124,6 +124,8 @@ static void phys_mem_announce_busy_regions(phys_buffer_t busy_regions) {
 	ram_map_data_t ram_data = {0};
 	(void)ram_map_get_data(&ram_data);
 	for (u64 i = 0; i < busy_regions.count; ++i) {
+		KLOGLN_TRACE("Busy region has been announced at: 0x%lx of size %lu.", busy_regions.regions[i].addr,
+		             busy_regions.regions[i].size);
 		ppn_t region_pn = (busy_regions.regions[i].addr - ram_data.phys_addr) >> 12;
 		size_t occupied_frames_count =
 		    (busy_regions.regions[i].size >> 12) + ((busy_regions.regions[i].size & 0x3ff) != 0);
@@ -172,7 +174,7 @@ static error_t phys_mem_find_free_region(u64 alignment, phys_buffer_t busy_regio
 				break;
 		}
 		if (!overlap) {
-			DEBUG_PRINTF("[NOTE] Found regions of size %lu at 0x%lx\n", regOUT->size, curr_region_start);
+			KLOGLN_TRACE("Found regions of size %lu at 0x%lx.", regOUT->size, curr_region_start);
 			regOUT->addr = curr_region_start;
 			return ERR_NONE;
 		}
@@ -185,14 +187,16 @@ static error_t phys_mem_find_free_region(u64 alignment, phys_buffer_t busy_regio
 //==================================
 
 error_t phys_mem_init(phys_buffer_t busy_regions) {
+	KLOGLN_TRACE("Initializing physical memory manager...");
+	KLOG_INDENT_BLOCK_START;
 #ifdef __DEBUG__
 	if (s_is_init)
-		return ERR_NOT_VALID;
+		KLOG_END_BLOCK_AND_RETURN(ERR_NOT_VALID);
 #endif
 	ram_map_data_t ram_data = {0};
 	error_t err = ram_map_get_data(&ram_data);
 	if (err)
-		return ERR_INTERNAL_FAILURE;
+		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
 	size_t kiloframe_bitmap_size = ram_data.size_GB << 18; // ram size in GB * 2^30 / 2^12 (4kB)
 	size_t megaframe_data_size = (ram_data.size_GB << 9);
 	size_t gigaframe_data_size = ram_data.size_GB;
@@ -201,10 +205,14 @@ error_t phys_mem_init(phys_buffer_t busy_regions) {
 	phys_mem_region_t mem_reg = {.size = alloc_size, .addr = 0};
 	err = phys_mem_find_free_region(0x1000, busy_regions, &mem_reg);
 	if (err)
-		return ERR_INTERNAL_FAILURE;
+		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
+	KLOGLN_TRACE("PMM frame metadata at paddr: 0x%lx, size: %lu", mem_reg.addr, mem_reg.size);
 	s_kiloframe_bitmap = mem_reg.addr;
 	s_megaframe_data = s_kiloframe_bitmap + kiloframe_bitmap_size;
 	s_gigaframe_data = s_megaframe_data + megaframe_data_size;
+	KLOGLN_TRACE("Kiloframe bitmap at paddr: 0x%lx, size: %lu", s_kiloframe_bitmap, kiloframe_bitmap_size);
+	KLOGLN_TRACE("Megaframe data at paddr: 0x%lx, size: %lu", s_megaframe_data, megaframe_data_size * sizeof(megaframe_data_t));
+	KLOGLN_TRACE("Gigaframe data at paddr: 0x%lx, size: %lu", s_gigaframe_data, gigaframe_data_size * sizeof(gigaframe_data_t));
 
 	u64* kiloframe_bitmap = physical_to_effective(s_kiloframe_bitmap);
 	megaframe_data_t* megaframe_data = physical_to_effective(s_megaframe_data);
@@ -223,11 +231,11 @@ error_t phys_mem_init(phys_buffer_t busy_regions) {
 	++busy_regions.count;
 	phys_mem_announce_busy_regions(busy_regions);
 	if (err)
-		return ERR_INTERNAL_FAILURE;
+		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
 #ifdef __DEBUG__
 	s_is_init = true;
 #endif
-	return ERR_NONE;
+	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 }
 
 error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
@@ -235,6 +243,11 @@ error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 	if (!s_is_init)
 		return ERR_NOT_INITIALIZED;
 #endif
+#ifdef __LOG_TRACE__
+	const char* page_size_prefix[] = {"kilo", "mega", "giga", "tera", "peta"};
+	KLOGLN_TRACE("Allocating %sframe...", page_size_prefix[ps]);
+#endif
+	KLOG_INDENT_BLOCK_START;
 	u64* kiloframe_bitmap = physical_to_effective(s_kiloframe_bitmap);
 	megaframe_data_t* megaframe_data = physical_to_effective(s_megaframe_data);
 	gigaframe_data_t* gigaframe_data = physical_to_effective(s_gigaframe_data);
@@ -245,30 +258,28 @@ error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 	u64 GB_idx = 0;
 	error_t err = scan_for_suitable_GB_frame(ps, &GB_idx);
 	if (err) {
-		DEBUG_PRINTF("ERR GB\n");
-		return err;
+		KLOGLN_TRACE("Failed to find suitable gigaframe.");
+		KLOG_END_BLOCK_AND_RETURN(err);
 	}
 	if (ps == PAGE_SIZE_1GB) {
 		gigaframe_data[GB_idx].allocated = true;
 		*ppnOUT = (GB_idx << 18) + (ram_data.phys_addr >> 12);
-		DEBUG_PRINTF("PPN #0x%lx allocated (size: %s)\n", *ppnOUT,
-		             (const char* [5]){"4kB", "2MB", "1GB", "512GB", "256TB"}[ps]);
-		return ERR_NONE;
+		KLOGLN_TRACE("Frame #%lx (hex) allocated.", *ppnOUT);
+		KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 	}
 	u64 MB_idx = 0;
 	err = scan_for_suitable_MB_frame(ps, GB_idx, &MB_idx);
 	if (err) {
-		DEBUG_PRINTF("ERR MB\n");
-		return err;
+		KLOGLN_TRACE("Failed to find suitable megaframe.");
+		KLOG_END_BLOCK_AND_RETURN(err);
 	}
 	if (ps == PAGE_SIZE_2MB) {
 		megaframe_data[MB_idx].allocated = true;
 		--gigaframe_data[GB_idx].free_megaframes;
 		gigaframe_data[GB_idx].free_kiloframes -= 512;
 		*ppnOUT = (MB_idx << 9) + (ram_data.phys_addr >> 12);
-		DEBUG_PRINTF("PPN #0x%lx allocated (size: %s)\n", *ppnOUT,
-		             (const char* [5]){"4kB", "2MB", "1GB", "512GB", "256TB"}[ps]);
-		return ERR_NONE;
+		KLOGLN_TRACE("Frame #%lx (hex) allocated.", *ppnOUT);
+		KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 	}
 	u64 kB_idx = scan_for_suitable_kB_frame(GB_idx, MB_idx);
 	--megaframe_data[MB_idx].free_kiloframes;
@@ -277,9 +288,8 @@ error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT) {
 		--gigaframe_data[GB_idx].free_megaframes;
 	set_bitmap(true, kB_idx, kiloframe_bitmap);
 	*ppnOUT = kB_idx + (ram_data.phys_addr >> 12);
-	DEBUG_PRINTF("PPN #0x%lx allocated (size: %s)\n", *ppnOUT,
-	             (const char* [5]){"4kB", "2MB", "1GB", "512GB", "256TB"}[ps]);
-	return ERR_NONE;
+	KLOGLN_TRACE("Frame #%lx (hex) allocated.", *ppnOUT);
+	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 }
 
 error_t phys_mem_free_frame(ppn_t ppn) {
@@ -305,19 +315,19 @@ error_t phys_mem_free_frame(ppn_t ppn) {
 		++gigaframe_data[GB_idx].free_kiloframes;
 		if (megaframe_data[MB_idx].free_kiloframes == 512)
 			++gigaframe_data[GB_idx].free_megaframes;
-		DEBUG_PRINTF("PPN #%lx was freed\n", ppn);
+		KLOGLN_TRACE("Frame #%lx (hex) was freed.", ppn);
 		return ERR_NONE;
 	}
 	if (megaframe_data[MB_idx].allocated) {
 		megaframe_data[MB_idx].allocated = false;
 		++gigaframe_data[GB_idx].free_megaframes;
 		gigaframe_data[GB_idx].free_kiloframes += 512;
-		DEBUG_PRINTF("PPN #%lx was freed\n", ppn);
+		KLOGLN_TRACE("Frame #%lx (hex) was freed.", ppn);
 		return ERR_NONE;
 	}
 	if (gigaframe_data[GB_idx].allocated) {
 		gigaframe_data[GB_idx].allocated = false;
-		DEBUG_PRINTF("PPN #%lx was freed\n", ppn);
+		KLOGLN_TRACE("Frame #%lx (hex) was freed.", ppn);
 		return ERR_NONE;
 	}
 	return ERR_NOT_VALID;

@@ -3,6 +3,7 @@
 #include <debug/debug_stdio.h>
 #include <drivers/dt/dt.h>
 
+#include "klog.h"
 #include "ram_map.h"
 
 static kernel_config_t s_kercfg = {0};
@@ -65,10 +66,12 @@ buffer_t kernel_config_read_device_tree(const char* node_path, const char* arg_n
 }
 
 void kernel_config_log() {
-	if(!s_is_set) {
-		dprintf("KERNEL CONFIG IS NOT SET. CANNOT LOG.");
+	KLOGLN_NOTE("Kernel config");
+	if (!s_is_set) {
+		KLOGLN_NOTE("Kernel config is not set; Cannot log.");
 		return;
 	}
+	KLOG_INDENT_BLOCK_START;
 	char* target_vms = "";
 	switch (s_kercfg.target_vms) {
 	case KC_VMS_BARE: target_vms = "bare"; break;
@@ -76,11 +79,11 @@ void kernel_config_log() {
 	case KC_VMS_SV48: target_vms = "Sv48"; break;
 	case KC_VMS_SV57: target_vms = "Sv57"; break;
 	}
-	dprintf("KERNEL CONFIG\n");
-	dprintf("MODE:\t\t%u\n", s_kercfg.mode);
-	dprintf("MACHINE:\triscv\n");
-	dprintf("ENDIANNES:\t%s\n", (s_kercfg.cpu_endian == 1) ? "little" : "big");
-	dprintf("TARGET VMS:\t%s\n", target_vms);
-	dprintf("PT HEIGHT:\t%u\n", s_pt_height);
-	dprintf("DT ADDR:\t0x%lx\n", s_kercfg.device_tree_phys_addr);
+	KLOGLN_NOTE("MODE:\t%u", s_kercfg.mode);
+	KLOGLN_NOTE("MACHINE:\triscv");
+	KLOGLN_NOTE("ENDIANNES:\t%s", (s_kercfg.cpu_endian == 1) ? "little" : "big");
+	KLOGLN_NOTE("TARGET VMS:\t%s", target_vms);
+	KLOGLN_NOTE("PT HEIGHT:\t%u", s_pt_height);
+	KLOGLN_NOTE("DT ADDR:\t0x%lx", s_kercfg.device_tree_phys_addr);
+	KLOG_INDENT_BLOCK_END;
 }
