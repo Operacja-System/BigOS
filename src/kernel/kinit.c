@@ -8,6 +8,7 @@
 #include "memory_managment/virtual_memory_managment.h"
 #include "ram_map.h"
 #include "klog.h"
+#include "power.h"
 
 [[noreturn]] extern void kmain();
 
@@ -27,7 +28,7 @@
 	error_t err = kernel_config_set(kercfg);
 	if (err) {
 		KLOGLN_ERROR("Kernel config initialization failed with error %u", err);
-		for (;;);
+		halt();
 		/*TODO: Panic*/
 	}
 	kernel_config_log();
@@ -44,7 +45,7 @@
 	err = phys_mem_init(phys_buffer);
 	if (err) {
 		KLOGLN_ERROR("Physical memory manager initialization failed with error %u", err);
-		for (;;);
+		halt();
 		/*TODO: Panic*/
 	}
 	KLOGLN_NOTE("Phisical memory manager initialized");
@@ -53,7 +54,7 @@
 	err = address_space_managment_init(max_asid);
 	if (err) {
 		KLOGLN_ERROR("Address space manager initialization failed with error %u", err);
-		for (;;);
+		halt();
 		/*TODO: Panic*/
 	}
 	KLOGLN_NOTE("Address space manager initialized");
@@ -62,13 +63,13 @@
 	buffer_t as_bits_buffer = kernel_config_get(KERCFG_ADDRESS_SPACE_BITS);
 	if (as_bits_buffer.error) {
 		KLOGLN_ERROR("Reading kernel config failed with error %u", err);
-		for (;;);
+		halt();
 		/*TODO: Panic*/
 	}
 	err = buffer_read_u8(as_bits_buffer, 0, &as_bits);
 	if (err) {
 		KLOGLN_ERROR("Reading kernel config failed with error %u", err);
-		for (;;);
+		halt();
 		/*TODO: Panic*/
 	}
 
@@ -142,7 +143,7 @@
 	err = address_space_create(&kernel_ash, false, true);
 	if (err) {
 		KLOGLN_ERROR("Failed to create kernel address space with error %u", err);
-		for (;;);
+		halt();
 		/*TODO: Panic*/
 	}
 	KLOGLN_NOTE("Created kernel address space");
@@ -169,7 +170,7 @@
 		error_t err = address_sapce_add_region(&kernel_ash, kernel_address_space_regions[i]);
 		if (err) {
 			KLOGLN_ERROR("Failed to add virtual memory region #%u to kernel address space with error %u", i, err);
-			for (;;);
+			halt();
 			/*TODO: Panic*/
 		}
 	}
@@ -178,13 +179,13 @@
 	err = address_space_set_stack_data(&kernel_ash, stack_bottom_addr, stack_size);
 	if (err) {
 		KLOGLN_ERROR("Failed to update kernel address space data with error %u", err);
-		for (;;);
+		halt();
 		/*TODO: Panic*/
 	}
 	err = address_space_set_heap_data(&kernel_ash, heap_addr, heap_size);
 	if (err) {
 		KLOGLN_ERROR("Failed to update kernel address space data with error %u", err);
-		for (;;);
+		halt();
 		/*TODO: Panic*/
 	}
 
@@ -194,5 +195,5 @@
 	kmain();
 
 	KLOGLN_ERROR("kmain returned. This should never happen");
-	for (;;);
+	halt();
 }

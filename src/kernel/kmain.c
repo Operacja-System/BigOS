@@ -1,4 +1,5 @@
 #include "debug/debug_stdio.h"
+#include "power.h"
 [[noreturn]] void kmain() {
 	dprintf(" ____  _        ____   _____ \n");
 	dprintf("|  _ \\(_)      / __ \\ / ____|\n");
@@ -8,7 +9,5 @@
 	dprintf("|____/|_|\\__, |\\____/|_____/ \n");
 	dprintf("          __/ |              \n");
 	dprintf("         |___/               \n");
-	for (;;) {
-		asm volatile("wfi");
-	}
+	halt();
 }
