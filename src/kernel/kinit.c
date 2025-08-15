@@ -3,7 +3,6 @@
 #include "kernel_config.h"
 #include "memory_managment/address_space_manager.h"
 #include "memory_managment/mm_types.h"
-#include "memory_managment/page_table.h"
 #include "memory_managment/physical_memory_manager.h"
 #include "memory_managment/virtual_memory_managment.h"
 #include "ram_map.h"

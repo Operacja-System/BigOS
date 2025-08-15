@@ -22,14 +22,13 @@ typedef enum : u8 {
 	PTER_PLACEHOLDER2 = (1 << 1),
 } page_table_entry_os_flags_t;
 
-typedef struct [[gnu::packed]] {
-	u8 N : 1;    // Reserved by extenction svnapot. Must be 0 if the extenction is not used
-	u8 pbmt : 2; // Reserved by extenction svpbmt. Must be 0 if the extenction is not used
-	ppn_t ppn : 44;
-	page_table_entry_os_flags_t os_flags : 2;
-	page_table_entry_flags_t flags : 8;
+typedef struct {
+	u8 N;    // Reserved by extenction svnapot. Must be 0 if the extenction is not used
+	u8 pbmt; // Reserved by extenction svpbmt. Must be 0 if the extenction is not used
+	ppn_t ppn;
+	page_table_entry_os_flags_t os_flags;
+	page_table_entry_flags_t flags;
 } page_table_entry_t;
-static_assert(sizeof(page_table_entry_t) == 8);
 
 [[nodiscard]] error_t page_table_create(page_table_entry_t* page_tableOUT);
 [[nodiscard]] error_t page_table_destroy(page_table_entry_t* page_table);
