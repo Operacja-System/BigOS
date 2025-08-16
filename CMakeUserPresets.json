@@ -1,0 +1,125 @@
+{
+	"version": 5,
+	"cmakeMinimumRequired": {
+		"major": 3,
+		"minor": 24,
+		"patch": 0
+	},
+	"configurePresets": [
+		{
+			"name": "local",
+            "hidden": true,
+			"cacheVariables": {
+				"CMAKE_C_FLAGS": "-std=gnu23"
+			}
+		},
+		{
+			"name": "local-debug",
+			"inherits": [
+				"debug",
+				"local"
+			]
+		},
+        {
+            "name": "local-release",
+            "inherits": [
+				"release",
+				"local"
+            ],
+            "displayName": "Release Configuration",
+            "description": "Release configuration with optimized build."
+        },
+        {
+            "name": "local-release-size",
+            "inherits": [
+				"release-size",
+				"local"
+            ],
+            "displayName": "Release Configuration for size",
+            "description": "Release configuration with optimized build for size."
+        },
+        {
+            "name": "local-release-debug",
+            "inherits": [
+				"release-debug",
+				"local"
+            ],
+            "displayName": "Release Configuration for debugging",
+            "description": "Release configuration with debug symbols."
+        },
+        {
+            "name": "local-debug-clang",
+            "inherits": [
+				"debug-clang",
+				"local"
+            ],
+            "displayName": "Debug Configuration (clang)",
+            "description": "Debug configuration with debug build (clang)."
+        },
+        {
+            "name": "local-release-clang",
+            "inherits": [
+				"release-clang",
+				"local"
+            ],
+            "displayName": "Release Configuration (clang)",
+            "description": "Release configuration with optimized build (clang)."
+        },
+        {
+            "name": "local-release-size-clang",
+            "inherits": [
+				"release-size-clang",
+				"local"
+            ],
+            "displayName": "Release Configuration for size (clang)",
+            "description": "Release configuration with optimized build for size (clang)."
+        },
+        {
+            "name": "local-release-debug-clang",
+            "inherits": [
+				"release-debug-clang",
+				"local"
+            ],
+            "displayName": "Release Configuration for debugging (clang)",
+            "description": "Release configuration with debug symbols (clang)."
+        },
+        {
+            "name": "local-ninja-multi",
+            "inherits": [
+				"ninja-multi",
+				"local"
+            ],
+            "generator": "Ninja Multi-Config",
+            "displayName": "Ninja Multi-Config",
+            "description": "Configuration using Ninja Multi-Config generator. (add --config <CONFIG> to build)"
+        },
+        {
+            "name": "local-ninja-multi-clang",
+            "inherits": [
+				"ninja-multi-clang",
+				"local"
+            ],
+            "generator": "Ninja Multi-Config",
+            "displayName": "Ninja Multi-Config with clang",
+            "description": "Configuration using Ninja Multi-Config generator and clang. (add --config <CONFIG> to build)"
+        },
+        {
+            "name": "local-ci-gcc",
+            "inherits": [
+				"ci-gcc",
+				"local"
+            ],
+            "displayName": "CI GCC Configuration",
+            "description": "CI configuration using Ninja with warnings as errors."
+        },
+        {
+            "name": "local-ci-clang",
+            "inherits": [
+				"ci-clang",
+				"local"
+            ],
+            "displayName": "CI Ninja Configuration",
+            "description": "CI configuration using Ninja with warnings as errors."
+        }
+	]
+}
