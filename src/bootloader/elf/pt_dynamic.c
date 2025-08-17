@@ -13,7 +13,6 @@
 
 #define R_RISCV_64        2
 #define R_RISCV_RELATIVE  3
-#define R_RISCV_JUMP_SLOT 5
 
 status_t load_pt_dynamic(elf_application_t* app, Elf64_Phdr* prog_header) {
 	START;
@@ -83,18 +82,11 @@ static status_t apply_rela(elf_application_t* app) {
 			log(L"Applied relocation type: R_RISCV_RELATIVE.");
 			*patch_addr = app->physical_base + addend;
 			break;
-		case R_RISCV_64: {
+		case R_RISCV_64:
 			log(L"Applied relocation type: R_RISCV_64.");
 			UINT64 symval = app->pt_dynamic_info.symtab[sym].st_value;
 			*patch_addr = app->physical_base + symval + addend;
 			break;
-		}
-		case R_RISCV_JUMP_SLOT: {
-			log(L"Applied relocation type: R_RISCV_JUMP_SLOT.");
-			UINT64 symval = app->pt_dynamic_info.symtab[sym].st_value;
-			*patch_addr = app->physical_base + symval;
-			break;
-		}
 		default: err(L"Unsupported RELA relocation type: %u", type); RETURN(BOOT_ERROR);
 		}
 	}
@@ -119,18 +111,11 @@ static status_t apply_rel(elf_application_t* app) {
 			log(L"Applied relocation type: R_RISCV_RELATIVE.");
 			*patch_addr = app->physical_base + *patch_addr;
 			break;
-		case R_RISCV_64: {
+		case R_RISCV_64:
 			log(L"Applied relocation type: R_RISCV_64.");
 			UINT64 symval = app->pt_dynamic_info.symtab[sym].st_value;
 			*patch_addr = app->physical_base + symval + *patch_addr;
 			break;
-		}
-		case R_RISCV_JUMP_SLOT: {
-			log(L"Applied relocation type: R_RISCV_JUMP_SLOT.");
-			UINT64 symval = app->pt_dynamic_info.symtab[sym].st_value;
-			*patch_addr = app->physical_base + symval;
-			break;
-		}
 		default: err(L"Unsupported REL relocation type: %u", type); RETURN(BOOT_ERROR);
 		}
 	}
