@@ -21,40 +21,27 @@ void prefix(CHAR16 icon) {
 	Print(L" [%lc] ", icon);
 }
 
-void log(const CHAR16* message, ...) {
-	va_list args;
-
-	prefix(' ');
-
-	va_start(args, message);
-	VPrint(message, args);
-	va_end(args);
-
+#define LOG(icon)            \
+	va_list args;            \
+                             \
+	prefix(icon);            \
+                             \
+	va_start(args, message); \
+	VPrint(message, args);   \
+	va_end(args);            \
+                             \
 	Print(L"\n");
+
+void log(const CHAR16* message, ...) {
+	LOG(' ')
 }
 
 void warn(const CHAR16* message, ...) {
-	va_list args;
-
-	prefix('!');
-
-	va_start(args, message);
-	VPrint(message, args);
-	va_end(args);
-
-	Print(L"\n");
+	LOG('!')
 }
 
 void err(const CHAR16* message, ...) {
-	va_list args;
-
-	prefix('X');
-
-	va_start(args, message);
-	VPrint(message, args);
-	va_end(args);
-
-	Print(L"\n");
+	LOG('X')
 }
 
 void log_procedure_start(void) {

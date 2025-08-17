@@ -11,8 +11,8 @@
 #include "error.h"
 #include "log.h"
 
-#define R_RISCV_64        2
-#define R_RISCV_RELATIVE  3
+#define R_RISCV_64       2
+#define R_RISCV_RELATIVE 3
 
 status_t load_pt_dynamic(elf_application_t* app, Elf64_Phdr* prog_header) {
 	START;
