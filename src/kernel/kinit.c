@@ -8,11 +8,15 @@
 #include "ram_map.h"
 #include "klog.h"
 #include "power.h"
+#include "devtree/devtree_parser.h"
+#include "stdbigos/bitutils.h"
 
 [[noreturn]] extern void kmain();
 
 [[noreturn]] void kinit([[maybe_unused]] volatile u64 boot_hartid, volatile phys_addr_t device_tree) {
 	KLOGLN_NOTE("Begining kernel initialization");
+
+	KLOGLN_NOTE("magic: %x", read_be32((void*)device_tree));
 
 	kernel_config_t kercfg = {0};
 	phys_addr_t ram_start = 0x80200000;                            // TODO: Read from DT
@@ -37,6 +41,9 @@
 	ram_data.addr = (void*)ram_start;
 	ram_data.phys_addr = ram_start;
 	ram_map_set_data(ram_data);
+
+	dt_debug_print(physical_to_effective(device_tree));
+	halt();
 
 	// NOTE: if any regions are allocated in phys memory before initializing phys_mem_mgr they need to be added to this
 	// buffer
