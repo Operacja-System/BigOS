@@ -2,7 +2,7 @@ SETUP_EXECUTABLE(example_sbi)
 
 set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
 
-target_link_options(example_sbi PRIVATE -T ${LINKER_SCRIPT})
+target_link_options(example_sbi PRIVATE -static -T ${LINKER_SCRIPT})
 set_target_properties(example_sbi
     PROPERTIES LINK_DEPENDS ${LINKER_SCRIPT})
 
