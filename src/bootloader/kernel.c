@@ -74,6 +74,7 @@ void kernel_start(void) {
 	}
 
 	log(L"Starting BigOS...");
+	log(L"FDT address: %lX", g_fdt);
 	status = g_system_table->BootServices->ExitBootServices(g_image_handle, map_key);
 	if (EFI_ERROR(status)) {
 		err(L"Failed to exit boot services. BootServices.ExitBootServices() return code: %u", status);

@@ -21,8 +21,6 @@ typedef struct elf_application_t {
 	EFI_FILE_PROTOCOL* file;
 	Elf64_Ehdr header;
 	Elf64_Phdr* program_headers;
-	Elf64_Shdr* section_headers;
-	CHAR8* section_headers_strings;
 	elf_pt_dynamic_t pt_dynamic_info;
 
 	UINT64 entry_address;

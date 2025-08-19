@@ -52,7 +52,7 @@ static status_t verify_elf_header(Elf64_Ehdr* header) {
 	RETURN(BOOT_SUCCESS);
 }
 
-static status_t read_elf_program_headers(elf_application_t* app) {
+static status_t elf_program_headers_read(elf_application_t* app) {
 	START;
 	status_t boot_status;
 
@@ -65,11 +65,16 @@ static status_t read_elf_program_headers(elf_application_t* app) {
 	boot_status = read_file(app->file, app->header.e_phoff, (UINTN)app->header.e_phnum * app->header.e_phentsize,
 	                        app->program_headers);
 	if (boot_status != BOOT_SUCCESS) {
+		FreePool(app->program_headers);
 		err(L"Failed to read file");
 		RETURN(BOOT_ERROR);
 	}
 
 	RETURN(BOOT_SUCCESS);
+}
+
+static void elf_program_headers_delete(elf_application_t* app) {
+	FreePool(app->program_headers);
 }
 
 static status_t initialize_image_info(elf_application_t* app) {
@@ -149,7 +154,7 @@ status_t elf_load(elf_application_t* app) {
 	}
 
 	log(L"Reading program headers...");
-	boot_status = read_elf_program_headers(app);
+	boot_status = elf_program_headers_read(app);
 	if (boot_status != BOOT_SUCCESS) {
 		err(L"Failed to read program headers");
 		RETURN(BOOT_ERROR);
@@ -179,12 +184,16 @@ status_t elf_load(elf_application_t* app) {
 		RETURN(BOOT_ERROR);
 	}
 
+	elf_program_headers_delete(app);
+
 	log(L"Determining entry point address...");
 	if (app->header.e_entry < app->img_begin || app->header.e_entry >= app->img_end) {
 		err(L"Invalid entry point address");
 		RETURN(BOOT_ERROR);
 	}
 	app->entry_address = REBASE(app, app->header.e_entry);
+
+	asm volatile("fence.i" ::: "memory");
 
 	RETURN(BOOT_SUCCESS);
 }

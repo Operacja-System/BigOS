@@ -14,6 +14,7 @@
 #include "common.h"
 #include "error.h"
 #include "exit.h"
+#include "guid.h"
 #include "io.h"
 #include "log.h"
 #include "partition.h"
@@ -22,20 +23,6 @@
 
 meta_config_t g_meta_config;
 config_t g_config;
-
-static INTN guid_compare(EFI_GUID* a, EFI_GUID* b) {
-	if (a->Data1 != b->Data1)
-		return 0;
-	if (a->Data2 != b->Data2)
-		return 0;
-	if (a->Data3 != b->Data3)
-		return 0;
-	for (UINTN i = 0; i < 8; ++i) {
-		if (a->Data4[i] != b->Data4[i])
-			return 0;
-	}
-	return 1;
-}
 
 void meta_config_unload(void) {
 	START;
@@ -64,12 +51,14 @@ status_t meta_config_load(void) {
 	boot_status = get_file_info(meta_config_file, &file_info);
 	if (boot_status != BOOT_SUCCESS) {
 		err(L"Failed to read GUID");
+		meta_config_file->Close(meta_config_file);
 		RETURN(BOOT_ERROR);
 	}
 
 	log(L"Verifying file size...");
 	if (file_info->FileSize < sizeof(EFI_GUID)) {
 		FreePool(file_info);
+		meta_config_file->Close(meta_config_file);
 		err(L"Invalid pre-config file data");
 		RETURN(BOOT_ERROR);
 	}
@@ -78,6 +67,7 @@ status_t meta_config_load(void) {
 	boot_status = read_file(meta_config_file, 0, sizeof(EFI_GUID), (void*)&g_meta_config);
 	if (boot_status != BOOT_SUCCESS) {
 		FreePool(file_info);
+		meta_config_file->Close(meta_config_file);
 		err(L"Failed to read GUID");
 		RETURN(BOOT_ERROR);
 	}
@@ -86,6 +76,7 @@ status_t meta_config_load(void) {
 	FreePool(file_info);
 	CHAR16* path = AllocatePool(path_size + 2);
 	if (path == nullptr) {
+		meta_config_file->Close(meta_config_file);
 		err(L"Failed to allocate buffer for file data");
 		RETURN(BOOT_ERROR);
 	}
@@ -93,6 +84,7 @@ status_t meta_config_load(void) {
 	boot_status = read_file(meta_config_file, sizeof(EFI_GUID), path_size, (void*)path);
 	if (boot_status != BOOT_SUCCESS) {
 		FreePool(path);
+		meta_config_file->Close(meta_config_file);
 		err(L"Failed to read path");
 		RETURN(BOOT_ERROR);
 	}

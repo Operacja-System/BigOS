@@ -12,6 +12,7 @@
 
 #include "common.h"
 #include "error.h"
+#include "guid.h"
 #include "log.h"
 
 #define EFI_FDT_GUID                                                                  \
@@ -29,8 +30,9 @@ status_t get_FDT(void) {
 
 	for (UINTN index = 0; index < g_system_table->NumberOfTableEntries; ++index) {
 		entry = &g_system_table->ConfigurationTable[index];
-		if (CompareGuid(&entry->VendorGuid, &fdt_guid)) {
+		if (guid_compare(&entry->VendorGuid, &fdt_guid)) {
 			g_fdt = entry->VendorTable;
+			log(L"FDT address: %lX", g_fdt);
 			RETURN(BOOT_SUCCESS);
 		}
 	}
