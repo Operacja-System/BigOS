@@ -1,5 +1,5 @@
-#ifndef BIGOS_KERNEL_DEVTREE_DEVTREE_HEADER
-#define BIGOS_KERNEL_DEVTREE_DEVTREE_HEADER
+#ifndef BIGOS_KERNEL_DEVTREE_BLOB_HEADER
+#define BIGOS_KERNEL_DEVTREE_BLOB_HEADER
 
 #include <stdbigos/types.h>
 #include <stdbigos/error.h>

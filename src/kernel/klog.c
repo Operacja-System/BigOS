@@ -13,8 +13,9 @@ void klog_indent_decrease() {
 	--s_ident_level;
 }
 
+static const char* prefixes[] = {"[ERROR]", "[!]", "[ ]", "[~]"};
+
 void klog(klog_severity_level_t loglvl, const char* fmt, ...) {
-	static const char* prefixes[] = {"[ERROR]", "[WARNING]", "[ ]", "[~]"};
 	va_list args;
 	va_start(args, fmt);
 	dputgap(s_ident_level);
@@ -24,7 +25,6 @@ void klog(klog_severity_level_t loglvl, const char* fmt, ...) {
 }
 
 void klogln(klog_severity_level_t loglvl, const char* fmt, ...) {
-	static const char* prefixes[] = {"[ERROR]", "[WARNING]", "[ ]", "[~]"};
 	va_list args;
 	va_start(args, fmt);
 	dputgap(s_ident_level);

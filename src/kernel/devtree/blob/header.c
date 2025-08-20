@@ -1,4 +1,4 @@
-#include "devtree_header.h"
+#include "header.h"
 
 #include <stdbigos/buffer.h>
 
@@ -26,7 +26,7 @@ dt_header_t dt_read_header(const void* dtb_addr) {
 error_t dt_validate_header(dt_header_t dt_header) {
 	if (dt_header.magic != dt_magic)
 		return ERR_NOT_VALID;
-	if (dt_header.last_comp_version < dt_spec_version)
+	if (dt_header.last_comp_version > dt_spec_version)
 		return ERR_VERSION_NOT_COMPATIBLE;
 	if (dt_header.off_dt_struct + dt_header.size_dt_struct > dt_header.totalsize)
 		return ERR_NOT_VALID;

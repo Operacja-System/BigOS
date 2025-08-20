@@ -8,15 +8,14 @@
 #include "ram_map.h"
 #include "klog.h"
 #include "power.h"
-#include "devtree/devtree_parser.h"
 #include "stdbigos/bitutils.h"
+#include "devtree/blob/access.h"
+#include "stdbigos/buffer.h"
 
 [[noreturn]] extern void kmain();
 
 [[noreturn]] void kinit([[maybe_unused]] volatile u64 boot_hartid, volatile phys_addr_t device_tree) {
 	KLOGLN_NOTE("Begining kernel initialization");
-
-	KLOGLN_NOTE("magic: %x", read_be32((void*)device_tree));
 
 	kernel_config_t kercfg = {0};
 	phys_addr_t ram_start = 0x80200000;                            // TODO: Read from DT
@@ -41,9 +40,35 @@
 	ram_data.addr = (void*)ram_start;
 	ram_data.phys_addr = ram_start;
 	ram_map_set_data(ram_data);
+	//TEST:
+	buffer_t buff = {0};
+	err = dtb_get_prop_data(physical_to_effective(device_tree), "/memory", "device_type", true, &buff);
+	if (err) {
+		KLOGLN_ERROR("Failed do read dtb, error: %u", err);
+		halt();
+	}
+	//u32 val = 0;
+	//err = buffer_read_u32_be(buff, 0, &val);
+	//if (err) {
+	//	KLOGLN_ERROR("Failed do read buffer, error: %u", err);
+	//	halt();
+	//}
+	KLOGLN_NOTE("Value: %s", (char*)buff.data);
 
-	dt_debug_print(physical_to_effective(device_tree));
+	u64 count = 0;
+	err = dtb_count_nodes_ignore_address(physical_to_effective(device_tree), "/cpus", "cpu", &count);
+	if (err) {
+		KLOGLN_ERROR("Failed do count nodes, error: %u", err);
+		halt();
+	}
+	KLOGLN_NOTE("Count: %lu", count);
+
+	err = dtb_does_node_exist(physical_to_effective(device_tree), "/memory", true);
+	if(!err) KLOGLN_NOTE("exists");
+	else KLOGLN_NOTE("doesnt");
+
 	halt();
+	//!TEST:
 
 	// NOTE: if any regions are allocated in phys memory before initializing phys_mem_mgr they need to be added to this
 	// buffer

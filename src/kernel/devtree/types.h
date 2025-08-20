@@ -4,8 +4,6 @@
 #include <stdbigos/types.h>
 #include <stdbigos/buffer.h>
 
-typedef u64 dt_blob_addr_t;
-
 typedef struct {
 	const char* name;
 	buffer_t data;

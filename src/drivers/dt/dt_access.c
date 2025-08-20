@@ -5,9 +5,6 @@
 #include <stdbigos/bitutils.h>
 #include <stdbigos/string.h>
 
-#include "dt_alloc.h"
-#include "dt_parser.h"
-
 static dt_node_t* find_child_by_name_s(dt_node_t* parent, const char* name) {
 	for (dt_node_t* child = parent->first_child; child; child = child->next_sibling) {
 		if (strcmp(child->name, name) == 0) {
