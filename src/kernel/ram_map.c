@@ -1,6 +1,7 @@
 #include "ram_map.h"
 
 #include <debug/debug_stdio.h>
+#include <klog.h>
 
 static ram_map_data_t ram_data = {0};
 static bool is_set = false;
@@ -16,7 +17,7 @@ void ram_map_set_data(ram_map_data_t data) {
 
 error_t ram_map_get_data(ram_map_data_t* dataOUT) {
 	if (!is_set)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	*dataOUT = ram_data;
 	return ERR_NONE;
 }

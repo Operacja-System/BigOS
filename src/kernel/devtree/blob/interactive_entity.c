@@ -75,13 +75,13 @@ static void advance_cursor_at_prop(dt_interactive_entity_t* dtie, dt_blob_addr_t
 }
 
 [[nodiscard]] error_t push_node(dt_interactive_entity_t* dtie) {
-	if(dtie->cursor_stack_pointer == DTIE_STACK_SIZE) return ERR_OUT_OF_BOUNDS;
+	if(dtie->cursor_stack_pointer == DTIE_STACK_SIZE) KLOG_RETURN_ERR_TRACE(ERR_OUT_OF_BOUNDS);
 	dtie->cursor_stack[dtie->cursor_stack_pointer++] = dtie->node_cursor;
 	return ERR_NONE;
 }
 
 [[nodiscard]] error_t pop_node(dt_interactive_entity_t* dtie) {
-	if(dtie->cursor_stack_pointer == 0) return ERR_OUT_OF_BOUNDS;
+	if(dtie->cursor_stack_pointer == 0) KLOG_RETURN_ERR_TRACE(ERR_OUT_OF_BOUNDS);
 	dtie->node_cursor = dtie->cursor_stack[dtie->cursor_stack_pointer--];
 	return ERR_NONE;
 }
@@ -92,7 +92,7 @@ error_t dtie_create(const void* dtb_addr, dt_interactive_entity_t* dtieOUT) {
 	dt_header_t header = dt_read_header(dtb_addr);
 	error_t err = dt_validate_header(header);
 	if (err)
-		return err;
+		KLOG_RETURN_ERR_TRACE(err);
 	dtieOUT->dtb_addr = dtb_addr;
 	dtieOUT->header = header;
 	dtieOUT->valid = true;
@@ -111,13 +111,13 @@ error_t dtie_destroy(dt_interactive_entity_t* dtie) {
 
 error_t dtie_goto_root_node(dt_interactive_entity_t* dtie) {
 	if (!dtie->valid)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	dtie->node_cursor = dtie->header.off_dt_struct;
 	const void* addr = dtie->dtb_addr + dtie->node_cursor;
 	dt_token_t token = read_token(addr);
 	if (token != DTT_BEGIN_NODE) {
 		dtie->valid = false;
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	}
 	dtie->prop_cursor = dtie->node_cursor;
 	return ERR_NONE;
@@ -125,7 +125,7 @@ error_t dtie_goto_root_node(dt_interactive_entity_t* dtie) {
 
 error_t dtie_goto_next_node(dt_interactive_entity_t* dtie) {
 	if (!dtie->valid)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	u64 depth = 1;
 	error_t err = 0;
 	do {
@@ -142,7 +142,7 @@ error_t dtie_goto_next_node(dt_interactive_entity_t* dtie) {
 
 error_t dtie_goto_child_node(dt_interactive_entity_t* dtie) {
 	error_t err = push_node(dtie);
-	if(err) return ERR_OUT_OF_BOUNDS;
+	if(err) KLOG_RETURN_ERR_TRACE(ERR_OUT_OF_BOUNDS);
 	err = advance_cursor_untill_token_int(dtie, &dtie->node_cursor, DTT_BEGIN_NODE, DTT_END_NODE);
 	dtie->prop_cursor = dtie->node_cursor;
 	if(err == ERR_NONE) return err;
@@ -151,14 +151,14 @@ error_t dtie_goto_child_node(dt_interactive_entity_t* dtie) {
 
 error_t dtie_goto_parent_node(dt_interactive_entity_t* dtie) {
 	error_t err = pop_node(dtie);
-	if (err) return ERR_OUT_OF_BOUNDS;
+	if (err) KLOG_RETURN_ERR_TRACE(ERR_OUT_OF_BOUNDS);
 	dtie->prop_cursor = dtie->node_cursor;
 	return ERR_NONE;
 }
 
 error_t dtie_goto_next_prop(dt_interactive_entity_t* dtie) {
 	if (!dtie->valid)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	error_t err = advance_cursor_untill_token_int(dtie, &dtie->prop_cursor, DTT_PROP, DTT_END_NODE);
 	if(err) return ERR_NOT_FOUND;
 	return ERR_NONE;
@@ -166,10 +166,10 @@ error_t dtie_goto_next_prop(dt_interactive_entity_t* dtie) {
 
 error_t dtie_get_node_name(const dt_interactive_entity_t* dtie, buffer_t* buffOUT) {
 	if (!dtie->valid)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	const void* addr = dtie->dtb_addr + dtie->node_cursor;
 	dt_token_t token = read_token(addr);
-	if(token != DTT_BEGIN_NODE) return ERR_BAD_ARG;
+	if(token != DTT_BEGIN_NODE) KLOG_RETURN_ERR_TRACE(ERR_BAD_ARG);
 	addr += sizeof(dt_token_t);
 	u64 strsize = strlen(addr) + 1;
 	*buffOUT = make_buffer(addr, strsize);
@@ -178,10 +178,10 @@ error_t dtie_get_node_name(const dt_interactive_entity_t* dtie, buffer_t* buffOU
 
 error_t dtie_get_prop_name(const dt_interactive_entity_t* dtie, buffer_t* buffOUT) {
 	if (!dtie->valid)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	const void* addr = dtie->dtb_addr + dtie->prop_cursor;
 	dt_token_t token = read_token(addr);
-	if(token != DTT_PROP) return ERR_BAD_ARG;
+	if(token != DTT_PROP) KLOG_RETURN_ERR_TRACE(ERR_BAD_ARG);
 	addr += sizeof(dt_token_t);
 	dt_prop_header_t pheader = read_pheader(addr);
 	addr = dtie->dtb_addr + dtie->header.off_dt_strings + pheader.nameof;
@@ -192,10 +192,10 @@ error_t dtie_get_prop_name(const dt_interactive_entity_t* dtie, buffer_t* buffOU
 
 error_t dtie_get_prop_data(const dt_interactive_entity_t* dtie, buffer_t* buffOUT) {
 	if (!dtie->valid)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	const void* addr = dtie->dtb_addr + dtie->prop_cursor;
 	dt_token_t token = read_token(addr);
-	if(token != DTT_PROP) return ERR_BAD_ARG;
+	if(token != DTT_PROP) KLOG_RETURN_ERR_TRACE(ERR_BAD_ARG);
 	addr += sizeof(dt_token_t);
 	dt_prop_header_t pheader = read_pheader(addr);
 	addr += sizeof(dt_prop_header_t);

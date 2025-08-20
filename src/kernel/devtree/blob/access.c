@@ -1,6 +1,7 @@
 #include "access.h"
 
 #include <stdbigos/string.h>
+#include <klog.h>
 
 #include "interactive_entity.h"
 #include "stdbigos/buffer.h"
@@ -30,7 +31,7 @@
 		buffer_t buff_nodename = {0};
 		error_t err = dtie_get_node_name(dtie, &buff_nodename);
 		if (err) {
-			return ERR_NOT_VALID;
+			KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 		}
 		if (ignore_address) {
 			const char* at_pos = strchr(buff_nodename.data, '@');
@@ -53,11 +54,11 @@
 		buffer_t buff_propname = {0};
 		error_t err = dtie_get_prop_name(dtie, &buff_propname);
 		if (err) 
-			return ERR_NOT_VALID;
+			KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 		if (strcmp(buff_propname.data, propname) == 0) {
 			err = dtie_get_prop_data(dtie, buffOUT);
 			if (err)
-				return ERR_NOT_VALID;
+				KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 			return ERR_NONE;
 		}
 		err = dtie_goto_next_prop(dtie);
@@ -78,16 +79,16 @@
 	for (u64 i = 0; i < depth - 1; ++i) {
 		err = find_node_at_level(dtie, path_ptr, ignore_address);
 		if (err)
-			return err;
+			KLOG_RETURN_ERR_TRACE(err);
 		err = dtie_goto_child_node(dtie);
 		if (err)
-			return err;
+			KLOG_RETURN_ERR_TRACE(err);
 		strsize = strlen(path_ptr);
 		path_ptr += strsize + 1;
 	}
 	err = find_node_at_level(dtie, path_ptr, ignore_address);
 	if (err)
-		return err;
+		KLOG_RETURN_ERR_TRACE(err);
 	return ERR_NONE;
 }
 
@@ -96,36 +97,36 @@
 error_t dtb_get_prop_data(const void* dtb, const char* path, const char* prop_name, bool ignore_address,
                           buffer_t* buffOUT) {
 	if (!dtb || !path || !prop_name || !buffOUT)
-		return ERR_BAD_ARG;
+		KLOG_RETURN_ERR_TRACE(ERR_BAD_ARG);
 	dt_interactive_entity_t dtie = {0};
 	error_t err = dtie_create(dtb, &dtie);
 	if (err)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	err = dtie_goto_root_node(&dtie);
 	if (err)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	err = goto_node_path(&dtie, path, ignore_address);
 	if (err)
-		return err;
+		KLOG_RETURN_ERR_TRACE(err);
 	err = dtie_goto_next_prop(&dtie);
 	if (err)
-		return err;
+		KLOG_RETURN_ERR_TRACE(err);
 	err = find_prop_at_level(&dtie, prop_name, buffOUT);
 	if (err)
-		return err;
+		KLOG_RETURN_ERR_TRACE(err);
 	return ERR_NONE;
 }
 
 error_t dtb_does_node_exist(const void* dtb, const char* path, bool ignore_address) {
 	if (!dtb || !path)
-		return ERR_BAD_ARG;
+		KLOG_RETURN_ERR_TRACE(ERR_BAD_ARG);
 	dt_interactive_entity_t dtie = {0};
 	error_t err = dtie_create(dtb, &dtie);
 	if (err)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	err = dtie_goto_root_node(&dtie);
 	if (err)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	err = goto_node_path(&dtie, path, ignore_address);
 	if (err)
 		return ERR_NOT_FOUND;
@@ -134,14 +135,14 @@ error_t dtb_does_node_exist(const void* dtb, const char* path, bool ignore_addre
 
 error_t dtb_count_nodes_ignore_address(const void* dtb, const char* path, const char* name, u64* cOUT) {
 	if (!dtb || !path)
-		return ERR_BAD_ARG;
+		KLOG_RETURN_ERR_TRACE(ERR_BAD_ARG);
 	dt_interactive_entity_t dtie = {0};
 	error_t err = dtie_create(dtb, &dtie);
 	if (err)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	err = dtie_goto_root_node(&dtie);
 	if (err)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	*cOUT = 0;
 
 	err = goto_node_path(&dtie, path, false);
@@ -162,6 +163,6 @@ error_t dtb_count_nodes_ignore_address(const void* dtb, const char* path, const 
 		if (err)
 			return ERR_NONE;
 	}
-	return ERR_INTERNAL_FAILURE; //This should never happen
+	KLOG_RETURN_ERR_TRACE(ERR_INTERNAL_FAILURE); //This should never happen
 }
 

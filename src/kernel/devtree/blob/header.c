@@ -1,6 +1,7 @@
 #include "header.h"
 
 #include <stdbigos/buffer.h>
+#include <klog.h>
 
 static constexpr u32 dt_magic = 0xd00dfeed;
 static constexpr u32 dt_spec_version = 17;
@@ -25,12 +26,12 @@ dt_header_t dt_read_header(const void* dtb_addr) {
 
 error_t dt_validate_header(dt_header_t dt_header) {
 	if (dt_header.magic != dt_magic)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	if (dt_header.last_comp_version > dt_spec_version)
-		return ERR_VERSION_NOT_COMPATIBLE;
+		KLOG_RETURN_ERR_TRACE(ERR_VERSION_NOT_COMPATIBLE);
 	if (dt_header.off_dt_struct + dt_header.size_dt_struct > dt_header.totalsize)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	if (dt_header.off_dt_strings + dt_header.size_dt_strings > dt_header.totalsize)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	return ERR_NONE;
 }

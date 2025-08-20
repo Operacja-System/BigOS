@@ -40,6 +40,11 @@ void klogln(klog_severity_level_t loglvl, const char* fmt, ...);
 #if __LOGLVL__ >= 3
 	#define KLOG_TRACE(fmt, ...)   klog(KLSL_TRACE, fmt __VA_OPT__(, ) __VA_ARGS__)
 	#define KLOGLN_TRACE(fmt, ...) klogln(KLSL_TRACE, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOG_RETURN_ERR_TRACE(err)                                    \
+		do {                                                              \
+			KLOGLN_TRACE("Error returned at: %s:%u", __FILE__, __LINE__); \
+			return err;                                                   \
+		} while (0)
 	#define __LOG_TRACE__
 #else
 	#define KLOG_TRACE(fmt, ...)
@@ -54,10 +59,23 @@ void klogln(klog_severity_level_t loglvl, const char* fmt, ...);
 			klog_indent_decrease();      \
 			return x;                    \
 		} while (0)
+	#define KLOG_END_BLOCK_AND_RETURN_ERR_TRACE(err)                      \
+		do {                                                              \
+			klog_indent_decrease();                                       \
+			KLOGLN_TRACE("Error returned at: %s:%u", __FILE__, __LINE__); \
+			return err;                                                   \
+		} while (0)
+
 #else
 	#define KLOG_INDENT_BLOCK_START
 	#define KLOG_INDENT_BLOCK_END
 	#define KLOG_END_BLOCK_AND_RETURN(x) return x
+	#define KLOG_END_BLOCK_AND_RETURN_ERR_TRACE(x)                        \
+		do {                                                              \
+			KLOGLN_TRACE("Error returned at: %s:%u", __FILE__, __LINE__); \
+			return x;                                                     \
+		} while (0)
+
 #endif
 
 #endif

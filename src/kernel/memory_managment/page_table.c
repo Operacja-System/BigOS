@@ -106,7 +106,7 @@ error_t page_table_create(page_table_entry_t* page_tableOUT) {
 
 error_t page_table_destroy(page_table_entry_t* page_table) {
 	if (page_table->flags & PTEF_VALID)
-		return ERR_NOT_VALID;
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	delete_pte(*page_table);
 	*page_table = (page_table_entry_t){0};
 	return ERR_NONE;
@@ -127,12 +127,12 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 	buffer_t pth_buff = kernel_config_get(KERCFG_PT_HEIGHT);
 	if (pth_buff.error) {
 		KLOGLN_TRACE("Failed to read kernel config.");
-		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
+		KLOG_END_BLOCK_AND_RETURN_ERR_TRACE(ERR_INTERNAL_FAILURE);
 	}
 	error_t err = buffer_read_u8(pth_buff, 0, &pt_height);
 	if (err) {
 		KLOGLN_TRACE("Failed to read kernel config.");
-		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
+		KLOG_END_BLOCK_AND_RETURN_ERR_TRACE(ERR_INTERNAL_FAILURE);
 	}
 	for (i32 lvl = pt_height - 1; lvl > ps; --lvl) {
 		u64* current_riscv_pte = &(current_page[vpn_slice[lvl]]);
@@ -142,7 +142,7 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 			error_t err = phys_mem_alloc_frame(PAGE_SIZE_4kB, &new_ppn);
 			if (err) {
 				KLOGLN_TRACE("Failed to allocate a frame.");
-				KLOG_END_BLOCK_AND_RETURN(err);
+				KLOG_END_BLOCK_AND_RETURN_ERR_TRACE(err);
 			}
 			current_pte.ppn = new_ppn;
 			memset(physical_to_effective(current_pte.ppn << 12), 0, 0x1000);
@@ -154,7 +154,7 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 		current_page = physical_to_effective(current_pte.ppn << 12);
 	}
 	page_table_entry_t target_pte = read_riscv_pte(current_page[vpn_slice[ps]]);
-	if(target_pte.flags & PTEF_VALID) KLOG_END_BLOCK_AND_RETURN(ERR_NOT_VALID);
+	if(target_pte.flags & PTEF_VALID) KLOG_END_BLOCK_AND_RETURN_ERR_TRACE(ERR_NOT_VALID);
 	KLOGLN_TRACE("Adding a target frame of ppn: #%lx...", entry.ppn);
 	current_page[vpn_slice[ps]] = write_riscv_pte(entry);
 	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
