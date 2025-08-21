@@ -82,7 +82,7 @@ error_t address_space_destroy(as_handle_t* ash) {
 	return ERR_NONE;
 }
 
-error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
+error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 #ifdef __DEBUG__
 	if (!s_is_init)
 		KLOG_RETURN_ERR_TRACE(ERR_NOT_INITIALIZED);

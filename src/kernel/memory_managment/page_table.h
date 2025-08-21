@@ -23,8 +23,8 @@ typedef enum : u8 {
 } page_table_entry_os_flags_t;
 
 typedef struct {
-	u8 N;    // Reserved by extenction svnapot. Must be 0 if the extenction is not used
-	u8 pbmt; // Reserved by extenction svpbmt. Must be 0 if the extenction is not used
+	u8 N;    // Reserved by extension svnapot. Must be 0 if the extension is not used
+	u8 pbmt; // Reserved by extension svpbmt. Must be 0 if the extension is not used
 	ppn_t ppn;
 	page_table_entry_os_flags_t os_flags;
 	page_table_entry_flags_t flags;

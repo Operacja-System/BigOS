@@ -8,8 +8,7 @@
 #include "ram_map.h"
 #include "klog.h"
 #include "power.h"
-#include "stdbigos/bitutils.h"
-#include "devtree/blob/access.h"
+#include "devtree/blob/interactive_entity.h"
 #include "stdbigos/buffer.h"
 
 [[noreturn]] extern void kmain();
@@ -41,31 +40,24 @@
 	ram_data.phys_addr = ram_start;
 	ram_map_set_data(ram_data);
 	//TEST:
+	dtb_interactive_entity_t dtbie = {0};
 	buffer_t buff = {0};
-	err = dtb_get_prop_data(physical_to_effective(device_tree), "/memory", "device_type", true, &buff);
-	if (err) {
-		KLOGLN_ERROR("Failed do read dtb, error: %u", err);
-		halt();
-	}
-	//u32 val = 0;
-	//err = buffer_read_u32_be(buff, 0, &val);
-	//if (err) {
-	//	KLOGLN_ERROR("Failed do read buffer, error: %u", err);
-	//	halt();
-	//}
-	KLOGLN_NOTE("Value: %s", (char*)buff.data);
-
+	u32 val32 = 0;
+	u64 val64 = 0;
 	u64 count = 0;
-	err = dtb_count_nodes_ignore_address(physical_to_effective(device_tree), "/cpus", "cpu", &count);
-	if (err) {
-		KLOGLN_ERROR("Failed do count nodes, error: %u", err);
-		halt();
-	}
-	KLOGLN_NOTE("Count: %lu", count);
-
-	err = dtb_does_node_exist(physical_to_effective(device_tree), "/memory", true);
-	if(!err) KLOGLN_NOTE("exists");
-	else KLOGLN_NOTE("doesnt");
+	u32 addr = 0;
+	u32 size = 0;
+	err = dtbie_create(physical_to_effective(device_tree), &dtbie);
+	err = dtbie_goto_node(&dtbie, "/soc");
+	err = dtbie_count_children_nodes(&dtbie, "virtio_mmio", &count);
+	err = dtbie_goto_node_ignore_address(&dtbie, "virtio_mmio", 2);
+	err = dtbie_get_node_cells(&dtbie, &addr, &size);
+	err = dtbie_goto_prop(&dtbie, "reg");
+	err = dtbie_get_prop_data(&dtbie, &buff);
+	err = buffer_read_u64_be(buff, 0, &val64);
+	KLOGLN_NOTE("val: %lx", val64);
+	KLOGLN_NOTE("count: %lu", count);
+	KLOGLN_NOTE("addr: %u, size: %u", addr, size);
 
 	halt();
 	//!TEST:
@@ -198,7 +190,7 @@
 
 	for (u32 i = 0; i < sizeof(kernel_address_space_regions) / sizeof(kernel_address_space_regions[0]); ++i) {
 		KLOGLN_TRACE("Adding VMR#%u to kernel address space.", i);
-		error_t err = address_sapce_add_region(&kernel_ash, kernel_address_space_regions[i]);
+		error_t err = address_space_add_region(&kernel_ash, kernel_address_space_regions[i]);
 		if (err) {
 			KLOGLN_ERROR("Failed to add virtual memory region #%u to kernel address space with error %u", i, err);
 			halt();

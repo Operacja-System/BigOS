@@ -22,8 +22,8 @@ typedef struct {
 [[nodiscard]] error_t address_space_managment_init(u16 max_asid);
 [[nodiscard]] error_t address_space_create(as_handle_t* ashOUT, bool user, bool global);
 [[nodiscard]] error_t address_space_destroy(as_handle_t* ash);
-[[nodiscard]] error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region);
-[[nodiscard]] error_t address_sapce_delete_region(as_handle_t* ash, virt_mem_region_t region);
+[[nodiscard]] error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region);
+[[nodiscard]] error_t address_space_delete_region(as_handle_t* ash, virt_mem_region_t region);
 [[nodiscard]] error_t address_space_resolve_page_fault(as_handle_t* ash, void* fault_addr, bool read, bool write,
                                                        bool execute);
 [[nodiscard]] error_t address_space_set_stack_data(as_handle_t* ash, void* stack_start, size_t stack_size);

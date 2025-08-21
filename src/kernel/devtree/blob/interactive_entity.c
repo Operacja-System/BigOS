@@ -1,205 +1,275 @@
 #include "interactive_entity.h"
 
-#include <stdbigos/buffer.h>
-#include <stdbigos/math.h>
-#include <stdbigos/string.h>
 #include <klog.h>
+#include <stdbigos/bitutils.h>
+#include <stdbigos/string.h>
 
-#include "stdbigos/bitutils.h"
+#include "interactive_entity_internal.h"
+#include "stdbigos/buffer.h"
 
-typedef enum : u32 {
-	DTT_BEGIN_NODE = 0x1,
-	DTT_END_NODE = 0x2,
-	DTT_PROP = 0x3,
-	DTT_NOP = 0x4,
-	// yup, there is a gap here
-	DTT_END = 0x9,
-} dt_token_t;
-
-typedef struct {
-	u32 len;
-	u32 nameof;
-} dt_prop_header_t;
-
-[[nodiscard]] static dt_prop_header_t read_pheader(const void* addr) {
-	buffer_t buff = make_buffer(addr, sizeof(dt_prop_header_t));
-	dt_prop_header_t pheader = {0};
-	(void)buffer_read_u32_be(buff, 0, &pheader.len);
-	(void)buffer_read_u32_be(buff, sizeof(pheader.len), &pheader.nameof);
-	return pheader;
-}
-
-[[nodiscard]] static inline dt_token_t read_token(const void* dtb_addr) {
-	dt_token_t tok = read_be32(dtb_addr);
-	return tok;
-}
-
-static inline void advance_cursor_at_token(dt_blob_addr_t* cursorOUT) {
-	*cursorOUT += sizeof(dt_token_t);
-}
-
-static void advance_cursor_at_node(dt_interactive_entity_t* dtie, dt_blob_addr_t* cursorOUT) {
-	advance_cursor_at_token(cursorOUT);
-	while (*((u8*)dtie->dtb_addr + ++(*cursorOUT)));
-	++(*cursorOUT);
-	*cursorOUT = align_up_pow2(*cursorOUT, 2);
-}
-
-static void advance_cursor_at_prop(dt_interactive_entity_t* dtie, dt_blob_addr_t* cursorOUT) {
-	advance_cursor_at_token(cursorOUT);
-	dt_prop_header_t pheader = read_pheader(dtie->dtb_addr + *cursorOUT);
-	*cursorOUT += sizeof(dt_prop_header_t);
-	*cursorOUT += pheader.len;
-	*cursorOUT = align_up_pow2(*cursorOUT, 2);
-}
-
-[[nodiscard]] static error_t advance_cursor_untill_token_int(dt_interactive_entity_t* dtie, dt_blob_addr_t* cursorOUT, dt_token_t tok,
-                                               dt_token_t inttok) {
-	bool advanced = false;
-	for (u64 limit = 0; limit < 5000; ++limit) {
-		dt_token_t token = read_token(dtie->dtb_addr + *cursorOUT);
-		if (token == inttok && advanced)
-			return ERR_INTERRUPTED;
-		if (token == tok && advanced)
-			return ERR_NONE;
-		switch (token) {
-		case DTT_BEGIN_NODE: advance_cursor_at_node(dtie, cursorOUT); break;
-		case DTT_END_NODE:   advance_cursor_at_token(cursorOUT); break;
-		case DTT_PROP:       advance_cursor_at_prop(dtie, cursorOUT); break;
-		case DTT_NOP:        advance_cursor_at_token(cursorOUT); break;
-		case DTT_END:        return ERR_NOT_FOUND;
+[[nodiscard]] static u64 tokenize_path(char* path) {
+	u64 count = 0;
+	bool was_prev_fslash = false;
+	while (*path) {
+		if (*path == '/') {
+			was_prev_fslash = true;
+			++count;
+			*path = '\0';
+			++path;
+		} else {
+			was_prev_fslash = false;
+			++path;
 		}
-		advanced = true;
+	}
+	if (!was_prev_fslash)
+		++count;
+	return count;
+}
+
+[[nodiscard]] static const char* get_token(const char* tokpath, u64 tokdepth) {
+	const char* ret = tokpath;
+	for (u64 i = 0; i < tokdepth; ++i) {
+		const char* temp = strchr(ret, '\0');
+		if (temp) {
+			++temp;
+			ret = temp;
+		} else {
+			return nullptr;
+		}
+	}
+	return ret;
+}
+
+[[nodiscard]]
+static error_t find_node_at_level(dtb_interactive_entity_t* dtbie, const char* nodename, bool ignore_address) {
+	for (u64 i = 0; i < DTBIE_LOOP_LIMIT; ++i) {
+		buffer_t buff_nodename = {0};
+		error_t err = dtbie_get_node_name(dtbie, &buff_nodename);
+		if (err) {
+			KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
+		}
+		if (ignore_address) {
+			const char* at_pos = strchr(buff_nodename.data, '@');
+			size_t len = at_pos ? (size_t)(at_pos - (char*)buff_nodename.data) : strlen(buff_nodename.data);
+			if (strlen(nodename) == len && strncmp(buff_nodename.data, nodename, len) == 0)
+				return ERR_NONE;
+		} else {
+			if (strcmp(buff_nodename.data, nodename) == 0)
+				return ERR_NONE;
+		}
+		err = dtbie_goto_next_node(dtbie);
+		if (err)
+			return ERR_NOT_FOUND;
 	}
 	return ERR_NOT_FOUND;
 }
 
-[[nodiscard]] error_t push_node(dt_interactive_entity_t* dtie) {
-	if(dtie->cursor_stack_pointer == DTIE_STACK_SIZE) KLOG_RETURN_ERR_TRACE(ERR_OUT_OF_BOUNDS);
-	dtie->cursor_stack[dtie->cursor_stack_pointer++] = dtie->node_cursor;
-	return ERR_NONE;
-}
-
-[[nodiscard]] error_t pop_node(dt_interactive_entity_t* dtie) {
-	if(dtie->cursor_stack_pointer == 0) KLOG_RETURN_ERR_TRACE(ERR_OUT_OF_BOUNDS);
-	dtie->node_cursor = dtie->cursor_stack[dtie->cursor_stack_pointer--];
+[[nodiscard]] static error_t get_cells(dtb_interactive_entity_t* dtbie, u32* addrcellsOUT, u32* sizecellsOUT) {
+	error_t err = dtbie_goto_prop(dtbie, "#address-cells");
+	if (!err) {
+		buffer_t buff = {0};
+		err = dtbie_get_prop_data(dtbie, &buff);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+		err = buffer_read_u32_be(buff, 0, addrcellsOUT);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+	}
+	err = dtbie_goto_prop(dtbie, "#size-cells");
+	if (!err) {
+		buffer_t buff = {0};
+		err = dtbie_get_prop_data(dtbie, &buff);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+		err = buffer_read_u32_be(buff, 0, addrcellsOUT);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+	}
 	return ERR_NONE;
 }
 
 /// Public:
 
-error_t dtie_create(const void* dtb_addr, dt_interactive_entity_t* dtieOUT) {
+error_t dtbie_create(const void* dtb_addr, dtb_interactive_entity_t* dtbieOUT) {
 	dt_header_t header = dt_read_header(dtb_addr);
 	error_t err = dt_validate_header(header);
 	if (err)
 		KLOG_RETURN_ERR_TRACE(err);
-	dtieOUT->dtb_addr = dtb_addr;
-	dtieOUT->header = header;
-	dtieOUT->valid = true;
-	dtieOUT->prop_cursor = 0;
-	dtieOUT->node_cursor = 0;
-	dtieOUT->cursor_stack_pointer = 0;
-	memset(&dtieOUT->cursor_stack, 0, DTIE_STACK_SIZE * sizeof(dtieOUT->cursor_stack[0]));
+	dtbieOUT->dtb_addr = dtb_addr;
+	dtbieOUT->header = header;
+	dtbieOUT->valid = true;
+	dtbieOUT->prop_cursor = 0;
+	dtbieOUT->node_cursor = 0;
+	dtbieOUT->cursor_stack_pointer = 0;
+	memset(&dtbieOUT->cursor_stack, 0, DTBIE_STACK_SIZE * sizeof(dtbieOUT->cursor_stack[0]));
 
 	return ERR_NONE;
 }
 
-error_t dtie_destroy(dt_interactive_entity_t* dtie) {
-	*dtie = (dt_interactive_entity_t){.valid = false};
+error_t dtbie_destroy(dtb_interactive_entity_t* dtbie) {
+	*dtbie = (dtb_interactive_entity_t){.valid = false};
 	return ERR_NONE;
 }
 
-error_t dtie_goto_root_node(dt_interactive_entity_t* dtie) {
-	if (!dtie->valid)
+error_t dtbie_get_node_cells(dtb_interactive_entity_t* dtbie, u32* addrcellsOUT, u32* sizecellsOUT) {
+	if (!dtbie->valid)
 		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
-	dtie->node_cursor = dtie->header.off_dt_struct;
-	const void* addr = dtie->dtb_addr + dtie->node_cursor;
-	dt_token_t token = read_token(addr);
-	if (token != DTT_BEGIN_NODE) {
-		dtie->valid = false;
-		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
-	}
-	dtie->prop_cursor = dtie->node_cursor;
-	return ERR_NONE;
-}
+	dtb_addr_t ncur_cpy = dtbie->node_cursor;
+	dtb_addr_t pcur_cpy = dtbie->prop_cursor;
 
-error_t dtie_goto_next_node(dt_interactive_entity_t* dtie) {
-	if (!dtie->valid)
-		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
-	u64 depth = 1;
 	error_t err = 0;
-	do {
-		err = advance_cursor_untill_token_int(dtie, &dtie->node_cursor, DTT_END_NODE, DTT_BEGIN_NODE);
-		if(err == ERR_NOT_FOUND) return err;
-		if(err == ERR_INTERRUPTED) ++depth;
-		else if(err == ERR_NONE) --depth;
-	} while(err != ERR_NONE || depth != 0);
-	err = advance_cursor_untill_token_int(dtie, &dtie->node_cursor, DTT_BEGIN_NODE, DTT_END_NODE);
-	if(err) return ERR_NOT_FOUND;
-	dtie->prop_cursor = dtie->node_cursor;
+	// default
+	*addrcellsOUT = DTB_DEFAULT_ADDRESS_CELLS;
+	*sizecellsOUT = DTB_DEFAULT_SIZE_CELLS;
+	// parent
+	if (dtbie->cursor_stack_pointer != 0) {
+		dtbie->node_cursor = dtbie->cursor_stack[dtbie->cursor_stack_pointer - 1];
+		err = get_cells(dtbie, addrcellsOUT, sizecellsOUT);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+	}
+	// node
+	dtbie->node_cursor = ncur_cpy;
+	err = get_cells(dtbie, addrcellsOUT, sizecellsOUT);
+	if (err)
+		KLOG_RETURN_ERR_TRACE(err);
+
+	dtbie->node_cursor = ncur_cpy;
+	dtbie->prop_cursor = pcur_cpy;
 	return ERR_NONE;
 }
 
-error_t dtie_goto_child_node(dt_interactive_entity_t* dtie) {
-	error_t err = push_node(dtie);
-	if(err) KLOG_RETURN_ERR_TRACE(ERR_OUT_OF_BOUNDS);
-	err = advance_cursor_untill_token_int(dtie, &dtie->node_cursor, DTT_BEGIN_NODE, DTT_END_NODE);
-	dtie->prop_cursor = dtie->node_cursor;
-	if(err == ERR_NONE) return err;
+error_t dtbie_goto_node(dtb_interactive_entity_t* dtbie, const char* path) {
+	if (!dtbie->valid)
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
+	size_t strsize = strlen(path);
+	char tokpath[strsize + 1];
+	strcpy(tokpath, path);
+	tokpath[strsize] = '\0';
+	const char* tokpath_ptr = tokpath;
+	u64 depth = tokenize_path(tokpath);
+
+	error_t err = 0;
+	if (path[0] == '/') {
+		err = dtbie_goto_root_node(dtbie);
+	} else {
+		err = dtbie_goto_child_node(dtbie);
+	}
+	if (err == ERR_NOT_FOUND)
+		return err;
+	if (err)
+		KLOG_RETURN_ERR_TRACE(err);
+
+	for (u64 i = 0; i < depth - 1; ++i) {
+		err = find_node_at_level(dtbie, tokpath_ptr, false);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+		err = dtbie_goto_child_node(dtbie);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+		size_t strsize = strlen(tokpath_ptr);
+		tokpath_ptr += strsize + 1;
+	}
+	err = find_node_at_level(dtbie, tokpath_ptr, false);
+	if (err)
+		KLOG_RETURN_ERR_TRACE(err);
+	return ERR_NONE;
+}
+
+error_t dtbie_goto_node_ignore_address(dtb_interactive_entity_t* dtbie, const char* path, u64 nodenum) {
+	if (!dtbie->valid)
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
+	size_t strsize = strlen(path);
+	char tokpath[strsize + 1];
+	strcpy(tokpath, path);
+	tokpath[strsize] = '\0';
+	const char* tokpath_ptr = tokpath;
+	u64 depth = tokenize_path(tokpath);
+
+	error_t err = 0;
+	if (path[0] == '/') {
+		err = dtbie_goto_root_node(dtbie);
+	} else {
+		err = dtbie_goto_child_node(dtbie);
+	}
+	if (err == ERR_NOT_FOUND)
+		return err;
+	if (err)
+		KLOG_RETURN_ERR_TRACE(err);
+
+	for (u64 i = 0; i < depth - 1; ++i) {
+		err = find_node_at_level(dtbie, tokpath_ptr, true);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+		err = dtbie_goto_child_node(dtbie);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+		size_t strsize = strlen(tokpath_ptr);
+		tokpath_ptr += strsize + 1;
+	}
+	for (u64 i = 0; i <= nodenum; ++i) {
+		err = find_node_at_level(dtbie, tokpath_ptr, true);
+		if (err == ERR_NOT_FOUND)
+			return err;
+		if (err)
+			KLOG_RETURN_ERR_TRACE(err);
+		if (i < nodenum) {
+			err = dtbie_goto_next_node(dtbie);
+			if (err)
+				KLOG_RETURN_ERR_TRACE(err);
+		}
+	}
+	return ERR_NONE;
+}
+
+error_t dtbie_count_children_nodes(dtb_interactive_entity_t* dtbie, const char* nodename, u64* countOUT) {
+	if (!dtbie->valid)
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
+	dtb_addr_t prop_cursor_cpy = dtbie->prop_cursor;
+	error_t err = dtbie_goto_child_node(dtbie);
+	*countOUT = 0;
+	for (u64 i = 0; i < DTBIE_LOOP_LIMIT; ++i) {
+		err = find_node_at_level(dtbie, nodename, true);
+		if (err)
+			break;
+		++(*countOUT);
+		err = dtbie_goto_next_node(dtbie);
+		if (err)
+			break;
+	}
+	err = dtbie_goto_parent_node(dtbie);
+	if (err)
+		KLOG_RETURN_ERR_TRACE(err);
+	dtbie->prop_cursor = prop_cursor_cpy;
+	return ERR_NONE;
+}
+
+error_t dtbie_goto_prop(dtb_interactive_entity_t* dtbie, const char* propname) {
+	if (!dtbie->valid)
+		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
+	dtbie->prop_cursor = dtbie->node_cursor;
+	error_t err = dtbie_goto_next_prop(dtbie);
+	if (err)
+		return ERR_NOT_FOUND;
+	for (u64 i = 0; i < DTBIE_LOOP_LIMIT; ++i) {
+		buffer_t buff_propname = {0};
+		err = dtbie_get_prop_name(dtbie, &buff_propname);
+		if (err)
+			KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
+		if (strcmp(buff_propname.data, propname) == 0) {
+			return ERR_NONE;
+		}
+		err = dtbie_goto_next_prop(dtbie);
+		if (err)
+			return ERR_NOT_FOUND;
+	}
 	return ERR_NOT_FOUND;
 }
 
-error_t dtie_goto_parent_node(dt_interactive_entity_t* dtie) {
-	error_t err = pop_node(dtie);
-	if (err) KLOG_RETURN_ERR_TRACE(ERR_OUT_OF_BOUNDS);
-	dtie->prop_cursor = dtie->node_cursor;
-	return ERR_NONE;
-}
-
-error_t dtie_goto_next_prop(dt_interactive_entity_t* dtie) {
-	if (!dtie->valid)
+error_t dtbie_does_node_exist(dtb_interactive_entity_t* dtbie, const char* path) {
+	if (!dtbie->valid)
 		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
-	error_t err = advance_cursor_untill_token_int(dtie, &dtie->prop_cursor, DTT_PROP, DTT_END_NODE);
-	if(err) return ERR_NOT_FOUND;
-	return ERR_NONE;
-}
-
-error_t dtie_get_node_name(const dt_interactive_entity_t* dtie, buffer_t* buffOUT) {
-	if (!dtie->valid)
-		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
-	const void* addr = dtie->dtb_addr + dtie->node_cursor;
-	dt_token_t token = read_token(addr);
-	if(token != DTT_BEGIN_NODE) KLOG_RETURN_ERR_TRACE(ERR_BAD_ARG);
-	addr += sizeof(dt_token_t);
-	u64 strsize = strlen(addr) + 1;
-	*buffOUT = make_buffer(addr, strsize);
-	return ERR_NONE;
-}
-
-error_t dtie_get_prop_name(const dt_interactive_entity_t* dtie, buffer_t* buffOUT) {
-	if (!dtie->valid)
-		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
-	const void* addr = dtie->dtb_addr + dtie->prop_cursor;
-	dt_token_t token = read_token(addr);
-	if(token != DTT_PROP) KLOG_RETURN_ERR_TRACE(ERR_BAD_ARG);
-	addr += sizeof(dt_token_t);
-	dt_prop_header_t pheader = read_pheader(addr);
-	addr = dtie->dtb_addr + dtie->header.off_dt_strings + pheader.nameof;
-	u64 strsize = strlen(addr) + 1;
-	*buffOUT = make_buffer(addr, strsize);
-	return ERR_NONE;
-}
-
-error_t dtie_get_prop_data(const dt_interactive_entity_t* dtie, buffer_t* buffOUT) {
-	if (!dtie->valid)
-		KLOG_RETURN_ERR_TRACE(ERR_NOT_VALID);
-	const void* addr = dtie->dtb_addr + dtie->prop_cursor;
-	dt_token_t token = read_token(addr);
-	if(token != DTT_PROP) KLOG_RETURN_ERR_TRACE(ERR_BAD_ARG);
-	addr += sizeof(dt_token_t);
-	dt_prop_header_t pheader = read_pheader(addr);
-	addr += sizeof(dt_prop_header_t);
-	*buffOUT = make_buffer(addr, pheader.len);
-	return ERR_NONE;
+	error_t err = dtbie_goto_node(dtbie, path);
+	return err;
 }
 

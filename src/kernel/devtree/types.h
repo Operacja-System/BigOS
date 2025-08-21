@@ -4,17 +4,14 @@
 #include <stdbigos/types.h>
 #include <stdbigos/buffer.h>
 
-typedef struct {
-	const char* name;
-	buffer_t data;
-	struct dt_prop_t* next_prop;
-} dt_prop_t;
+typedef const char* dtds_string_t;
 
-typedef struct {
-	const char* name;
-	struct dt_node_t* next_node;
-	struct dt_node_t* child;
-	dt_prop_t* prop;
-} dt_node_t;
+struct {
+	const char* stringlist;
+	u64 count;
+} dtds_stringlist_t;
+
+typedef u32 dtds_phandle_t;
+
 
 #endif
