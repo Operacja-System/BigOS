@@ -46,7 +46,7 @@ cmake --build build --target run-<target to run> # ex. run-example_sbi
 # To exit just enter Ctrl+a x
 ```
 
-All available targets are listed in [build system target docs](build_system/targets).
+All available targets are listed in [build system target docs](build_system/targets.md).
 
 ---
 

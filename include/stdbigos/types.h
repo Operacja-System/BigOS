@@ -23,4 +23,18 @@ typedef enum {
 	ENDIAN_BIG = 1,
 } endianness_t;
 
+/// pstring_t:
+/// either (P)ascal-like length based string
+/// or (p)edantically checked string
+typedef struct {
+	size_t len;
+	u8* data;
+} pstring_t;
+
+#include <stdbigos/meta/err_x_t.h>
+
+ERRX_WRAPPER_T(pstring, pstring_t);
+ERRX_WRAPPER_T(size, size_t);
+ERRX_WRAPPER_T(int, int);
+
 #endif
