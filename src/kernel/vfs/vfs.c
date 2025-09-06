@@ -10,10 +10,10 @@
 
 #include "file_table.h"
 #include "pipes.h"
+#include "stdbigos/meta/err_x_t.h"
+#include "stdbigos/types.h"
 
-// Here just for debugging
-void vfsmain() {
-	DEBUG_PUTS("Hello VFS\n");
+static void vfs_test_path_next() {
 	pstring_t path1 = ERRX_UNWRAP(pstring_l2w("/foo/bar/baz/file.c"));
 	VfsPath_t path = vfs_path_new(&path1);
 
@@ -29,7 +29,9 @@ void vfsmain() {
 		}
 		DEBUG_PUTC('\n');
 	}
+}
 
+static void vfs_test_pipes() {
 	FtEntry_t* example_file_entry1;
 	FtEntry_t* example_file_entry2;
 
@@ -37,25 +39,49 @@ void vfsmain() {
 
 	example_file_entry1 = ft_add_entry();
 	example_file_entry2 = ft_add_entry();
-	(void)pipe_create(&example_file_entry1->kernel_read_pipe, &example_file_entry2->kernel_write_pipe);
+	kassert(pipe_create(&example_file_entry1->kernel_read_pipe, &example_file_entry2->kernel_write_pipe) == ERR_NONE);
 
-	char example_message1[] = "Hello server-fs! I'm example driver.\n";
-	(void)pipe_write(&example_file_entry2->kernel_write_pipe, strlen(example_message1) + 1, (u8*)example_message1);
-	(void)pipe_read(&example_file_entry1->kernel_read_pipe, strlen(example_message1) + 1, (u8*)buff);
+	const char* message1 = "Hello from vfs! This message is brought to you via a Kernel Pipe.\n";
+	const char* message2 = "Hello again, it seems that these pipes are not just for one time use!\n";
+	const char* message3 = "How convenient!\n";
+	const size_t message1_len = strlen(message1);
+	const size_t message2_len = strlen(message2);
+	const size_t message3_len = strlen(message3);
+
+	// Write and read a mesage
+	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, message1_len + 1, (u8*)message1)) ==
+	        message1_len + 1);
+	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, message1_len + 1, (u8*)buff)) ==
+	        message1_len + 1);
 	DEBUG_PUTS(buff);
 
-	pipe_close_read(&example_file_entry1->kernel_read_pipe);
-	pipe_close_write(&example_file_entry2->kernel_write_pipe);
+	// Write two messages at once and then read them with different sizes
+	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, message2_len, (u8*)message2)) ==
+	        message2_len);
+	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, message3_len + 1, (u8*)message3)) ==
+	        message3_len + 1);
 
-	(void)pipe_create(&example_file_entry2->kernel_read_pipe, &example_file_entry1->kernel_write_pipe);
+	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, message3_len, (u8*)buff)) == message3_len);
+	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, 123456, (u8*)(buff + message3_len))) ==
+	        (message2_len + 1));
+	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, 10, (u8*)buff)) == 0);
 
-	char example_message2[] = "Hi there! I'm example driver too!\n";
-	(void)pipe_write(&example_file_entry1->kernel_write_pipe, strlen(example_message2) + 1, (u8*)example_message2);
-	(void)pipe_read(&example_file_entry2->kernel_read_pipe, strlen(example_message2) + 1, (u8*)buff);
 	DEBUG_PUTS(buff);
 
 	ft_free_entry(example_file_entry1);
 	ft_free_entry(example_file_entry2);
+}
+
+// Here just for debugging
+void vfsmain() {
+	DEBUG_PUTS("Hello VFS\n");
+
+	DEBUG_PUTS("-> VFS showcase vfs_path_next:\n");
+	vfs_test_path_next();
+	DEBUG_PUTS("-> VFS showcase pipes:\n");
+	vfs_test_pipes();
+
+	DEBUG_PUTS("-> ALL vfs samples finished\n");
 }
 
 VfsPath_t vfs_path_new(const VfsPathBuff_t* path_buff) {
