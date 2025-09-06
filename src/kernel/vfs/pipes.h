@@ -24,11 +24,6 @@ void query_queue_push(QueryQueue_t* queue, u8 byte);
 error_t query_queue_front(QueryQueue_t* queue, u8* out);
 error_t query_queue_pop(QueryQueue_t* queue);
 
-// Maybe something more here?
-typedef struct Pipe_t {
-	QueryQueue_t* query_queue;
-} Pipe_t;
-
 error_t pipe_create(pstring_t name, ServiceHandle_t* out);
 error_t pipe_open(u64 idx, FtEntry_t** out);
 error_t pipe_read(u64 idx, u32 bytes, u8* out);

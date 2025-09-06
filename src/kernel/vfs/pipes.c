@@ -9,10 +9,13 @@
 #include "vfs_alloc.h"
 
 // Currently pipe files are stored in an array. Finding them by name takes O(MAX_SERVERS) operations.
-// Since this number will most likely be small, this should be sufficient, but TODO: perhaps we want something better
-// here anyway
+// Since this number will most likely be small, this should be sufficient, but:
+// TODO: perhaps we want something better here.
+typedef struct Pipe_t {
+	QueryQueue_t* query_queue;
+	bool is_used;
+} Pipe_t;
 static Pipe_t pipes[MAX_SERVERS];
-static bool is_pipe_slot_in_usage[MAX_SERVERS];
 
 void query_queue_init(QueryQueue_t** queue) {
 	*queue = (QueryQueue_t*)vfs_malloc(sizeof(QueryQueue_t));
@@ -52,7 +55,7 @@ error_t query_queue_pop(QueryQueue_t* queue) {
 error_t pipe_create(pstring_t name, ServiceHandle_t* out) {
 	i64 free_idx = -1;
 	for (i64 i = 0; i < MAX_SERVERS; i++) {
-		if (!is_pipe_slot_in_usage[i]) {
+		if (!pipes[i].is_used) {
 			free_idx = i;
 			break;
 		}
@@ -60,7 +63,7 @@ error_t pipe_create(pstring_t name, ServiceHandle_t* out) {
 	if (free_idx == -1) {
 		return ERR_SERVER_FS_FULL;
 	}
-	is_pipe_slot_in_usage[free_idx] = true;
+	pipes[free_idx].is_used = true;
 	query_queue_init(&pipes[free_idx].query_queue);
 
 	*out = (Service_t*)vfs_malloc(sizeof(Service_t));
@@ -70,7 +73,7 @@ error_t pipe_create(pstring_t name, ServiceHandle_t* out) {
 }
 
 error_t pipe_open(u64 idx, FtEntry_t** out) {
-	if (!is_pipe_slot_in_usage[idx]) {
+	if (!pipes[idx].is_used) {
 		return ERR_FILE_NOT_FOUND;
 	}
 	*out = ft_add_entry(PIPE_HANDLE, idx, 0); // TODO: Attributes
@@ -78,7 +81,7 @@ error_t pipe_open(u64 idx, FtEntry_t** out) {
 }
 
 error_t pipe_read(u64 idx, u32 bytes, u8* out) {
-	if (!is_pipe_slot_in_usage[idx])
+	if (!pipes[idx].is_used)
 		return ERR_BROKEN_FILE_DESCRIPTOR;
 	Pipe_t* file = &(pipes[idx]);
 	for (u32 i = 0; i < bytes; i++) {
@@ -93,7 +96,7 @@ error_t pipe_read(u64 idx, u32 bytes, u8* out) {
 }
 
 error_t pipe_write(u64 idx, u32 bytes, u8* buff) {
-	if (!is_pipe_slot_in_usage[idx])
+	if (!pipes[idx].is_used)
 		return ERR_BROKEN_FILE_DESCRIPTOR;
 	Pipe_t* file = &(pipes[idx]);
 	for (u32 i = 0; i < bytes; i++) {
@@ -103,9 +106,9 @@ error_t pipe_write(u64 idx, u32 bytes, u8* buff) {
 }
 
 error_t pipe_remove(u64 idx) {
-	if (!is_pipe_slot_in_usage[idx]) {
+	if (!pipes[idx].is_used) {
 		return ERR_FILE_NOT_FOUND;
 	}
-	is_pipe_slot_in_usage[idx] = false;
+	pipes[idx].is_used = false;
 	return ERR_NONE;
 }
