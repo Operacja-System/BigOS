@@ -64,7 +64,7 @@ static error_t query_queue_pop(QueryQueue_t* queue) {
 	return ERR_NONE;
 }
 
-error_t pipe_create(pstring_t name, ServiceHandle_t* out) {
+error_t pipe_create(KernelPipe_t* out) {
 	i64 free_idx = -1;
 	for (i64 i = 0; i < MAX_SERVERS; i++) {
 		if (!pipes[i].is_used) {
@@ -78,17 +78,11 @@ error_t pipe_create(pstring_t name, ServiceHandle_t* out) {
 	pipes[free_idx].is_used = true;
 	query_queue_init(&pipes[free_idx].query_queue);
 
-	*out = (Service_t*)vfs_malloc(sizeof(Service_t));
-	(*out)->pipe_id = free_idx;
-	(*out)->service_name = name;
-	return ERR_NONE;
-}
-
-error_t pipe_open(u64 idx, FtEntry_t** out) {
-	if (!pipes[idx].is_used) {
-		return ERR_FILE_NOT_FOUND;
-	}
-	*out = ft_add_entry(PIPE_HANDLE, idx, 0); // TODO: Attributes
+	*out = (KernelPipe_t){
+	    .pipe_id = free_idx,
+	    .attributes = 0, // TODO: Create KernelPipe_t attributes
+	};
+	out->pipe_id = free_idx;
 	return ERR_NONE;
 }
 

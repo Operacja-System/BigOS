@@ -8,6 +8,7 @@
 #include <stdbigos/string.h>
 #include <stddef.h>
 
+#include "file_table.h"
 #include "mount_tree.h"
 #include "pipes.h"
 #include "vfs_alloc.h"
@@ -31,34 +32,29 @@ void vfsmain() {
 		DEBUG_PUTC('\n');
 	}
 
-	ServiceHandle_t example_driver;
+	KernelPipe_t kernel_pipe;
 
-	FtEntry_t* example_driver_fd1;
-	FtEntry_t* example_driver_fd2;
-	char example_driver_name[] = "example driver";
-	pstring_t example_driver_name_pstring = pstring_l2w(example_driver_name).val;
+	FtEntry_t* example_file_entry1;
+	FtEntry_t* example_file_entry2;
 
-	pipe_create(example_driver_name_pstring, &example_driver);
 	char buff[100];
 
+	pipe_create(&kernel_pipe);
+	example_file_entry1 = ft_add_entry();
+	example_file_entry2 = ft_add_entry();
+
 	char example_message1[] = "Hello server-fs! I'm example driver.\n";
-	pipe_open(example_driver->pipe_id, &example_driver_fd1);
-	pipe_write(example_driver_fd1->file_id, strlen(example_message1) + 1, (u8*)example_message1);
-	pipe_read(example_driver_fd1->file_id, strlen(example_message1) + 1, (u8*)buff);
+	pipe_write(example_file_entry1->file_id, strlen(example_message1) + 1, (u8*)example_message1);
+	pipe_read(example_file_entry2->file_id, strlen(example_message1) + 1, (u8*)buff);
 	DEBUG_PUTS(buff);
 
 	char example_message2[] = "Hi there! I'm example driver too!\n";
-	pipe_open(example_driver->pipe_id, &example_driver_fd2);
-	pipe_write(example_driver_fd2->file_id, strlen(example_message2) + 1, (u8*)example_message2);
-	pipe_read(example_driver_fd2->file_id, strlen(example_message2) + 1, (u8*)buff);
+	pipe_write(example_file_entry2->file_id, strlen(example_message2) + 1, (u8*)example_message2);
+	pipe_read(example_file_entry1->file_id, strlen(example_message2) + 1, (u8*)buff);
 	DEBUG_PUTS(buff);
 
-	pipe_remove(example_driver_fd1->file_id);
-	if (pipe_read(example_driver_fd2->file_id, strlen(example_message2) + 1, (u8*)buff) == ERR_BROKEN_FILE_DESCRIPTOR) {
-		DEBUG_PUTS("File descriptor broken (ok)\n");
-	} else {
-		DEBUG_PUTS("File descriptor not broken (not ok)\n");
-	}
+	ft_free_entry(example_file_entry1);
+	ft_free_entry(example_file_entry2);
 }
 
 VfsPath_t vfs_path_new(const VfsPathBuff_t* path_buff) {

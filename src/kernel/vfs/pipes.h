@@ -8,8 +8,7 @@
 
 #define MAX_SERVERS 8
 
-error_t pipe_create(pstring_t name, ServiceHandle_t* out);
-error_t pipe_open(u64 idx, FtEntry_t** out);
+error_t pipe_create(KernelPipe_t* out);
 error_t pipe_read(u64 idx, u32 bytes, u8* out);
 error_t pipe_write(u64 idx, u32 bytes, u8* buff);
 error_t pipe_remove(u64 idx);

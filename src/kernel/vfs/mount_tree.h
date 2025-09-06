@@ -18,7 +18,7 @@ typedef struct MtEdgeList_t {
 } MtEdgeList_t;
 
 typedef struct MtNode_t {
-	ServiceHandle_t service;
+	Service_t* service;
 	MtEdgeList_t* edge_list;
 } MtNode_t;
 
@@ -37,7 +37,6 @@ void mt_free(MtNode_t* node);
 
 /// Ads a new node for handling a service below `node` accessible via `label`
 // error_t mt_add_node(MtNode_t* node, pstring_t label, ServiceHandle_t service, MtNode_t** new_node);
-
-[[nodiscard]] error_t mt_add_mountpoint(MtNode_t* root, VfsPath_t path, ServiceHandle_t service, MtNode_t** out);
+[[nodiscard]] error_t mt_add_mountpoint(MtNode_t* root, VfsPath_t path, Service_t* service, MtNode_t** out);
 
 #endif

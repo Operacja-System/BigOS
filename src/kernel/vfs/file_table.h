@@ -3,8 +3,12 @@
 
 #include "vfs.h"
 
-#define PIPE_HANDLE (ServiceHandle_t)9391209381209132
+/// Adds an entry to the users FileTable.
+// TODO: Implement. No user space so this is mocked
+FtEntry_t* ft_add_entry();
 
-FtEntry_t* ft_add_entry(ServiceHandle_t handle, u64 file_id, u64 attributes);
+/// Remove entry from users FileTable.
+// TODO: Implement. No user space so this is mocked
+void ft_free_entry(FtEntry_t* entry);
 
 #endif

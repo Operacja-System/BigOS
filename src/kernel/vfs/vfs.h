@@ -9,25 +9,29 @@
 void vfsmain();
 void vfs_init();
 
-// Maybe some metadata here?
-typedef struct Service_t {
-	pstring_t service_name;
-	u64 pipe_id;
-} Service_t;
-
-#define ServiceHandle_t Service_t*
-
-// Pipe description
-typedef struct InnerPipeFd_t {
+// Kernel pipe data, not managed by fs_server_protocol
+typedef struct KernelPipe_t {
 	u64 pipe_id;
 	u64 attributes;
-} InnerPipeFd_t;
+} KernelPipe_t;
+
+// Maybe some metadata here?
+typedef struct Service_t {
+	pstring_t name;
+	KernelPipe_t server_pipe;
+} Service_t;
 
 // Table of opened files
 typedef struct FtEntry_t {
-	ServiceHandle_t handle;
-	u64 file_id;
-	u64 attributes;
+	bool isPipe;
+	union {
+		struct {
+			Service_t server;
+			FSFileHandle_t file_id;
+		};
+		KernelPipe_t kernel_pipe;
+	};
+	FSOpenMode_t mode;
 } FtEntry_t;
 
 /// Memory-owning representation of path

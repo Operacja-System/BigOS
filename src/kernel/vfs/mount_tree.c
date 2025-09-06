@@ -111,7 +111,7 @@ static error_t mt_add_nodes(MtNode_t* node, VfsPath_t path, MtNode_t** new_node)
 	return ERR_NONE;
 }
 
-error_t mt_add_mountpoint(MtNode_t* root, VfsPath_t path, ServiceHandle_t service, MtNode_t** out) {
+error_t mt_add_mountpoint(MtNode_t* root, VfsPath_t path, Service_t* service, MtNode_t** out) {
 	error_t res = mt_add_nodes(root, path, out);
 	if (res != ERR_NONE) {
 		return res;
