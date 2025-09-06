@@ -11,8 +11,8 @@
 // Currently pipe files are stored in an array. Finding them by name takes O(MAX_SERVERS) operations.
 // Since this number will most likely be small, this should be sufficient, but TODO: perhaps we want something better
 // here anyway
-Pipe_t pipes[MAX_SERVERS];
-bool is_pipe_slot_in_usage[MAX_SERVERS];
+static Pipe_t pipes[MAX_SERVERS];
+static bool is_pipe_slot_in_usage[MAX_SERVERS];
 
 void query_queue_init(QueryQueue_t** queue) {
 	*queue = (QueryQueue_t*)vfs_malloc(sizeof(QueryQueue_t));
