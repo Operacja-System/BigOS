@@ -8,6 +8,18 @@
 #include "vfs.h"
 #include "vfs_alloc.h"
 
+// TODO: Implement this as a circular buffer.
+typedef struct QueryQueueNode_t {
+	struct QueryQueueNode_t* next;
+	u8 key;
+} QueryQueueNode_t;
+
+typedef struct QueryQueue_t {
+	QueryQueueNode_t* head;
+	QueryQueueNode_t* tail;
+	u64 size;
+} QueryQueue_t;
+
 // Currently pipe files are stored in an array. Finding them by name takes O(MAX_SERVERS) operations.
 // Since this number will most likely be small, this should be sufficient, but:
 // TODO: perhaps we want something better here.
@@ -17,13 +29,13 @@ typedef struct Pipe_t {
 } Pipe_t;
 static Pipe_t pipes[MAX_SERVERS];
 
-void query_queue_init(QueryQueue_t** queue) {
+static void query_queue_init(QueryQueue_t** queue) {
 	*queue = (QueryQueue_t*)vfs_malloc(sizeof(QueryQueue_t));
 	(*queue)->head = (*queue)->tail = nullptr;
 	(*queue)->size = 0;
 }
 
-void query_queue_push(QueryQueue_t* queue, u8 byte) {
+static void query_queue_push(QueryQueue_t* queue, u8 byte) {
 	QueryQueueNode_t* new_node = (QueryQueueNode_t*)vfs_malloc(sizeof(QueryQueueNode_t));
 	new_node->key = byte;
 	if (queue->size == 0) {
@@ -35,14 +47,14 @@ void query_queue_push(QueryQueue_t* queue, u8 byte) {
 	queue->size++;
 }
 
-error_t query_queue_front(QueryQueue_t* queue, u8* out) {
+static error_t query_queue_front(QueryQueue_t* queue, u8* out) {
 	if (!queue->size)
 		return ERR_QUEUE_EMPTY;
 	*out = queue->head->key;
 	return ERR_NONE;
 }
 
-error_t query_queue_pop(QueryQueue_t* queue) {
+static error_t query_queue_pop(QueryQueue_t* queue) {
 	if (!queue->size)
 		return ERR_QUEUE_EMPTY;
 	QueryQueueNode_t* old_head = queue->head;
