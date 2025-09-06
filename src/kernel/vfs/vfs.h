@@ -1,9 +1,9 @@
 #ifndef _VFS_H_
 #define _VFS_H_
 
+#include <stdbigos/pstring.h>
 #include <stdbigos/types.h>
-
-#include "stdbigos/pstring.h"
+#include <vfs/fs_server_protocol.h>
 
 // DEBUG for testing CMake configuration
 void vfsmain();
