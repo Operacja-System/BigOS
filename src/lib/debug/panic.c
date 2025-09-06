@@ -1,7 +1,7 @@
 #include <debug/debug_stdio.h>
 #include <debug/panic.h>
 
-void panic(const char* msg) {
+void panic([[maybe_unused]] const char* msg) {
 	DEBUG_PUTS("OVERCOOKED: ");
 	DEBUG_PUTS(msg);
 	DEBUG_PUTS("\n");
@@ -10,7 +10,7 @@ void panic(const char* msg) {
 	}
 }
 
-void error(const char* msg) {
+void error([[maybe_unused]] const char* msg) {
 	DEBUG_PUTS("BURNT: ");
 	DEBUG_PUTS(msg);
 	DEBUG_PUTS("\n");
