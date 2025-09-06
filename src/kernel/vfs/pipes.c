@@ -4,8 +4,6 @@
 #include <stdbigos/error.h>
 #include <stdbigos/pstring.h>
 
-#include "file_table.h"
-#include "vfs.h"
 #include "vfs_alloc.h"
 
 // TODO: Implement this as a circular buffer.
@@ -25,6 +23,8 @@ typedef struct QueryQueue_t {
 // TODO: perhaps we want something better here.
 typedef struct Pipe_t {
 	QueryQueue_t* query_queue;
+	u16 readers;
+	u16 writers;
 	bool is_used;
 } Pipe_t;
 static Pipe_t pipes[MAX_SERVERS];
@@ -64,7 +64,7 @@ static error_t query_queue_pop(QueryQueue_t* queue) {
 	return ERR_NONE;
 }
 
-error_t pipe_create(KernelPipe_t* out) {
+error_t pipe_create(KernelReadPipe_t* read_end, KernelWritePipe_t* write_end) {
 	i64 free_idx = -1;
 	for (i64 i = 0; i < MAX_SERVERS; i++) {
 		if (!pipes[i].is_used) {
@@ -72,49 +72,68 @@ error_t pipe_create(KernelPipe_t* out) {
 			break;
 		}
 	}
+
 	if (free_idx == -1) {
-		return ERR_SERVER_FS_FULL;
+		return ERR_PIPE_FS_FULL;
 	}
-	pipes[free_idx].is_used = true;
+
+	Pipe_t* pipe = &(pipes[free_idx]);
+	pipe->is_used = true;
+	pipe->readers = pipe->writers = 1;
 	query_queue_init(&pipes[free_idx].query_queue);
 
-	*out = (KernelPipe_t){
+	*read_end = (KernelReadPipe_t){
 	    .pipe_id = free_idx,
-	    .attributes = 0, // TODO: Create KernelPipe_t attributes
+	    .attributes = 0, // TODO: Create Kernel Pipe attributes
 	};
-	out->pipe_id = free_idx;
+	*write_end = (KernelWritePipe_t){
+	    .pipe_id = free_idx,
+	    .attributes = 0, // TODO: Create Kernel Pipe attributes
+	};
+
 	return ERR_NONE;
 }
 
-error_t pipe_read(u64 idx, u32 bytes, u8* out) {
-	if (!pipes[idx].is_used)
-		return ERR_BROKEN_FILE_DESCRIPTOR;
-	Pipe_t* file = &(pipes[idx]);
+error_t pipe_read(KernelReadPipe_t* read_end, u32 bytes, u8* out) {
+	// TODO: Check if there are writers left when no data is present
+	Pipe_t* file = &(pipes[read_end->pipe_id]);
 	for (u32 i = 0; i < bytes; i++) {
 		u8 byte;
 		if (query_queue_front(file->query_queue, &byte) == ERR_QUEUE_EMPTY) {
 			return ERR_END_OF_FILE; // TODO: Wait for more input? (we need scheduler first)
 		}
+
 		query_queue_pop(file->query_queue);
 		out[i] = byte;
 	}
+
 	return ERR_NONE;
 }
 
-error_t pipe_write(u64 idx, u32 bytes, u8* buff) {
-	if (!pipes[idx].is_used)
-		return ERR_BROKEN_FILE_DESCRIPTOR;
-	Pipe_t* file = &(pipes[idx]);
+error_t pipe_write(KernelWritePipe_t* write_end, u32 bytes, u8* buff) {
+	// TODO: Check if there are readers left, how would we notify the user if there aren't any?
+	Pipe_t* file = &(pipes[write_end->pipe_id]);
 	for (u32 i = 0; i < bytes; i++) {
 		query_queue_push(file->query_queue, buff[i]);
 	}
+
 	return ERR_NONE;
 }
 
-error_t pipe_remove(u64 idx) {
-	if (!pipes[idx].is_used) {
-		return ERR_FILE_NOT_FOUND;
+static void close_pipe_if_unused(Pipe_t* pipe) {
+	if (pipe->writers == 0 && pipe->readers == 0) {
+		pipe->is_used = false;
 	}
-	pipes[idx].is_used = false;
-	return ERR_NONE;
+}
+
+void pipe_close_read(KernelReadPipe_t* write_end) {
+	Pipe_t* pipe = &(pipes[write_end->pipe_id]);
+	pipe->readers--;
+	close_pipe_if_unused(pipe);
+}
+
+void pipe_close_write(KernelWritePipe_t* read_end) {
+	Pipe_t* pipe = &(pipes[read_end->pipe_id]);
+	pipe->writers--;
+	close_pipe_if_unused(pipe);
 }

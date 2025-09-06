@@ -9,9 +9,7 @@
 #include <stddef.h>
 
 #include "file_table.h"
-#include "mount_tree.h"
 #include "pipes.h"
-#include "vfs_alloc.h"
 
 // Here just for debugging
 void vfsmain() {
@@ -32,25 +30,28 @@ void vfsmain() {
 		DEBUG_PUTC('\n');
 	}
 
-	KernelPipe_t kernel_pipe;
-
 	FtEntry_t* example_file_entry1;
 	FtEntry_t* example_file_entry2;
 
 	char buff[100];
 
-	pipe_create(&kernel_pipe);
 	example_file_entry1 = ft_add_entry();
 	example_file_entry2 = ft_add_entry();
+	(void)pipe_create(&example_file_entry1->kernel_read_pipe, &example_file_entry2->kernel_write_pipe);
 
 	char example_message1[] = "Hello server-fs! I'm example driver.\n";
-	pipe_write(example_file_entry1->file_id, strlen(example_message1) + 1, (u8*)example_message1);
-	pipe_read(example_file_entry2->file_id, strlen(example_message1) + 1, (u8*)buff);
+	(void)pipe_write(&example_file_entry2->kernel_write_pipe, strlen(example_message1) + 1, (u8*)example_message1);
+	(void)pipe_read(&example_file_entry1->kernel_read_pipe, strlen(example_message1) + 1, (u8*)buff);
 	DEBUG_PUTS(buff);
 
+	pipe_close_read(&example_file_entry1->kernel_read_pipe);
+	pipe_close_write(&example_file_entry2->kernel_write_pipe);
+
+	(void)pipe_create(&example_file_entry2->kernel_read_pipe, &example_file_entry1->kernel_write_pipe);
+
 	char example_message2[] = "Hi there! I'm example driver too!\n";
-	pipe_write(example_file_entry2->file_id, strlen(example_message2) + 1, (u8*)example_message2);
-	pipe_read(example_file_entry1->file_id, strlen(example_message2) + 1, (u8*)buff);
+	(void)pipe_write(&example_file_entry1->kernel_write_pipe, strlen(example_message2) + 1, (u8*)example_message2);
+	(void)pipe_read(&example_file_entry2->kernel_read_pipe, strlen(example_message2) + 1, (u8*)buff);
 	DEBUG_PUTS(buff);
 
 	ft_free_entry(example_file_entry1);

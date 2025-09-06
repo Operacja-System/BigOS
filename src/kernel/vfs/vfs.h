@@ -5,30 +5,34 @@
 #include <stdbigos/types.h>
 #include <vfs/fs_server_protocol.h>
 
+#include "pipes.h"
+
 // DEBUG for testing CMake configuration
 void vfsmain();
 void vfs_init();
 
-// Kernel pipe data, not managed by fs_server_protocol
-typedef struct KernelPipe_t {
-	u64 pipe_id;
-	u64 attributes;
-} KernelPipe_t;
-
-// Maybe some metadata here?
+/// Represents a driver service
 typedef struct Service_t {
 	pstring_t name;
 	KernelPipe_t server_pipe;
 } Service_t;
 
-// Table of opened files
+/// Represents an open file.
+/// This is either a pipe or an entry managed via fs_server_protocol
 typedef struct FtEntry_t {
-	bool isPipe;
+	enum FtEntryType {
+		FT_ENTRY_FILE,
+		FT_ENTRY_READ_PIPE,
+		FT_ENTRY_WRITE_PIPE,
+		FT_ENTRY_PIPE,
+	} entry_type;
 	union {
 		struct {
 			Service_t server;
-			FSFileHandle_t file_id;
+			FSFileHandle_t file_handle;
 		};
+		KernelReadPipe_t kernel_read_pipe;
+		KernelWritePipe_t kernel_write_pipe;
 		KernelPipe_t kernel_pipe;
 	};
 	FSOpenMode_t mode;
