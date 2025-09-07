@@ -1,6 +1,7 @@
 #include <debug/debug_stdio.h>
 #include <stdarg.h>
 #include <stdbigos/stdio.h>
+#include <stddef.h>
 
 static volatile unsigned char* uart = (volatile unsigned char*)0x10000000;
 
@@ -10,6 +11,11 @@ void dputc(char c) {
 
 void dputs(const char* s) {
 	while (*s) dputc(*s++);
+}
+
+void dputps(const pstring_t* ps) {
+	size_t inx = 0;
+	while (inx < ps->len) dputc((char)ps->data[inx++]);
 }
 
 void dputgap(unsigned int gap_size) {
