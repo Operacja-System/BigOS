@@ -14,4 +14,6 @@ void* vfs_realloc(void* ptr, size_t new_size);
 
 void vfs_free(void* ptr);
 
+#define vfs_alloca __builtin_alloca
+
 #endif
