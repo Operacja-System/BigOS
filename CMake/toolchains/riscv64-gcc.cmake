@@ -8,7 +8,7 @@ set(RISCV_GCC_TOOLCHAIN_INCLUDED true)
 
 include(${CMAKE_CURRENT_LIST_DIR}/riscv64-common.cmake)
 
-foreach(PREFIX "riscv64-unknown-linux-elf" "riscv64-linux-gnu")
+foreach(PREFIX "riscv64-unknown-linux-elf" "riscv64-linux-gnu" "riscv64-unknown-linux-gnu")
     find_program(PREFIX_TOOLCHAIN_GCC "${PREFIX}-gcc")
     if (PREFIX_TOOLCHAIN_GCC)
         set(DEFAULT_RISCV_TOOLCHAIN_PREFIX "${PREFIX}-")
