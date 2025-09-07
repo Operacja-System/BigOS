@@ -27,6 +27,8 @@ typedef struct FtEntry_t {
 		FT_ENTRY_PIPE,
 	} entry_type;
 	union {
+		// TODO: Extract this into separate struct so a single file_handle
+		//       could be used by multiple processes (ex. after fork)
 		struct {
 			Service_t server;
 			FSFileHandle_t file_handle;
