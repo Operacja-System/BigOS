@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 if(COMMON_RISCV_TOOLCHAIN_INCLUDED)
-  return()
+    return()
 endif()
 
 set(COMMON_RISCV_TOOLCHAIN_INCLUDED true)
