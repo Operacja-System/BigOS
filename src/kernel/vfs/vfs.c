@@ -6,12 +6,11 @@
 #include <stdbigos/error.h>
 #include <stdbigos/pstring.h>
 #include <stdbigos/string.h>
+#include <stdbigos/types.h>
 #include <stddef.h>
 
 #include "file_table.h"
 #include "pipes.h"
-#include "stdbigos/meta/err_x_t.h"
-#include "stdbigos/types.h"
 
 static void vfs_test_path_next() {
 	pstring_t path1 = ERRX_UNWRAP(pstring_l2w("/foo/bar/baz/file.c"));
@@ -24,9 +23,7 @@ static void vfs_test_path_next() {
 			PANIC("vfs_path_next returned null edge data");
 		}
 		DEBUG_PRINTF("Path part %zu: ", i++);
-		for (size_t i = 0; i < edge.len; i++) {
-			DEBUG_PUTC(edge.data[i]);
-		}
+		DEBUG_PUTPS(&edge);
 		DEBUG_PUTC('\n');
 	}
 }
@@ -35,38 +32,59 @@ static void vfs_test_pipes() {
 	FtEntry_t* example_file_entry1;
 	FtEntry_t* example_file_entry2;
 
-	char buff[100];
-
+	// Find a space to place these structs in user-process-memory
 	example_file_entry1 = ft_add_entry();
 	example_file_entry2 = ft_add_entry();
+
+	// Create a pipe that connects these file entries
 	kassert(pipe_create(&example_file_entry1->kernel_read_pipe, &example_file_entry2->kernel_write_pipe) == ERR_NONE);
 
-	const char* message1 = "Hello from vfs! This message is brought to you via a Kernel Pipe.\n";
-	const char* message2 = "Hello again, it seems that these pipes are not just for one time use!\n";
-	const char* message3 = "How convenient!\n";
-	const size_t message1_len = strlen(message1);
-	const size_t message2_len = strlen(message2);
-	const size_t message3_len = strlen(message3);
+	const pstring_t message1 =
+	    ERRX_UNWRAP(pstring_l2w("Hello from vfs! This message is brought to you via a Kernel Pipe.\n"));
+	const pstring_t message2 =
+	    ERRX_UNWRAP(pstring_l2w("Hello again, it seems that these pipes are not just for one time use!\n"));
+	const pstring_t message3 = ERRX_UNWRAP(pstring_l2w("How convenient!\n"));
+
+	// TODO: Figure out better way of doing 'this' with pstring
+	char __internal_buff[100];
+	pstring_t buff = (pstring_t){
+	    .len = 100,
+	    .data = (u8*)__internal_buff,
+	};
 
 	// Write and read a mesage
-	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, message1_len + 1, (u8*)message1)) ==
-	        message1_len + 1);
-	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, message1_len + 1, (u8*)buff)) ==
-	        message1_len + 1);
-	DEBUG_PUTS(buff);
+	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, &message1)) == message1.len);
+	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, &buff)) == message1.len);
+
+	// Normally one would collect the size from pipe_read. Here we assert so the size is known.
+	buff.len = message1.len;
+	DEBUG_PUTPS(&buff);
+
+	// Create a buffer too small to read whole next message
+	buff = (pstring_t){
+	    .len = 20,
+	    .data = (u8*)__internal_buff,
+	};
 
 	// Write two messages at once and then read them with different sizes
-	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, message2_len, (u8*)message2)) ==
-	        message2_len);
-	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, message3_len + 1, (u8*)message3)) ==
-	        message3_len + 1);
+	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, &message2)) == message2.len);
+	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, &buff)) == 20);
+	DEBUG_PUTPS(&buff);
 
-	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, message3_len, (u8*)buff)) == message3_len);
-	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, 123456, (u8*)(buff + message3_len))) ==
-	        (message2_len + 1));
-	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, 10, (u8*)buff)) == 0);
+	// This buffer will fit the rest of the message
+	buff = (pstring_t){
+	    .len = 100,
+	    .data = (u8*)__internal_buff,
+	};
 
-	DEBUG_PUTS(buff);
+	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, &message3)) == message3.len);
+	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, &buff)) == message2.len + message3.len - 20);
+
+	buff.len = message2.len + message3.len - 20;
+	DEBUG_PUTPS(&buff);
+
+	// Reading on an empty buffer should not read characters
+	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, &buff)) == 0);
 
 	ft_free_entry(example_file_entry1);
 	ft_free_entry(example_file_entry2);

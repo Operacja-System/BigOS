@@ -3,8 +3,8 @@
 #include <debug/debug_stdio.h>
 #include <stdbigos/error.h>
 #include <stdbigos/pstring.h>
+#include <stdbigos/types.h>
 
-#include "stdbigos/types.h"
 #include "vfs_alloc.h"
 
 typedef struct CircularBuffer_t {
@@ -60,43 +60,43 @@ static u32 circular_buffer_data_count(const CircularBuffer_t* circular_buffer) {
 	return writable_bytes;
 }
 
-static size_t circular_buffer_read(CircularBuffer_t* circular_buffer, u32 count, u8* out) {
+static size_t circular_buffer_read(CircularBuffer_t* circular_buffer, pstring_t* buff) {
 	const u32 data_count = circular_buffer_data_count(circular_buffer);
-	const u32 bytes_to_read = count <= data_count ? count : data_count;
+	const u32 bytes_to_read = buff->len <= data_count ? buff->len : data_count;
 
 	u32 out_position = 0;
 	while (out_position < bytes_to_read && circular_buffer->start < circular_buffer->size) {
-		out[out_position++] = circular_buffer->buffer[circular_buffer->start++];
+		buff->data[out_position++] = circular_buffer->buffer[circular_buffer->start++];
 	}
 
 	if (circular_buffer->start == circular_buffer->size) {
 		circular_buffer->start = 0;
 		while (out_position < bytes_to_read) {
-			out[out_position++] = circular_buffer->buffer[circular_buffer->start++];
+			buff->data[out_position++] = circular_buffer->buffer[circular_buffer->start++];
 		}
 	}
 
-	circular_buffer->is_filled &= !(count > 0 && circular_buffer->start == circular_buffer->end);
+	circular_buffer->is_filled &= !(buff->len > 0 && circular_buffer->start == circular_buffer->end);
 	return out_position;
 }
 
-static size_t circular_buffer_write(CircularBuffer_t* circular_buffer, u32 count, const u8* data) {
+static size_t circular_buffer_write(CircularBuffer_t* circular_buffer, const pstring_t* data) {
 	const u32 space_left = circular_buffer_space_left(circular_buffer);
-	const u32 bytes_to_write = count <= space_left ? count : space_left;
+	const u32 bytes_to_write = data->len <= space_left ? data->len : space_left;
 
 	u32 data_position = 0;
 	while (data_position < bytes_to_write && circular_buffer->end < circular_buffer->size) {
-		circular_buffer->buffer[circular_buffer->end++] = data[data_position++];
+		circular_buffer->buffer[circular_buffer->end++] = data->data[data_position++];
 	}
 
 	if (circular_buffer->end == circular_buffer->size) {
 		circular_buffer->end = 0;
 		while (data_position < bytes_to_write) {
-			circular_buffer->buffer[circular_buffer->end++] = data[data_position++];
+			circular_buffer->buffer[circular_buffer->end++] = data->data[data_position++];
 		}
 	}
 
-	circular_buffer->is_filled |= (count > 0);
+	circular_buffer->is_filled |= (data->len > 0);
 	return data_position;
 }
 
@@ -134,20 +134,20 @@ error_t pipe_create(KernelReadPipe_t* read_end, KernelWritePipe_t* write_end) {
 	return ERR_NONE;
 }
 
-size_or_err_t pipe_read(KernelReadPipe_t* read_end, u32 bytes, u8* out) {
+size_or_err_t pipe_read(KernelReadPipe_t* read_end, pstring_t* buff) {
 	// TODO: Check if there are writers left when no data is present
 	// TODO: Guarantee exclusive access
 	// TODO: Fail if there are no data or writers
 	Pipe_t* pipe = &(pipes[read_end->pipe_id]);
-	return (size_or_err_t){.val = circular_buffer_read(&pipe->buffer, bytes, out)};
+	return (size_or_err_t){.val = circular_buffer_read(&pipe->buffer, buff)};
 }
 
-size_or_err_t pipe_write(KernelWritePipe_t* write_end, u32 bytes, u8* buff) {
+size_or_err_t pipe_write(KernelWritePipe_t* write_end, const pstring_t* data) {
 	// TODO: Check if there are readers left, how would we notify the user if there aren't any?
 	// TODO: Guarantee exclusive access
 	// TODO: Fail if there are no readers
 	Pipe_t* pipe = &(pipes[write_end->pipe_id]);
-	return (size_or_err_t){.val = circular_buffer_write(&pipe->buffer, bytes, buff)};
+	return (size_or_err_t){.val = circular_buffer_write(&pipe->buffer, data)};
 }
 
 static void close_pipe_if_unused(Pipe_t* pipe) {
