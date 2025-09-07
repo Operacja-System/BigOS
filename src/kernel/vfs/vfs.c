@@ -11,6 +11,7 @@
 
 #include "file_table.h"
 #include "pipes.h"
+#include "vfs_alloc.h"
 
 static void vfs_test_path_next() {
 	pstring_t path1 = ERRX_UNWRAP(pstring_l2w("/foo/bar/baz/file.c"));
@@ -46,10 +47,9 @@ static void vfs_test_pipes() {
 	const pstring_t message3 = ERRX_UNWRAP(pstring_l2w("How convenient!\n"));
 
 	// TODO: Figure out better way of doing 'this' with pstring
-	char __internal_buff[100];
 	pstring_t buff = (pstring_t){
 	    .len = 100,
-	    .data = (u8*)__internal_buff,
+	    .data = vfs_alloca(100),
 	};
 
 	// Write and read a mesage
@@ -61,10 +61,7 @@ static void vfs_test_pipes() {
 	DEBUG_PUTPS(&buff);
 
 	// Create a buffer too small to read whole next message
-	buff = (pstring_t){
-	    .len = 20,
-	    .data = (u8*)__internal_buff,
-	};
+	buff.len = 20;
 
 	// Write two messages at once and then read them with different sizes
 	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, &message2)) == message2.len);
@@ -72,10 +69,7 @@ static void vfs_test_pipes() {
 	DEBUG_PUTPS(&buff);
 
 	// This buffer will fit the rest of the message
-	buff = (pstring_t){
-	    .len = 100,
-	    .data = (u8*)__internal_buff,
-	};
+	buff.len = 100;
 
 	kassert(ERRX_UNWRAP(pipe_write(&example_file_entry2->kernel_write_pipe, &message3)) == message3.len);
 	kassert(ERRX_UNWRAP(pipe_read(&example_file_entry1->kernel_read_pipe, &buff)) == message2.len + message3.len - 20);
