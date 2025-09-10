@@ -1,8 +1,6 @@
-# VFS FS Server Protocol
+# VFS FS Server Communication Protocoll (KOMPOT)
 
-TODO: invent a name for this protocol
-
-> For reference see `vfs/fs_server_protocol.h`
+> For reference see `vfs/kompot.h`
 
 This is the protocol used for communication with FS Servers.
 It allows for performing all necesary operations to manage, access and modify a file system.
@@ -16,7 +14,7 @@ This term describes a userspace application that:
 
 ## Protocol
 
-The *FS Server Protocol* consists of requests and responses to requests; all requests must receive exactly one response.
+*Kompot* consists of requests and responses to requests; all requests must receive exactly one response.
 
 ### Conventions
 

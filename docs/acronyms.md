@@ -31,6 +31,9 @@ i64 - 64-bit signed integer
 i8 - 8-bit signed integer  
 Inx - Index  
 
+## K
+Kompot - VFS FS Server Communication Protocoll  
+
 ## M
 Max - Maximum  
 Min - Minimum  

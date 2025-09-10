@@ -3,7 +3,7 @@
 
 #include <stdbigos/pstring.h>
 #include <stdbigos/types.h>
-#include <vfs/fs_server_protocol.h>
+#include <vfs/kompot.h>
 
 #include "pipes.h"
 
@@ -31,13 +31,13 @@ typedef struct FtEntry_t {
 		//       could be used by multiple processes (ex. after fork)
 		struct {
 			Service_t server;
-			FSFileHandle_t file_handle;
+			KompotFileHandle_t file_handle;
 		};
 		KernelReadPipe_t kernel_read_pipe;
 		KernelWritePipe_t kernel_write_pipe;
 		KernelPipe_t kernel_pipe;
 	};
-	FSOpenMode_t mode;
+	KompotOpenMode_t mode;
 } FtEntry_t;
 
 /// Memory-owning representation of path
