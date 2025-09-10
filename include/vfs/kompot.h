@@ -122,8 +122,8 @@ typedef struct {
 } KompotResponseConnect_t;
 
 typedef struct {
-	uid_t uid;
 	KompotTreeCursor_t cursor;
+	uid_t uid;
 	u16 walk_count;
 	/// Sequence of walks to take.
 	pstring_t walk_path[0]; // Of length 'path_count'
@@ -134,8 +134,8 @@ typedef struct {
 } KompotResponseWalk_t;
 
 typedef struct {
-	uid_t uid;
 	KompotTreeCursor_t cursor;
+	uid_t uid;
 } KompotRequestStat_t;
 
 typedef struct {
@@ -143,8 +143,8 @@ typedef struct {
 } KompotResponseStat_t;
 
 typedef struct {
-	uid_t uid;
 	KompotTreeCursor_t cursor;
+	uid_t uid;
 	KompotCreateInfo_t create_info;
 	pstring_t name;
 } KompotRequestCreate_t;
@@ -154,17 +154,18 @@ typedef struct {
 } KompotResponseCreate_t;
 
 typedef struct {
-	uid_t uid;
 	KompotTreeCursor_t cursor;
+	uid_t uid;
 } KompotRequestDelete_t;
 
 typedef struct {
 } KompotResponseDelete_t;
 
 typedef struct {
-	uid_t uid;
 	KompotTreeCursor_t cursor;
+	uid_t uid;
 	KompotOpenMode_t mode;
+	// TODO: Decide what to do with 24bits left
 } KompotRequestOpen_t;
 
 typedef struct {
