@@ -27,4 +27,13 @@
 		__errt.err == ERR_NONE ? __errt.val : (default); \
 	})
 
+#define ERRX_UNWRAP_OR_RETURN(x)      \
+	({                                \
+		typeof(x) __errt = x;         \
+		if (__errt.err != ERR_NONE) { \
+			return x;                 \
+		}                             \
+		__errt.val;                   \
+	})
+
 #endif
