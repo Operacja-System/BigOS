@@ -103,6 +103,9 @@ typedef struct {
 	};
 } KompotMessageMetadata_t;
 
+// This is the only structure for which the size wiil not be provided by metadata
+#define KOMPOT_METADATA_SIZE (sizeof(u32) + sizeof(KompotMessageTag_t) + sizeof(KompotRequestType_t))
+
 typedef struct {
 	u32 max_size;
 	KompotVersion_t version;
