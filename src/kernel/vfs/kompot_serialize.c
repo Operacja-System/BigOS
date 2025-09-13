@@ -122,7 +122,7 @@ size_or_err_t kompot_serialize_request_create(const KompotRequestCreate_t* reque
 	offset += ERRX_UNWRAP_OR_RETURN(pstring_write_u64(buff, offset, request->cursor.ino));
 	offset += ERRX_UNWRAP_OR_RETURN(pstring_write_u32(buff, offset, request->uid));
 	offset += ERRX_UNWRAP_OR_RETURN(pstring_write_u16(buff, offset, request->create_info.permissions));
-	offset += ERRX_UNWRAP_OR_RETURN(pstring_write_u16(buff, offset, request->create_info.fiele_type));
+	offset += ERRX_UNWRAP_OR_RETURN(pstring_write_u16(buff, offset, request->create_info.file_type));
 	offset += ERRX_UNWRAP_OR_RETURN(pstring_write_u16(buff, offset, (u16)request->name.len));
 	offset += ERRX_UNWRAP_OR_RETURN(pstring_cat(buff, offset, &request->name));
 	return (size_or_err_t){.val = offset};

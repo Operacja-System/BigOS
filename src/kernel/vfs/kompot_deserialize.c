@@ -158,7 +158,7 @@ size_or_err_t kompot_deserialize_request_create(const pstring_t* data, pstring_t
 	offset += ERRX_UNWRAP_OR_RETURN(pstring_read_u64(data, offset, &create_request->cursor.ino));
 	offset += ERRX_UNWRAP_OR_RETURN(pstring_read_u32(data, offset, &create_request->uid));
 	offset += ERRX_UNWRAP_OR_RETURN(pstring_read_u16(data, offset, &create_request->create_info.permissions));
-	offset += ERRX_UNWRAP_OR_RETURN(pstring_read_u16(data, offset, &create_request->create_info.fiele_type));
+	offset += ERRX_UNWRAP_OR_RETURN(pstring_read_u16(data, offset, &create_request->create_info.file_type));
 
 	u16 name_len = 0;
 	offset += ERRX_UNWRAP_OR_RETURN(pstring_read_u16(data, offset, &name_len));

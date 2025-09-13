@@ -38,7 +38,7 @@ typedef u8 KompotOpenMode_t;
 /// Information about a file to be created
 typedef struct {
 	u16 permissions;
-	u16 fiele_type;
+	u16 file_type;
 } KompotCreateInfo_t;
 
 /// Possible request types
