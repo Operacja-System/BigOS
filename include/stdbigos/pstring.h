@@ -5,7 +5,6 @@
 #include <stdbigos/types.h>
 #include <stddef.h>
 
-
 // Some of the following functions that are string.h lookalikes are
 // more-or-less analogous to their [xxx]n[yyy] counterparts but check
 // correctness of the pstring_t argument.
@@ -69,14 +68,10 @@ size_or_err_t pstring_concat(pstring_t* dest, const pstring_t* first, const pstr
 		return (size_or_err_t){.val = sizeof(type)};                                 \
 	}
 
-[[nodiscard]] inline PSTRING_WRITE(u8)
-[[nodiscard]] inline PSTRING_WRITE(u16)
-[[nodiscard]] inline PSTRING_WRITE(u32)
-[[nodiscard]] inline PSTRING_WRITE(u64)
-[[nodiscard]] inline PSTRING_WRITE(i8)
-[[nodiscard]] inline PSTRING_WRITE(i16)
-[[nodiscard]] inline PSTRING_WRITE(i32)
-[[nodiscard]] inline PSTRING_WRITE(i64)
+[[nodiscard]] inline PSTRING_WRITE(u8) [[nodiscard]] inline PSTRING_WRITE(u16) [[nodiscard]] inline PSTRING_WRITE(u32)
+    [[nodiscard]] inline PSTRING_WRITE(u64) [[nodiscard]] inline PSTRING_WRITE(i8)
+        [[nodiscard]] inline PSTRING_WRITE(i16) [[nodiscard]] inline PSTRING_WRITE(i32)
+            [[nodiscard]] inline PSTRING_WRITE(i64)
 
 #define PSTRING_READ(type)                                                                    \
 	size_or_err_t pstring_read_##type(const pstring_t* src, size_t offset, type* out_value) { \
@@ -90,13 +85,9 @@ size_or_err_t pstring_concat(pstring_t* dest, const pstring_t* first, const pstr
 		return (size_or_err_t){.val = sizeof(type)};                                          \
 	}
 
-[[nodiscard]] inline PSTRING_READ(u8)
-[[nodiscard]] inline PSTRING_READ(u16)
-[[nodiscard]] inline PSTRING_READ(u32)
-[[nodiscard]] inline PSTRING_READ(u64)
-[[nodiscard]] inline PSTRING_READ(i8)
-[[nodiscard]] inline PSTRING_READ(i16)
-[[nodiscard]] inline PSTRING_READ(i32)
-[[nodiscard]] inline PSTRING_READ(i64)
+                [[nodiscard]] inline PSTRING_READ(u8) [[nodiscard]] inline PSTRING_READ(u16)
+                    [[nodiscard]] inline PSTRING_READ(u32) [[nodiscard]] inline PSTRING_READ(u64)
+                        [[nodiscard]] inline PSTRING_READ(i8) [[nodiscard]] inline PSTRING_READ(i16)
+                            [[nodiscard]] inline PSTRING_READ(i32) [[nodiscard]] inline PSTRING_READ(i64)
 
 #endif
