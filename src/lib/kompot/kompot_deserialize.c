@@ -1,11 +1,11 @@
+#include <kompot/kompot.h>
+#include <kompot/kompot_deserialize.h>
+#include <stdbigos/error.h>
+#include <stdbigos/meta/err_x_t.h>
 #include <stdbigos/pstring.h>
 #include <stdbigos/string.h>
 #include <stdbigos/types.h>
 #include <stddef.h>
-#include <vfs/kompot.h>
-#include <vfs/kompot_deserialize.h>
-#include <stdbigos/error.h>
-#include <stdbigos/meta/err_x_t.h>
 
 // NOTE: In future to achieve better performace we might want to attempt to calculate structure size first
 //       and only then deserialize without checks in between.

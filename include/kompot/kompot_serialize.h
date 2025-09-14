@@ -1,8 +1,8 @@
 #ifndef _VFS_SERIALIZE_
 #define _VFS_SERIALIZE_
 
+#include <kompot/kompot.h>
 #include <stdbigos/types.h>
-#include <vfs/kompot.h>
 
 [[nodiscard]] size_or_err_t kompot_serialize_message_metadata(const KompotMessageMetadata_t* metadata, pstring_t* buff);
 

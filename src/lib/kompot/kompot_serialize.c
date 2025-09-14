@@ -1,9 +1,9 @@
+#include <kompot/kompot.h>
+#include <kompot/kompot_serialize.h>
 #include <stdbigos/error.h>
 #include <stdbigos/meta/err_x_t.h>
 #include <stdbigos/pstring.h>
 #include <stdbigos/types.h>
-#include <vfs/kompot.h>
-#include <vfs/kompot_serialize.h>
 
 // Note: This can be sped up by checking whether buff is large enough at the start of serializer
 

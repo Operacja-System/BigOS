@@ -1,9 +1,9 @@
 #ifndef _VFS_H_
 #define _VFS_H_
 
+#include <kompot/kompot.h>
 #include <stdbigos/pstring.h>
 #include <stdbigos/types.h>
-#include <vfs/kompot.h>
 
 #include "pipes.h"
 

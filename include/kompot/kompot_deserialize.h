@@ -1,8 +1,8 @@
 #ifndef _VFS_DESERIALIZE_
 #define _VFS_DESERIALIZE_
 
+#include <kompot/kompot.h>
 #include <stdbigos/types.h>
-#include <vfs/kompot.h>
 
 [[nodiscard]] size_or_err_t kompot_deserialize_message_metadata(const pstring_t* data,
                                                                 KompotMessageMetadata_t* message);
