@@ -12,10 +12,14 @@
 [[noreturn]] extern void kmain();
 
 [[noreturn]] void kinit([[maybe_unused]] volatile u64 boot_hartid, volatile phys_addr_t device_tree) {
+	void* pc = nullptr;
+	asm volatile("auipc %0, 0" : "=r"(pc));
+	KLOGLN_TRACE("pc is: %p", pc);
 	KLOGLN_NOTE("Begining kernel initialization");
 
 	kernel_config_t kercfg = {0};
-	phys_addr_t ram_start = 0x80200000;                            // TODO: Read from DT
+	phys_addr_t ram_start = 0x80000000;                            // TODO: Read from DT
+	//						  10000005
 	size_t ram_size = 1;                                           // TODO: Read from DT
 	kerconf_cpu_endian_t endianness = KC_CPU_ENDIAN_LITTLE_ENDIAN; // TODO: Read from DT
 	kercfg.device_tree_phys_addr = device_tree;
@@ -40,7 +44,8 @@
 
 	// NOTE: if any regions are allocated in phys memory before initializing phys_mem_mgr they need to be added to this
 	// buffer
-	phys_buffer_t phys_buffer = (phys_buffer_t){.count = 0, .regions = nullptr};
+	phys_mem_region_t kreg = {.addr = 0x80000000, .size = 0x200000};
+	phys_buffer_t phys_buffer = (phys_buffer_t){.count = 1, .regions = &kreg};
 	err = phys_mem_init(phys_buffer);
 	if (err) {
 		KLOGLN_ERROR("Physical memory manager initialization failed with error %u", err);
@@ -73,21 +78,40 @@
 	}
 
 	size_t stack_size = 8 * (1ull << 20);
+	size_t mstack_size = 2 * (1ull << 21); //TODO: Read from dt
 	size_t heap_size = 8 * (1ull << 20);
 
-	void* stack_bottom_addr = (void*)((1ull << as_bits) - (1ull << 30)); //NOTE: 1GB buffer
+	void* mstack_bottom_addr = (void*)((1ull << as_bits) - (1ull << 30)); //NOTE: 1GB buffer
+	void* mstack_top_addr = mstack_bottom_addr - mstack_size;
+	void* stack_bottom_addr = mstack_top_addr;
 	void* stack_top_addr = stack_bottom_addr - stack_size;
 	void* heap_addr = (void*)(3ull << (as_bits - 2));
 	void* text_addr = (void*)(1ull << (as_bits - 1)) + (1ull << 30); //NOTE: 1GB buffer
 	void* ram_map_addr = heap_addr - (ram_data.size_GB << 30);
 
-	phys_addr_t text_phys_addr = 0x80000000; // TODO: Read from DT
+	phys_addr_t stack_phys_addr = 0; // TODO: Read from DT
+	phys_addr_t text_phys_addr = 0xbde80b70; // TODO: Read from DT
 	size_t text_size = 2 * (1ull << 20);     // TODO: Read from DT
-	phys_mem_region_t ram_map_phys_region =
-	    (phys_mem_region_t){.size = ram_data.size_GB << 18, .addr = ram_data.phys_addr};
+	phys_mem_region_t ram_map_phys_region = {.size = ram_data.size_GB << 30, .addr = ram_data.phys_addr};
+	phys_mem_region_t stack_phys_region = {.size = mstack_size, .addr = stack_phys_addr};
 	phys_mem_region_t text_phys_region = (phys_mem_region_t){.size = text_size, .addr = text_phys_addr};
 
-	virt_mem_region_t kernel_address_space_regions[4] = {
+	virt_mem_region_t kernel_address_space_regions[] = {
+	    (virt_mem_region_t){
+	                        .addr = mstack_top_addr,
+	                        .size = mstack_size,
+	                        .mapped = true,
+	                        .map_region = stack_phys_region,
+	                        .ps = PAGE_SIZE_2MB,
+	                        .global = true,
+	                        .user = false,
+	                        .read = true,
+	                        .write = true,
+	                        .execute = false,
+							#ifdef __DEBUG__
+								.debug_comment = "Phys mem stack map",
+							#endif
+	                        },
 	    (virt_mem_region_t){
 	                        .addr = stack_top_addr,
 	                        .size = stack_size,
@@ -99,6 +123,9 @@
 	                        .read = true,
 	                        .write = true,
 	                        .execute = false,
+							#ifdef __DEBUG__
+								.debug_comment = "Virt mem stack region",
+							#endif
 	                        },
 	    (virt_mem_region_t){
 	                        .addr = heap_addr,
@@ -111,6 +138,9 @@
 	                        .read = true,
 	                        .write = true,
 	                        .execute = false,
+							#ifdef __DEBUG__
+								.debug_comment = "Virt mem heap region",
+							#endif
 	                        },
 	    (virt_mem_region_t){
 	                        .addr = text_addr,
@@ -123,9 +153,11 @@
 	                        .read = true,
 	                        .write = false,
 	                        .execute = true,
+							#ifdef __DEBUG__
+								.debug_comment = "Text region",
+							#endif
 	                        },
-	    (virt_mem_region_t){
-	                        .addr = ram_map_addr,
+	    (virt_mem_region_t){ .addr = ram_map_addr,
 	                        .size = ram_data.size_GB << 30,
 	                        .mapped = true,
 	                        .map_region = ram_map_phys_region,
@@ -134,7 +166,24 @@
 	                        .user = false,
 	                        .read = true,
 	                        .write = true,
-	                        .execute = false,
+	                        .execute = true,
+							#ifdef __DEBUG__
+								.debug_comment = "Virt mem ram map",
+							#endif
+	                        },
+	    (virt_mem_region_t){ .addr = ram_data.addr,
+	                        .size = ram_data.size_GB << 30,
+	                        .mapped = true,
+	                        .map_region = ram_map_phys_region,
+	                        .ps = PAGE_SIZE_1GB,
+	                        .global = true,
+	                        .user = false,
+	                        .read = true,
+	                        .write = true,
+	                        .execute = true,
+							#ifdef __DEBUG__
+								.debug_comment = "Identity mapping",
+							#endif
 	                        },
 	};
 
@@ -145,27 +194,19 @@
 		halt();
 		/*TODO: Panic*/
 	}
-	KLOGLN_NOTE("Created kernel address space");
 
-	KLOGLN_NOTE("Kernel stack (VMR#0):");
-	KLOG_INDENT_BLOCK_START;
-	log_virt_mem_region(kernel_address_space_regions[0]);
-	KLOG_INDENT_BLOCK_END;
-	KLOGLN_NOTE("Kernel heap (VMR#1):");
-	KLOG_INDENT_BLOCK_START;
-	log_virt_mem_region(kernel_address_space_regions[1]);
-	KLOG_INDENT_BLOCK_END;
-	KLOGLN_NOTE("Kernel text (VMR#2):");
-	KLOG_INDENT_BLOCK_START;
-	log_virt_mem_region(kernel_address_space_regions[2]);
-	KLOG_INDENT_BLOCK_END;
-	KLOGLN_NOTE("Kernel ram map (VMR#3):");
-	KLOG_INDENT_BLOCK_START;
-	log_virt_mem_region(kernel_address_space_regions[3]);
-	KLOG_INDENT_BLOCK_END;
+	KLOGLN_NOTE("Created kernel address space");
+	for(u32 i = 0; i < sizeof(kernel_address_space_regions) / sizeof(kernel_address_space_regions[0]); ++i) {
+		KLOGLN_NOTE("Kernel ram map (VMR#%u):", i);
+		KLOG_INDENT_BLOCK_START;
+		log_virt_mem_region(&kernel_address_space_regions[i]);
+		KLOG_INDENT_BLOCK_END;
+	}
 
 	for (u32 i = 0; i < sizeof(kernel_address_space_regions) / sizeof(kernel_address_space_regions[0]); ++i) {
-		KLOGLN_TRACE("Adding VMR#%u to kernel address space.", i);
+		u64 kasr_addr = (u64)kernel_address_space_regions[i].addr;
+		u64 kasr_size = (u64)kernel_address_space_regions[i].size;
+		KLOGLN_TRACE("Adding VMR#%u to kernel address space. Addr range: %lx - %lx", i, kasr_addr, kasr_addr + kasr_size);
 		error_t err = address_sapce_add_region(&kernel_ash, kernel_address_space_regions[i]);
 		if (err) {
 			KLOGLN_ERROR("Failed to add virtual memory region #%u to kernel address space with error %u", i, err);
@@ -188,9 +229,16 @@
 		/*TODO: Panic*/
 	}
 
-	KLOGLN_NOTE("Kernel initialization complete. Jumping to kernel...");
+	//TEST:
+	{
 
-	// NOTE: As it is done now between kinit and kmain the stack will change.
+	}
+
+	KLOGLN_NOTE("Kernel initialization complete. Jumping to kernel...");
+	virt_mem_set_satp(max_asid, kercfg.target_vms, kernel_ash.root_pte);
+	virt_mem_flush_TLB();
+	halt();
+	KLOGLN_NOTE("VMEM online");
 	kmain();
 
 	KLOGLN_ERROR("kmain returned. This should never happen");

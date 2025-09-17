@@ -14,6 +14,6 @@ typedef struct {
 [[nodiscard]] error_t phys_mem_init(phys_buffer_t busy_regions);
 [[nodiscard]] error_t phys_mem_alloc_frame(page_size_t ps, ppn_t* ppnOUT);
 [[nodiscard]] error_t phys_mem_free_frame(ppn_t ppn);
-[[nodiscard]] error_t phys_mem_block_region(phys_mem_region_t region);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGER_PMM
+

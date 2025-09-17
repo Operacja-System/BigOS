@@ -147,10 +147,6 @@ static void phys_mem_announce_busy_regions(phys_buffer_t busy_regions) {
  implement this function properly.
 */
 static error_t phys_mem_find_free_region(u64 alignment, phys_buffer_t busy_regions, phys_mem_region_t* regOUT) {
-	phys_buffer_t reserved_regions = {0};
-	// TODO: Read reserved regions from device tree
-	constexpr u64 regions_amount = 2;
-	phys_buffer_t unavailable_regions[regions_amount] = {reserved_regions, busy_regions};
 	ram_map_data_t ram_data = {0};
 	error_t err = ram_map_get_data(&ram_data);
 	if (err)
@@ -158,21 +154,20 @@ static error_t phys_mem_find_free_region(u64 alignment, phys_buffer_t busy_regio
 	phys_addr_t curr_region_start = ram_data.phys_addr;
 	bool overlap = false;
 	while (curr_region_start + regOUT->size < ram_data.phys_addr + (ram_data.size_GB << 30)) {
-		for (u32 buff_idx = 0; buff_idx < regions_amount; ++buff_idx) {
-			for (size_t reg_idx = 0; reg_idx < unavailable_regions[buff_idx].count; ++reg_idx) {
-				phys_addr_t unavailable_region_start = unavailable_regions[buff_idx].regions[reg_idx].addr;
-				phys_addr_t unavailable_region_end =
-				    unavailable_region_start + unavailable_regions[buff_idx].regions[reg_idx].size;
-				phys_addr_t curr_region_end = curr_region_start + regOUT->size;
-				if (MAX(curr_region_start, unavailable_region_start) < MIN(curr_region_end, unavailable_region_end)) {
-					curr_region_start = unavailable_region_end;
-					curr_region_start = (phys_addr_t)align_up((u64)curr_region_start, alignment);
-					overlap = true;
-					break;
-				}
-			}
-			if (overlap)
+		overlap = false;
+		KLOGLN_TRACE("Crs: %lx, rs: %lx", curr_region_start, regOUT->size);
+		for (size_t reg_idx = 0; reg_idx < busy_regions.count; ++reg_idx) {
+			phys_addr_t unavailable_region_start = busy_regions.regions[reg_idx].addr;
+			phys_addr_t unavailable_region_end = unavailable_region_start + busy_regions.regions[reg_idx].size;
+			phys_addr_t curr_region_end = curr_region_start + regOUT->size;
+			if (MAX(curr_region_start, unavailable_region_start) < MIN(curr_region_end, unavailable_region_end)) {
+				curr_region_start = unavailable_region_end;
+			KLOGLN_TRACE("al1 Crs: %lx, rs: %lx", curr_region_start, regOUT->size);
+				curr_region_start = (phys_addr_t)align_up((u64)curr_region_start, alignment);
+			KLOGLN_TRACE("al2 Crs: %lx, rs: %lx", curr_region_start, regOUT->size);
+				overlap = true;
 				break;
+			}
 		}
 		if (!overlap) {
 			KLOGLN_TRACE("Found regions of size %lu at 0x%lx.", regOUT->size, curr_region_start);
@@ -204,6 +199,7 @@ error_t phys_mem_init(phys_buffer_t busy_regions) {
 	size_t alloc_size = kiloframe_bitmap_size + (megaframe_data_size * sizeof(megaframe_data_t)) +
 	                    (gigaframe_data_size * sizeof(gigaframe_data_t));
 	phys_mem_region_t mem_reg = {.size = alloc_size, .addr = 0};
+	//tutaj \/
 	err = phys_mem_find_free_region(0x1000, busy_regions, &mem_reg);
 	if (err)
 		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);

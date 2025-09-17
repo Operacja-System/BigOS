@@ -1,7 +1,7 @@
 #include <stdbigos/math.h>
 
 u64 align_up(u64 val, u64 alignment) {
-	return CEIL_DIV(val, alignment);
+	return CEIL_DIV(val, alignment) * alignment;
 }
 
 u64 align_up_pow2(u64 val, u64 pow) {

@@ -34,6 +34,7 @@ typedef struct {
 [[nodiscard]] error_t page_table_destroy(page_table_entry_t* page_table);
 [[nodiscard]] error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn_t vpn,
                                            page_table_entry_t entry);
+[[nodiscard]] error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t* paddrOUT);
 void page_table_print(page_table_entry_t root_pte);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGER_PAGE_TABLE
