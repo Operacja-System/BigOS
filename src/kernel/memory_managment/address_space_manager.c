@@ -174,3 +174,33 @@ error_t address_space_set_heap_data(as_handle_t* ash, void* heap_start, size_t h
 	ash->heap_top_page = heap_end_vpn;
 	return ERR_NONE;
 }
+
+error_t address_space_vaddr_to_paddr(as_handle_t* ash, void* vaddr, phys_addr_t* paddrOUT) {
+	if(!ash->valid) return ERR_NOT_VALID;
+	u8 flags = 0;
+	if(ash->valid) flags |= PTEF_VALID;
+	if(ash->global) flags |= PTEF_GLOBAL;
+	if(ash->user) flags |= PTEF_USER;
+	page_table_entry_t pte = {
+		.ppn = ash->root_pte,
+		.flags = flags,
+		.N= 0,
+		.pbmt = 0,
+	};
+	return page_table_walk(&pte, vaddr, paddrOUT);
+}
+
+void address_space_print_page_table(as_handle_t* ash) {
+	u8 flags = 0;
+	if(ash->valid) flags |= PTEF_VALID;
+	if(ash->global) flags |= PTEF_GLOBAL;
+	if(ash->user) flags |= PTEF_USER;
+	page_table_entry_t pte = {
+		.flags = flags,
+		.os_flags = 0,
+		.N = 0,
+		.pbmt = 0,
+		.ppn = ash->root_pte
+	};
+	page_table_print(pte);
+}

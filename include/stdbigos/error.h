@@ -11,6 +11,7 @@ typedef enum {
 	ERR_OUT_OF_BOUNDS,
 	ERR_INTERNAL_FAILURE,
 	ERR_NOT_INITIALIZED,
+	ERR_NOT_FOUND,
 } error_t;
 
 const char* get_error_msg(error_t err);

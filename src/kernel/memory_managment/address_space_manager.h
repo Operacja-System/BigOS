@@ -28,5 +28,7 @@ typedef struct {
                                                        bool execute);
 [[nodiscard]] error_t address_space_set_stack_data(as_handle_t* ash, void* stack_start, size_t stack_size);
 [[nodiscard]] error_t address_space_set_heap_data(as_handle_t* ash, void* heap_start, size_t heap_size);
+[[nodiscard]] error_t address_space_vaddr_to_paddr(as_handle_t* ash, void* vaddr, phys_addr_t* paddrOUT);
+void address_space_print_page_table(as_handle_t* ash);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGMENT_ADDRESS_SPACE_MANAGER
