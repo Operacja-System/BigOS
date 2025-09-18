@@ -2,6 +2,17 @@
 
 #include "klog.h"
 
+u64 page_size_get_in_bytes(page_size_t ps) {
+	switch (ps) {
+	case PAGE_SIZE_4kB:   return 0x1000ull;
+	case PAGE_SIZE_2MB:   return 0x200000ull;
+	case PAGE_SIZE_1GB:   return 0x40000000ull;
+	case PAGE_SIZE_512GB: return 0x8000000000ull;
+	case PAGE_SIZE_256TB: return 0x1000000000000ull;
+	default:              return 0;
+	}
+}
+
 void log_virt_mem_region(virt_mem_region_t* vmr) {
 	KLOGLN_NOTE("addr range: %p-%p", vmr->addr, vmr->addr + vmr->size - 1);
 	KLOGLN_NOTE("size: %lu", vmr->size);

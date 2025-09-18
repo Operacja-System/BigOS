@@ -16,7 +16,7 @@ error_t kernel_config_set(kernel_config_t cfg) {
 #ifdef __DEBUG__
 	if (s_is_set)
 #endif
-	KLOGLN_WARNING("Kernel configuration has changed. It most likely shouldn't.");
+		KLOGLN_WARNING("Kernel configuration has changed. It most likely shouldn't.");
 	s_kercfg = cfg;
 	switch (s_kercfg.target_vms) {
 	case KC_VMS_BARE:
@@ -44,19 +44,15 @@ buffer_t kernel_config_get(kercfg_field_t field) {
 	if (!s_is_set)
 		return (buffer_t){.data = nullptr, .size = 0};
 	switch (field) {
-	case KERCFG_MODE:    return (buffer_t){.data = &s_kercfg.mode, .size = sizeof(s_kercfg.mode)};
-	case KERCFG_MACHINE: return (buffer_t){.data = &s_kercfg.machine, .size = sizeof(s_kercfg.machine)};
-	case KERCFG_ACTIVE_VMS:
-		return (buffer_t){.data = &s_kercfg.active_vms, .size = sizeof(s_kercfg.active_vms)};
-	case KERCFG_TARGET_VMS:
-		return (buffer_t){.data = &s_kercfg.target_vms, .size = sizeof(s_kercfg.target_vms)};
+	case KERCFG_MODE:       return (buffer_t){.data = &s_kercfg.mode, .size = sizeof(s_kercfg.mode)};
+	case KERCFG_MACHINE:    return (buffer_t){.data = &s_kercfg.machine, .size = sizeof(s_kercfg.machine)};
+	case KERCFG_ACTIVE_VMS: return (buffer_t){.data = &s_kercfg.active_vms, .size = sizeof(s_kercfg.active_vms)};
+	case KERCFG_TARGET_VMS: return (buffer_t){.data = &s_kercfg.target_vms, .size = sizeof(s_kercfg.target_vms)};
 	case KERCFG_ADDRESS_SPACE_BITS:
-		return (buffer_t){
-		    .data = &s_address_space_active_bits, .size = sizeof(s_address_space_active_bits)};
-	case KERCFG_PT_HEIGHT: return (buffer_t){.data = &s_pt_height, .size = sizeof(s_pt_height)};
-	case KERCFG_CPU_ENDIAN:
-		return (buffer_t){.data = &s_kercfg.cpu_endian, .size = sizeof(s_kercfg.cpu_endian)};
-	default: return (buffer_t){.data = nullptr, .size = 0};
+		return (buffer_t){.data = &s_address_space_active_bits, .size = sizeof(s_address_space_active_bits)};
+	case KERCFG_PT_HEIGHT:  return (buffer_t){.data = &s_pt_height, .size = sizeof(s_pt_height)};
+	case KERCFG_CPU_ENDIAN: return (buffer_t){.data = &s_kercfg.cpu_endian, .size = sizeof(s_kercfg.cpu_endian)};
+	default:                return (buffer_t){.data = nullptr, .size = 0};
 	}
 }
 

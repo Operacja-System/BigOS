@@ -178,7 +178,7 @@
 		u64 kasr_size = (u64)kernel_address_space_regions[i].size;
 		KLOGLN_TRACE("Adding VMR#%u to kernel address space. Addr range: %lx - %lx", i, kasr_addr,
 		             kasr_addr + kasr_size);
-		error_t err = address_sapce_add_region(&kernel_ash, kernel_address_space_regions[i]);
+		error_t err = address_space_add_region(&kernel_ash, kernel_address_space_regions[i]);
 		IF_ANY_ERR_LOG_AND_PANIC(err, "Adding virtual memory region #%u", i);
 	}
 	KLOGLN_NOTE("Mapped kernel memory regions.");

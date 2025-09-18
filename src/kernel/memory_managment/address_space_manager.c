@@ -3,16 +3,16 @@
 #include <stdbigos/buffer.h>
 #include <stdbigos/string.h>
 
-#include "debug/debug_stdio.h"
-#include "kernel_config.h"
+#include "klog.h"
+#include "memory_managment/mm_types.h"
 #include "memory_managment/page_table.h"
 #include "memory_managment/virtual_memory_managment.h"
 #include "ram_map.h"
-#include "klog.h"
 
 static u16 s_max_asid = 0;
 static u16 s_next_asid = 0;
 static u64 s_generation = 0;
+
 #ifdef __DEBUG__
 static bool s_is_init = false;
 #endif
@@ -61,6 +61,7 @@ error_t address_space_create(as_handle_t* ashOUT, bool user, bool global) {
 	ashOUT->user = user;
 	ashOUT->global = global;
 	ashOUT->asid = 0;
+	ashOUT->generation = 1; // Not 0 to detect overflow
 	ashOUT->root_pte = 0;
 	return ERR_NONE;
 }
@@ -82,13 +83,14 @@ error_t address_space_destroy(as_handle_t* ash) {
 	return ERR_NONE;
 }
 
-error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
+error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 #ifdef __DEBUG__
 	if (!s_is_init)
 		return ERR_NOT_INITIALIZED;
 #endif
 	KLOGLN_TRACE("Adding a region to address space");
 	KLOG_INDENT_BLOCK_START;
+	// This is not created in address_space_create so that empty address spaces wont have memory overhead
 	if (!ash->valid) {
 		ppn_t ppn = 0;
 		error_t err = phys_mem_alloc_frame(PAGE_SIZE_4kB, &ppn);
@@ -96,46 +98,36 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 			KLOGLN_TRACE("Failed to allocate a frame for the root page");
 			KLOG_END_BLOCK_AND_RETURN(err);
 		}
-		void* page_table_page = physical_to_effective(ppn << 12);
-		memset(page_table_page, 0, 0x1000);
+		void* page_table_page = physical_to_effective(ppn_to_phys_addr(ppn, 0));
+		memset(page_table_page, 0, page_size_get_in_bytes(PAGE_SIZE_4kB));
 		ash->root_pte = ppn;
 		ash->valid = true;
 	}
-	void* curr_addr = region.addr;
-	size_t size_left = region.size;
-	phys_addr_t curr_map_addr = region.map_region.addr;
-
-	u8 pt_height = 0;
-
-	buffer_t pt_height_buffer = kernel_config_get(KERCFG_PT_HEIGHT);
-	if(!buffer_read_u8(pt_height_buffer, 0, &pt_height))
-		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
 
 	u8 flags = PTEF_VALID;
-	if (region.read)
-		flags |= PTEF_READ;
-	if (region.write)
-		flags |= PTEF_WRITE;
-	if (region.execute)
-		flags |= PTEF_EXECUTE;
-	if (region.user)
-		flags |= PTEF_USER;
-	if (region.global)
-		flags |= PTEF_GLOBAL;
+	flags |= PTEF_READ * region.read;
+	flags |= PTEF_WRITE * region.write;
+	flags |= PTEF_EXECUTE * region.execute;
+	flags |= PTEF_USER * region.user;
+	flags |= PTEF_GLOBAL * region.global;
 
-	const size_t delta_size = 0x1000 << (9 * region.ps);
-	while (size_left > 0) {
+	const u64 delta_size = page_size_get_in_bytes(region.ps);
+	const u8 root_flags = PTEF_VALID | ((int)(ash->global) ? PTEF_GLOBAL : 0) | ((int)(ash->user) ? PTEF_USER : 0);
+	const page_table_entry_t root_pte = {.flags = root_flags, .os_flags = 0, .ppn = ash->root_pte, .pbmt = 0, .N = 0};
+
+	void* curr_addr = region.addr;
+	phys_addr_t curr_map_addr = region.map_region.addr;
+
+	while (curr_addr < region.addr + region.size) {
 		ppn_t ppn = 0;
 		if (region.mapped) {
-			ppn = curr_map_addr >> 12;
+			ppn = phys_addr_to_ppn(curr_map_addr);
 			curr_map_addr += delta_size;
 		} else {
 			error_t err = phys_mem_alloc_frame(region.ps, &ppn);
 			if (err)
 				KLOG_END_BLOCK_AND_RETURN(err);
 		}
-		const u8 root_flags = PTEF_VALID | ((int)(ash->global) ? PTEF_GLOBAL : 0) | ((int)(ash->user) ? PTEF_USER : 0);
-		page_table_entry_t root_pte = {.flags = root_flags, .os_flags = 0, .ppn = ash->root_pte, .pbmt = 0, .N = 0};
 		page_table_entry_t new_entry = {
 		    .flags = flags,
 		    .os_flags = 0,
@@ -143,10 +135,9 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		    .pbmt = 0,
 		    .N = 0,
 		};
-		error_t err = page_table_add_entry(&root_pte, region.ps, (u64)curr_addr >> 12, new_entry);
+		error_t err = page_table_add_entry(&root_pte, region.ps, virt_addr_to_vpn(curr_addr), new_entry);
 		if (err)
 			KLOG_END_BLOCK_AND_RETURN(err);
-		size_left -= delta_size;
 		curr_addr += delta_size;
 	}
 	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
@@ -173,31 +164,29 @@ error_t address_space_set_heap_data(as_handle_t* ash, void* heap_start, size_t h
 }
 
 error_t address_space_vaddr_to_paddr(as_handle_t* ash, void* vaddr, phys_addr_t* paddrOUT) {
-	if(!ash->valid) return ERR_NOT_VALID;
+	if (!ash->valid)
+		return ERR_NOT_VALID;
 	u8 flags = 0;
-	if(ash->valid) flags |= PTEF_VALID;
-	if(ash->global) flags |= PTEF_GLOBAL;
-	if(ash->user) flags |= PTEF_USER;
+	flags |= PTEF_VALID * ash->valid;
+	flags |= PTEF_GLOBAL * ash->global;
+	flags |= PTEF_USER * ash->user;
 	page_table_entry_t pte = {
-		.ppn = ash->root_pte,
-		.flags = flags,
-		.N= 0,
-		.pbmt = 0,
+	    .ppn = ash->root_pte,
+	    .flags = flags,
+	    .N = 0,
+	    .pbmt = 0,
 	};
 	return page_table_walk(&pte, vaddr, paddrOUT);
 }
 
 void address_space_print_page_table(as_handle_t* ash) {
 	u8 flags = 0;
-	if(ash->valid) flags |= PTEF_VALID;
-	if(ash->global) flags |= PTEF_GLOBAL;
-	if(ash->user) flags |= PTEF_USER;
-	page_table_entry_t pte = {
-		.flags = flags,
-		.os_flags = 0,
-		.N = 0,
-		.pbmt = 0,
-		.ppn = ash->root_pte
-	};
+	if (ash->valid)
+		flags |= PTEF_VALID;
+	if (ash->global)
+		flags |= PTEF_GLOBAL;
+	if (ash->user)
+		flags |= PTEF_USER;
+	page_table_entry_t pte = {.flags = flags, .os_flags = 0, .N = 0, .pbmt = 0, .ppn = ash->root_pte};
 	page_table_print(pte);
 }

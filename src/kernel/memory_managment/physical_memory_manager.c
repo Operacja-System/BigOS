@@ -4,7 +4,6 @@
 #include <stdbigos/math.h>
 #include <stdbigos/string.h>
 
-#include "debug/debug_stdio.h"
 #include "klog.h"
 #include "ram_map.h"
 
@@ -162,9 +161,9 @@ static error_t phys_mem_find_free_region(u64 alignment, phys_buffer_t busy_regio
 			phys_addr_t curr_region_end = curr_region_start + regOUT->size;
 			if (MAX(curr_region_start, unavailable_region_start) < MIN(curr_region_end, unavailable_region_end)) {
 				curr_region_start = unavailable_region_end;
-			KLOGLN_TRACE("al1 Crs: %lx, rs: %lx", curr_region_start, regOUT->size);
+				KLOGLN_TRACE("al1 Crs: %lx, rs: %lx", curr_region_start, regOUT->size);
 				curr_region_start = (phys_addr_t)align_up((u64)curr_region_start, alignment);
-			KLOGLN_TRACE("al2 Crs: %lx, rs: %lx", curr_region_start, regOUT->size);
+				KLOGLN_TRACE("al2 Crs: %lx, rs: %lx", curr_region_start, regOUT->size);
 				overlap = true;
 				break;
 			}
@@ -199,7 +198,7 @@ error_t phys_mem_init(phys_buffer_t busy_regions) {
 	size_t alloc_size = kiloframe_bitmap_size + (megaframe_data_size * sizeof(megaframe_data_t)) +
 	                    (gigaframe_data_size * sizeof(gigaframe_data_t));
 	phys_mem_region_t mem_reg = {.size = alloc_size, .addr = 0};
-	//tutaj \/
+	// tutaj \/
 	err = phys_mem_find_free_region(0x1000, busy_regions, &mem_reg);
 	if (err)
 		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
@@ -208,8 +207,10 @@ error_t phys_mem_init(phys_buffer_t busy_regions) {
 	s_megaframe_data = s_kiloframe_bitmap + kiloframe_bitmap_size;
 	s_gigaframe_data = s_megaframe_data + megaframe_data_size;
 	KLOGLN_TRACE("Kiloframe bitmap at paddr: 0x%lx, size: %lu", s_kiloframe_bitmap, kiloframe_bitmap_size);
-	KLOGLN_TRACE("Megaframe data at paddr: 0x%lx, size: %lu", s_megaframe_data, megaframe_data_size * sizeof(megaframe_data_t));
-	KLOGLN_TRACE("Gigaframe data at paddr: 0x%lx, size: %lu", s_gigaframe_data, gigaframe_data_size * sizeof(gigaframe_data_t));
+	KLOGLN_TRACE("Megaframe data at paddr: 0x%lx, size: %lu", s_megaframe_data,
+	             megaframe_data_size * sizeof(megaframe_data_t));
+	KLOGLN_TRACE("Gigaframe data at paddr: 0x%lx, size: %lu", s_gigaframe_data,
+	             gigaframe_data_size * sizeof(gigaframe_data_t));
 
 	u64* kiloframe_bitmap = physical_to_effective(s_kiloframe_bitmap);
 	megaframe_data_t* megaframe_data = physical_to_effective(s_megaframe_data);
@@ -327,4 +328,3 @@ error_t phys_mem_free_frame(ppn_t ppn) {
 	}
 	return ERR_NOT_VALID;
 }
-

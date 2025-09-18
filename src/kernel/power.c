@@ -1,16 +1,15 @@
 #include "power.h"
 
 void shutdown() {
-// TODO:
+	// TODO:
 	halt();
 }
 
 void reboot() {
-// TODO:
+	// TODO:
 	halt();
 }
 
 void halt() {
-	for(;;)
-		asm volatile("wfi");
+	for (;;) asm volatile("wfi");
 }

@@ -4,14 +4,15 @@
 #include <stdbigos/buffer.h>
 #include <stdbigos/types.h>
 
-#include "memory_managment/physical_memory_manager.h"
+#include "memory_managment/mm_types.h"
 
 typedef enum : u8 {
 	KC_MODE_32 = 32,
 	KC_MODE_64 = 64,
 } kerconf_mode_t;
 
-typedef enum : u8 { KC_MACHINE_RISCV = 1,
+typedef enum : u8 {
+	KC_MACHINE_RISCV = 1,
 } kerconf_machine_t;
 
 typedef enum : u8 {
@@ -35,20 +36,21 @@ typedef struct {
 	phys_addr_t device_tree_phys_addr;
 } kernel_config_t;
 
-[[nodiscard]] error_t kernel_config_set(kernel_config_t cfg);
-
 typedef enum {
-	KERCFG_MODE,               // u8
-	KERCFG_MACHINE,            // u8
-	KERCFG_ACTIVE_VMS,         // u8
-	KERCFG_TARGET_VMS,         // u8
-	KERCFG_ADDRESS_SPACE_BITS, // u8
-	KERCFG_PT_HEIGHT,          // u8
-	KERCFG_CPU_ENDIAN,         // u8
+	KERCFG_MODE,
+	KERCFG_MACHINE,
+	KERCFG_ACTIVE_VMS,
+	KERCFG_TARGET_VMS,
+	KERCFG_ADDRESS_SPACE_BITS,
+	KERCFG_PT_HEIGHT,
+	KERCFG_CPU_ENDIAN,
 } kercfg_field_t;
 
-[[nodiscard]] buffer_t kernel_config_get(kercfg_field_t field);
-[[nodiscard]] buffer_t kernel_config_read_device_tree(const char* node_path, const char* arg_name);
+[[nodiscard]]
+error_t kernel_config_set(kernel_config_t cfg);
+
+[[nodiscard]]
+buffer_t kernel_config_get(kercfg_field_t field);
 
 void kernel_config_log();
 
