@@ -57,13 +57,8 @@
 
 	u8 as_bits = 0;
 	buffer_t as_bits_buffer = kernel_config_get(KERCFG_ADDRESS_SPACE_BITS);
-	if (as_bits_buffer.error) {
-		KLOGLN_ERROR("Reading kernel config failed with error %u", err);
-		halt();
-		/*TODO: Panic*/
-	}
-	err = buffer_read_u8(as_bits_buffer, 0, &as_bits);
-	IF_ANY_ERR_LOG_AND_PANIC(err, "Reading kernel config");
+	const bool buffer_ok = buffer_read_u8(as_bits_buffer, 0, &as_bits);
+	IF_ANY_ERR_LOG_AND_PANIC(!buffer_ok, "Reading kernel config");
 
 	const size_t stack_size = 6 * (1ull << 20);
 	const size_t mstack_size = 2 * (1ull << 20);                          // TODO: Read from dt
