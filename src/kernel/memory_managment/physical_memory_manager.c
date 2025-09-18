@@ -48,7 +48,7 @@ static error_t scan_for_suitable_GB_frame(page_size_t ps, u64* found) {
 	u64 minimum = UINT64_MAX;
 	u64 found_idx = 0;
 	gigaframe_data_t* gigaframe_data = physical_to_effective(s_gigaframe_data);
-	for (u64 i = 0; i < ram_data.size_GB; ++i) {
+	for (u64 i = 0; i < ram_data.size >> 30; ++i) {
 		if (gigaframe_data[i].allocated)
 			continue;
 		switch (ps) {
@@ -153,7 +153,7 @@ static error_t phys_mem_find_free_region(u64 alignment, phys_buffer_t busy_regio
 		return ERR_INTERNAL_FAILURE;
 	phys_addr_t curr_region_start = ram_data.phys_addr;
 	bool overlap = false;
-	while (curr_region_start + regOUT->size < ram_data.phys_addr + (ram_data.size_GB << 30)) {
+	while (curr_region_start + regOUT->size < ram_data.phys_addr + ram_data.size) {
 		overlap = false;
 		KLOGLN_TRACE("Crs: %lx, rs: %lx", curr_region_start, regOUT->size);
 		for (size_t reg_idx = 0; reg_idx < busy_regions.count; ++reg_idx) {
@@ -193,9 +193,9 @@ error_t phys_mem_init(phys_buffer_t busy_regions) {
 	error_t err = ram_map_get_data(&ram_data);
 	if (err)
 		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
-	size_t kiloframe_bitmap_size = ram_data.size_GB << 18; // ram size in GB * 2^30 / 2^12 (4kB)
-	size_t megaframe_data_size = (ram_data.size_GB << 9);
-	size_t gigaframe_data_size = ram_data.size_GB;
+	size_t kiloframe_bitmap_size = ram_data.size >> 12; // ram size in GB * 2^30 / 2^12 (4kB)
+	size_t megaframe_data_size = ram_data.size >> 21;
+	size_t gigaframe_data_size = ram_data.size >> 30;
 	size_t alloc_size = kiloframe_bitmap_size + (megaframe_data_size * sizeof(megaframe_data_t)) +
 	                    (gigaframe_data_size * sizeof(gigaframe_data_t));
 	phys_mem_region_t mem_reg = {.size = alloc_size, .addr = 0};
@@ -295,8 +295,6 @@ error_t phys_mem_free_frame(ppn_t ppn) {
 #ifdef __DEBUG__
 	if (!s_is_init)
 		return ERR_NOT_INITIALIZED;
-	if ((ram_data.size_GB << 18) < ppn)
-		return ERR_BAD_ARG;
 #endif
 
 	ppn -= ram_data.phys_addr >> 12;

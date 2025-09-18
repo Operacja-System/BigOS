@@ -31,9 +31,7 @@ typedef struct {
 	void* addr;
 	size_t size;
 	phys_mem_region_t map_region;
-	#ifdef __DEBUG__
-		const char* debug_comment;
-	#endif
+	const char* debug_comment;
 } virt_mem_region_t;
 
 void log_virt_mem_region(virt_mem_region_t* vmr);

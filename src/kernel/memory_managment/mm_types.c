@@ -22,7 +22,5 @@ void log_virt_mem_region(virt_mem_region_t* vmr) {
 	if (vmr->read)
 		flags[4] = 'R';
 	KLOGLN_NOTE("flags: %s", flags);
-	#ifdef __DEBUG__
 	KLOGLN_NOTE("debug comment: %s", vmr->debug_comment);
-	#endif
 }

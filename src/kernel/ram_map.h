@@ -8,7 +8,7 @@
 typedef struct {
 	void* addr;
 	phys_addr_t phys_addr;
-	size_t size_GB;
+	size_t size;
 } ram_map_data_t;
 
 void ram_map_set_data(ram_map_data_t data);
