@@ -6,12 +6,11 @@
 //				  Private
 // ========================================
 
-typedef struct [[gnu::packed]] {
-	ppn_t page_table : 44;
-	u16 asid : 16;
-	u8 vms : 4;
+typedef struct {
+	ppn_t page_table;
+	u16 asid;
+	u8 vms;
 } reg_satp_t;
-static_assert(sizeof(reg_satp_t) == 8);
 
 reg_t write_satp(reg_satp_t satp) {
 	reg_t out = (reg_t)satp.page_table & 0xfffffffffff;

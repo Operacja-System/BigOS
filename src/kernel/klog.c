@@ -1,6 +1,7 @@
 #include <klog.h>
 #include <stdarg.h>
 #include <stdbigos/types.h>
+
 #include "debug/debug_stdio.h"
 
 static u32 s_ident_level = 0;
