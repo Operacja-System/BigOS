@@ -50,4 +50,28 @@ bool buffer_read_cstring(buffer_t buf, size_t offset, const char** out_str);
 [[nodiscard]]
 buffer_t buffer_sub_buffer(buffer_t buf, size_t offset, size_t max_size);
 
+[[nodiscard]]
+bool buffer_read_u8(buffer_t buf, size_t offset, u8* out);
+
+[[nodiscard]]
+bool buffer_read_i8(buffer_t buf, size_t offset, i8* out);
+
+[[nodiscard]]
+bool buffer_read_u16(buffer_t buf, size_t offset, u16* out);
+
+[[nodiscard]]
+bool buffer_read_i16(buffer_t buf, size_t offset, i16* out);
+
+[[nodiscard]]
+bool buffer_read_u32(buffer_t buf, size_t offset, u32* out);
+
+[[nodiscard]]
+bool buffer_read_i32(buffer_t buf, size_t offset, i32* out);
+
+[[nodiscard]]
+bool buffer_read_u64(buffer_t buf, size_t offset, u64* out);
+
+[[nodiscard]]
+bool buffer_read_i64(buffer_t buf, size_t offset, i64* out);
+
 #endif

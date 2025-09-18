@@ -50,59 +50,59 @@ buffer_t buffer_sub_buffer(buffer_t buf, size_t offset, size_t max_size) {
 	if (!buffer_is_valid(buf) || buf.size < offset)
 		return make_buffer(nullptr, 0);
 	size_t rest = buf.size - offset;
-	return make_buffer((const u8*)buf.data + offset, min(rest, max_size));
+	return make_buffer((const u8*)buf.data + offset, MIN(rest, max_size));
 }
 
-error_t buffer_read_u8(buffer_t buf, size_t offset, u8* out) {
+bool buffer_read_u8(buffer_t buf, size_t offset, u8* out) {
 	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
 	if (ok)
 		*out = *(const u8*)(buf.data + offset);
 	return ok;
 }
 
-error_t buffer_read_i8(buffer_t buf, size_t offset, i8* out) {
+bool buffer_read_i8(buffer_t buf, size_t offset, i8* out) {
 	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
 	if (ok)
 		*out = *(const i8*)(buf.data + offset);
 	return ok;
 }
 
-error_t buffer_read_u16(buffer_t buf, size_t offset, u16* out) {
+bool buffer_read_u16(buffer_t buf, size_t offset, u16* out) {
 	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
 	if (ok)
 		*out = *(const u16*)(buf.data + offset);
 	return ok;
 }
 
-error_t buffer_read_i16(buffer_t buf, size_t offset, i16* out) {
+bool buffer_read_i16(buffer_t buf, size_t offset, i16* out) {
 	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
 	if (ok)
 		*out = *(const i16*)(buf.data + offset);
 	return ok;
 }
 
-error_t buffer_read_u32(buffer_t buf, size_t offset, u32* out) {
+bool buffer_read_u32(buffer_t buf, size_t offset, u32* out) {
 	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
 	if (ok)
 		*out = *(const u32*)(buf.data + offset);
 	return ok;
 }
 
-error_t buffer_read_i32(buffer_t buf, size_t offset, i32* out) {
+bool buffer_read_i32(buffer_t buf, size_t offset, i32* out) {
 	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
 	if (ok)
 		*out = *(const i32*)(buf.data + offset);
 	return ok;
 }
 
-error_t buffer_read_u64(buffer_t buf, size_t offset, u64* out) {
+bool buffer_read_u64(buffer_t buf, size_t offset, u64* out) {
 	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
 	if (ok)
 		*out = *(const u64*)(buf.data + offset);
 	return ok;
 }
 
-error_t buffer_read_i64(buffer_t buf, size_t offset, i64* out) {
+bool buffer_read_i64(buffer_t buf, size_t offset, i64* out) {
 	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
 	if (ok)
 		*out = *(const i64*)(buf.data + offset);

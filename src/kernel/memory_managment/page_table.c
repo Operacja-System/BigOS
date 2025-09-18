@@ -126,12 +126,7 @@ error_t page_table_add_entry(page_table_entry_t* page_table, page_size_t ps, vpn
 	u64* current_page = physical_to_effective(page_table->ppn << 12);
 	u8 pt_height = 0;
 	buffer_t pth_buff = kernel_config_get(KERCFG_PT_HEIGHT);
-	if (pth_buff.error) {
-		KLOGLN_TRACE("Failed to read kernel config.");
-		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
-	}
-	error_t err = buffer_read_u8(pth_buff, 0, &pt_height);
-	if (err) {
+	if(!buffer_read_u8(pth_buff, 0, &pt_height)) {
 		KLOGLN_TRACE("Failed to read kernel config.");
 		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
 	}
@@ -175,12 +170,7 @@ error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t
 	u8 pt_height = 0;
 	{
 		buffer_t pth_buffer = kernel_config_get(KERCFG_PT_HEIGHT);
-		if (pth_buffer.error) {
-			KLOGLN_TRACE("Failed to read kernel config.");
-			return ERR_INTERNAL_FAILURE;
-		}
-		error_t err = buffer_read_u8(pth_buffer, 0, &pt_height);
-		if (err) {
+		if(!buffer_read_u8(pth_buffer, 0, &pt_height)) {
 			KLOGLN_TRACE("Failed to read buffer.");
 			return ERR_INTERNAL_FAILURE;
 		}
@@ -211,13 +201,8 @@ error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t
 void page_table_print(page_table_entry_t root_pte) { // TODO: This is awfull and needs a rewrite
 	buffer_t h_buff = {0};
 	h_buff = kernel_config_get(KERCFG_PT_HEIGHT);
-	if (h_buff.error) {
-		DEBUG_PRINTF("This is not good\n");
-		return;
-	}
 	u8 h = 0;
-	const error_t err = buffer_read_u8(h_buff, 0, &h);
-	if (err) {
+	if(!buffer_read_u8(h_buff, 0, &h)) {
 		DEBUG_PRINTF("This is not good\n");
 		return;
 	}

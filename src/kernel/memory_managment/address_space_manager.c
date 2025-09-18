@@ -108,10 +108,7 @@ error_t address_sapce_add_region(as_handle_t* ash, virt_mem_region_t region) {
 	u8 pt_height = 0;
 
 	buffer_t pt_height_buffer = kernel_config_get(KERCFG_PT_HEIGHT);
-	if (pt_height_buffer.error)
-		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
-	const error_t err = buffer_read_u8(pt_height_buffer, 0, &pt_height);
-	if (err)
+	if(!buffer_read_u8(pt_height_buffer, 0, &pt_height))
 		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
 
 	u8 flags = PTEF_VALID;
