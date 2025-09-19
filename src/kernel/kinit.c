@@ -188,13 +188,16 @@
 	err = address_space_set_heap_data(&kernel_ash, heap_addr, heap_size);
 	IF_ANY_ERR_LOG_AND_PANIC(err, "Updating kernel address space");
 
+	address_space_print_page_table(&kernel_ash);
+
 	KLOGLN_NOTE("Kernel initialization complete. Enabling virtual memory...");
 	err = address_space_set_active(&kernel_ash);
 	IF_ANY_ERR_LOG_AND_PANIC(err, "Setting kernel address space as active");
 	KLOGLN_NOTE("Virtual memory online. Jumping to kernel...");
 
 	// TODO: Kernel should jump to a higher address space before jumping to main
-	// TODO: Kernel identy mapping should be deleted here (after this /\)
+	err = address_space_remove_region(&kernel_ash, kernel_address_space_regions[5]);
+	IF_ANY_ERR_LOG_AND_PANIC(err, "Destruction of kernel address space");
 
 	kmain();
 

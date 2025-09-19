@@ -14,7 +14,10 @@
 //				  Private
 // ========================================
 
-static page_table_entry_t read_raw_pte(u64 raw_pte) {
+typedef u64 raw_pte_t;
+
+[[nodiscard]]
+static page_table_entry_t read_raw_pte(raw_pte_t raw_pte) {
 	const page_table_entry_t pte = {
 	    .flags = raw_pte & 0xff,
 	    .os_flags = (raw_pte >> 8) & 0b11,
@@ -25,75 +28,113 @@ static page_table_entry_t read_raw_pte(u64 raw_pte) {
 	return pte;
 }
 
-static u64 write_raw_pte(page_table_entry_t pte) {
-	u64 raw_pte = 0;
+[[nodiscard]]
+static raw_pte_t write_raw_pte(page_table_entry_t pte) {
+	raw_pte_t raw_pte = 0;
 	raw_pte |= (u64)pte.flags & 0xff;
 	raw_pte |= (u64)(pte.os_flags & 0b11) << 8;
 	raw_pte |= (u64)(pte.ppn & 0xfffffffffff) << 10;
-	raw_pte |= (u64)(pte.pbmt & 0b11) << 61;
-	raw_pte |= (u64)(pte.N & 0b1) << 63;
+	raw_pte |= (u64)(pte.pbmt & 0b11) << 60;
+	raw_pte |= (u64)(pte.N & 0b1) << 62;
 	return raw_pte;
 }
 
+[[nodiscard]]
 static inline bool is_pte_leaf(page_table_entry_t pte) {
-	return (pte.flags & PTEF_READ || pte.flags & PTEF_WRITE || pte.flags & PTEF_EXECUTE) != 0;
+	return (pte.flags & (PTEF_READ | PTEF_WRITE | PTEF_EXECUTE)) != 0;
 }
 
-static void delete_pte(page_table_entry_t pte) { // FIX: This is ugly
-	if (is_pte_leaf(pte)) {
-		const error_t err = phys_mem_free_frame(pte.ppn);
-		if (err) {                               /*TODO: Panic*/
+[[nodiscard]]
+static bool is_pointer_pt_empty(page_table_entry_t pte) {
+	raw_pte_t* raw_page_table = physical_to_effective(ppn_to_phys_addr(pte.ppn, 0));
+	for (u16 i = 0; i < 512; ++i) {
+		page_table_entry_t inner_pte = read_raw_pte(raw_page_table[i]);
+		if (inner_pte.flags & PTEF_VALID)
+			return false;
+	}
+	return true;
+}
+
+[[nodiscard]]
+static error_t delete_page_table(page_table_entry_t root_pte) {
+	typedef struct {
+		page_table_entry_t pte;
+		u16 idx;
+	} stack_entry_t;
+	u8 pt_height = 0;
+	if (!buffer_read_u8(kernel_config_get(KERCFG_PT_HEIGHT), 0, &pt_height))
+		return ERR_INTERNAL_FAILURE;
+	const size_t stack_size = pt_height + 2;
+	stack_entry_t stack[stack_size];
+	memset(stack, 0, sizeof(stack));
+	u8 stack_end_idx = 0;
+
+	stack[stack_end_idx++] = (stack_entry_t){
+	    .pte = root_pte,
+	    .idx = 0,
+	};
+
+	while (stack_end_idx != 0) {
+		if (stack_end_idx >= stack_size - 1)
+			return ERR_BAD_ARG; // This may leave dangling pages, but if this happened the page table is broken anyways
+		stack_entry_t* stack_back = &stack[stack_end_idx - 1];
+		if (!(stack_back->pte.flags & PTEF_VALID)) {
+			--stack_end_idx;
+			continue;
 		}
-		return;
+		if (stack_back->idx >= 512) {
+			const error_t err = phys_mem_free_frame(stack_back->pte.ppn);
+			if (err)
+				return ERR_INTERNAL_FAILURE;
+			--stack_end_idx;
+			continue;
+		}
+		if (is_pte_leaf(stack_back->pte)) {
+			if (!(stack_back->pte.os_flags & PTEOSF_MAPPED)) {
+				const error_t err = phys_mem_free_frame(stack_back->pte.ppn);
+				if (err)
+					return ERR_INTERNAL_FAILURE;
+			}
+			--stack_end_idx;
+		} else {
+			raw_pte_t* page_table = physical_to_effective(ppn_to_phys_addr(stack_back->pte.ppn, 0));
+			page_table_entry_t next_pte = read_raw_pte(page_table[stack_back->idx++]);
+			stack[stack_end_idx++] = (stack_entry_t){
+			    .pte = next_pte,
+			    .idx = 0,
+			};
+		}
 	}
-	u64(*pt)[pt_entries_amount] = physical_to_effective(pte.ppn << 12);
-	for (u32 i = 0; i < pt_entries_amount; ++i) {
-		page_table_entry_t new_pte = read_raw_pte((*pt)[i]);
-		if (new_pte.flags & PTEF_VALID)
-			delete_pte(new_pte);
-	}
-	const error_t err = phys_mem_free_frame(pte.ppn);
-	if (err) { /*TODO: Panic*/
-	}
+	return ERR_NONE;
 }
 
-void print_pte(page_table_entry_t pte, u8 lvl, u8 h, u64 virt_addr) { // FIX: This is ugly
-	if (!(pte.flags & PTEF_VALID)) {
+static void print_pte(page_table_entry_t pte, u8 depth, u8 pt_height, const u16 vaddr_slice[5]) {
+	dputgap(depth);
+	if (!is_pte_leaf(pte)) {
+		KLOGLN_NOTE("Pointer page - ppn: #%lx", pte.ppn);
 		return;
 	}
-	if (is_pte_leaf(pte)) {
-		for (u8 i = 0; i < lvl; ++i) DEBUG_PUTC('\t');
-		char os_flags[2 + 1] = "--";
-		char flags[8 + 1] = "--------";
-		if (pte.flags & PTEF_VALID)
-			flags[7] = 'V';
-		if (pte.flags & PTEF_READ)
-			flags[6] = 'R';
-		if (pte.flags & PTEF_WRITE)
-			flags[5] = 'W';
-		if (pte.flags & PTEF_EXECUTE)
-			flags[4] = 'X';
-		if (pte.flags & PTEF_USER)
-			flags[3] = 'U';
-		if (pte.flags & PTEF_GLOBAL)
-			flags[2] = 'G';
-		if (pte.flags & PTEF_ACCESSED)
-			flags[1] = 'A';
-		if (pte.flags & PTEF_DIRTY)
-			flags[0] = 'D';
-		const char* ps_prefix[5] = {"peta", "tera", "giga", "mega", "kilo"};
-		u64 va_print = virt_addr << ((9 * (h - lvl)) + 12);
-		DEBUG_PRINTF("addr: %016lx - ps: %spage - os flags: %s - flags: %s\n", va_print, ps_prefix[lvl], os_flags,
-		             flags);
-		return;
-	}
-	ppn_t ppn = pte.ppn;
-	u64* current_page = physical_to_effective(ppn << 12);
-	for (u32 i = 0; i < pt_entries_amount; ++i) {
-		u64 riscv_pte = current_page[i];
-		page_table_entry_t new_pte = read_raw_pte(riscv_pte);
-		print_pte(new_pte, lvl + 1, h, (virt_addr << 9) | i);
-	}
+	u64 vaddr_begin = ((u64)vaddr_slice[4] & 0x1ff) << (9 * 4) | ((u64)vaddr_slice[3] & 0x1ff) << (9 * 3) |
+	                  ((u64)vaddr_slice[2] & 0x1ff) << (9 * 2) | ((u64)vaddr_slice[1] & 0x1ff) << (9 * 1) |
+	                  ((u64)vaddr_slice[0] & 0x1ff) << (9 * 0);
+	vaddr_begin <<= 12;
+	u64 vaddr_end = vaddr_begin + page_size_get_in_bytes(pt_height - depth);
+	char flags[9];
+	char os_flags[3];
+	flags[8] = '\0';
+	flags[7] = (pte.flags & PTEF_VALID) ? 'V' : '-';
+	flags[6] = (pte.flags & PTEF_READ) ? 'R' : '-';
+	flags[5] = (pte.flags & PTEF_WRITE) ? 'W' : '-';
+	flags[4] = (pte.flags & PTEF_EXECUTE) ? 'X' : '-';
+	flags[3] = (pte.flags & PTEF_USER) ? 'U' : '-';
+	flags[2] = (pte.flags & PTEF_GLOBAL) ? 'G' : '-';
+	flags[1] = (pte.flags & PTEF_ACCESSED) ? 'A' : '-';
+	flags[0] = (pte.flags & PTEF_DIRTY) ? 'D' : '-';
+	os_flags[2] = '\0';
+	os_flags[1] = (pte.os_flags & PTEOSF_TO_BE_DEFINED) ? '*' : '-';
+	os_flags[0] = (pte.os_flags & PTEOSF_MAPPED) ? 'M' : '-';
+	KLOGLN_NOTE("Leaf page (%016lx - %016lx) - os_flags[%s] - flags[%s] - ppn: #%lx", vaddr_begin, vaddr_end, os_flags,
+	            flags, pte.ppn);
 }
 
 // ========================================
@@ -106,9 +147,11 @@ error_t page_table_create(page_table_entry_t* page_tableOUT) {
 }
 
 error_t page_table_destroy(page_table_entry_t* page_table) {
-	if (page_table->flags & PTEF_VALID)
+	if (!(page_table->flags & PTEF_VALID))
 		return ERR_NOT_VALID;
-	delete_pte(*page_table);
+	const error_t err = delete_page_table(*page_table);
+	if (err)
+		return err;
 	*page_table = (page_table_entry_t){0};
 	return ERR_NONE;
 }
@@ -122,20 +165,18 @@ error_t page_table_add_entry(const page_table_entry_t* page_table, page_size_t p
 	const char* log_prefix[] = {"kilo", "mega", "giga", "tera", "peta"};
 	KLOGLN_TRACE("Adding a %sframe #%lx to page table with root ppn: #%lx.", log_prefix[ps], entry.ppn,
 	             page_table->ppn);
+
 	KLOG_INDENT_BLOCK_START;
-	u64* current_page = physical_to_effective(ppn_to_phys_addr(page_table->ppn, 0));
+	raw_pte_t* current_page = physical_to_effective(ppn_to_phys_addr(page_table->ppn, 0));
 
 	u8 pt_height = 0;
-	{
-		buffer_t pth_buff = kernel_config_get(KERCFG_PT_HEIGHT);
-		if (!buffer_read_u8(pth_buff, 0, &pt_height)) {
-			KLOGLN_TRACE("Failed to read kernel config.");
-			KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
-		}
+	if (!buffer_read_u8(kernel_config_get(KERCFG_PT_HEIGHT), 0, &pt_height)) {
+		KLOGLN_TRACE("Failed to read kernel config.");
+		KLOG_END_BLOCK_AND_RETURN(ERR_INTERNAL_FAILURE);
 	}
 
 	for (i32 lvl = pt_height - 1; lvl > ps; --lvl) {
-		u64* current_raw_pte = &(current_page[vpn_slice[lvl]]);
+		raw_pte_t* current_raw_pte = &(current_page[vpn_slice[lvl]]);
 		page_table_entry_t current_pte = read_raw_pte(*current_raw_pte);
 		if ((current_pte.flags & PTEF_VALID) == 0) {
 			ppn_t new_ppn = 0;
@@ -145,10 +186,11 @@ error_t page_table_add_entry(const page_table_entry_t* page_table, page_size_t p
 				KLOG_END_BLOCK_AND_RETURN(err);
 			}
 			current_pte.ppn = new_ppn;
-			memset(physical_to_effective(ppn_to_phys_addr(current_pte.ppn, 0)), 0, 0x1000); // 0x1000 = 4kB
+			memset(physical_to_effective(ppn_to_phys_addr(current_pte.ppn, 0)), 0,
+			       page_size_get_in_bytes(PAGE_SIZE_4kB));
 			current_pte.flags = PTEF_VALID;
 			current_pte.flags |= entry.flags & (PTEF_GLOBAL | PTEF_USER);
-			KLOGLN_TRACE("Adding a pointer frame of ppn: #%lx...", new_ppn);
+			KLOGLN_TRACE("Adding a pointer frame of ppn: #%lx at index: %u...", new_ppn, vpn_slice[lvl]);
 			*current_raw_pte = write_raw_pte(current_pte);
 		}
 		current_page = physical_to_effective(ppn_to_phys_addr(current_pte.ppn, 0));
@@ -156,16 +198,53 @@ error_t page_table_add_entry(const page_table_entry_t* page_table, page_size_t p
 	page_table_entry_t target_pte = read_raw_pte(current_page[vpn_slice[ps]]);
 	if (target_pte.flags & PTEF_VALID)
 		KLOG_END_BLOCK_AND_RETURN(ERR_BAD_ARG);
-	KLOGLN_TRACE("Adding a target frame of ppn: #%lx...", entry.ppn);
+	KLOGLN_TRACE("Adding a target frame of ppn: #%lx at index: %u...", entry.ppn, vpn_slice[ps]);
 	current_page[vpn_slice[ps]] = write_raw_pte(entry);
 	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 }
 
-// FIX: This \/ needs implementing
+// This leaves empty pointer pages however I don't think this will create a noticable memory overhead, and will
+// marginally speed-up mapping a region
 error_t page_table_remove_region(page_table_entry_t* root_pte, virt_mem_region_t region) {
-	(void)root_pte;
-	(void)region;
-	return ERR_NOT_IMPLEMENTED;
+	void* current_address = region.addr;
+	while (current_address < region.addr + region.size) {
+		vpn_t vpn = virt_addr_to_vpn(current_address);
+		u16 vpn_slice[5] = {
+		    (vpn >> 9 * 0) & 0x1ff, (vpn >> 9 * 1) & 0x1ff, (vpn >> 9 * 2) & 0x1ff,
+		    (vpn >> 9 * 3) & 0x1ff, (vpn >> 9 * 4) & 0x1ff,
+		};
+		u8 pt_height = 0;
+		if (!buffer_read_u8(kernel_config_get(KERCFG_PT_HEIGHT), 0, &pt_height)) {
+			KLOGLN_TRACE("Failed to read buffer.");
+			return ERR_INTERNAL_FAILURE;
+		}
+
+		if ((root_pte->flags & PTEF_VALID) == 0)
+			return ERR_NOT_VALID;
+		ppn_t current_ppn = root_pte->ppn;
+
+		for (i32 lvl = pt_height - 1; lvl >= 0; --lvl) {
+			raw_pte_t* raw_page_table = physical_to_effective(ppn_to_phys_addr(current_ppn, 0));
+			raw_pte_t* raw_page_table_entry = &raw_page_table[vpn_slice[lvl]];
+			page_table_entry_t pte = read_raw_pte(*raw_page_table_entry);
+
+			if ((pte.flags & PTEF_VALID) == 0)
+				return ERR_NOT_VALID;
+
+			if (is_pte_leaf(pte)) {
+				*raw_page_table_entry = 0;
+				if (!(pte.os_flags & PTEOSF_MAPPED)) {
+					error_t err = phys_mem_free_frame(pte.ppn);
+					if (err)
+						return err;
+				}
+				current_address += page_size_get_in_bytes(lvl);
+				break;
+			}
+			current_ppn = pte.ppn;
+		}
+	}
+	return ERR_NONE;
 }
 
 error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t* paddrOUT) {
@@ -175,12 +254,9 @@ error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t
 	    (vpn >> 9 * 3) & 0x1ff, (vpn >> 9 * 4) & 0x1ff,
 	};
 	u8 pt_height = 0;
-	{
-		buffer_t pth_buffer = kernel_config_get(KERCFG_PT_HEIGHT);
-		if (!buffer_read_u8(pth_buffer, 0, &pt_height)) {
-			KLOGLN_TRACE("Failed to read buffer.");
-			return ERR_INTERNAL_FAILURE;
-		}
+	if (!buffer_read_u8(kernel_config_get(KERCFG_PT_HEIGHT), 0, &pt_height)) {
+		KLOGLN_TRACE("Failed to read buffer.");
+		return ERR_INTERNAL_FAILURE;
 	}
 
 	if ((page_table->flags & PTEF_VALID) == 0)
@@ -188,8 +264,8 @@ error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t
 	ppn_t current_ppn = page_table->ppn;
 
 	for (i32 lvl = pt_height - 1; lvl >= 0; --lvl) {
-		const u64* raw_page_table = physical_to_effective(ppn_to_phys_addr(current_ppn, 0));
-		const u64 raw_page_table_entry = raw_page_table[vpn_slice[lvl]];
+		const raw_pte_t* raw_page_table = physical_to_effective(ppn_to_phys_addr(current_ppn, 0));
+		const raw_pte_t raw_page_table_entry = raw_page_table[vpn_slice[lvl]];
 		page_table_entry_t pte = read_raw_pte(raw_page_table_entry);
 
 		if ((pte.flags & PTEF_VALID) == 0)
@@ -206,16 +282,64 @@ error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t
 			return ERR_NONE;
 		}
 	}
-	return ERR_NOT_VALID;                            // Should never happen (if this happens page table is invalid)
+	return ERR_NOT_VALID; // Should never happen (if this happens page table is invalid)
 }
 
-void page_table_print(page_table_entry_t root_pte) { // FIX: This is awfull and needs a rewrite
-	buffer_t h_buff = {0};
-	h_buff = kernel_config_get(KERCFG_PT_HEIGHT);
-	u8 h = 0;
-	if (!buffer_read_u8(h_buff, 0, &h)) {
-		DEBUG_PRINTF("This is not good\n");
-		return;
+// This returns a bool instead of an error so that one can check if the reason nothing is printing is that this function
+// broke, but since this is mostly for debugging I don't want this code to be responsible for checking if the page table
+// is correct.
+bool page_table_print(page_table_entry_t root_pte) {
+	typedef struct {
+		page_table_entry_t pte;
+		u16 idx;
+		bool printed;
+	} stack_entry_t;
+	u8 pt_height = 0;
+	if (!buffer_read_u8(kernel_config_get(KERCFG_PT_HEIGHT), 0, &pt_height))
+		return false;
+	const size_t stack_size = pt_height + 2;
+	stack_entry_t stack[stack_size];
+	memset(stack, 0, sizeof(stack));
+	u8 stack_end_idx = 0;
+
+	stack[stack_end_idx++] = (stack_entry_t){
+	    .pte = root_pte,
+	    .idx = 0,
+	    .printed = false,
+	};
+
+	while (stack_end_idx != 0) {
+		if (stack_end_idx >= stack_size - 1)
+			return false;
+		stack_entry_t* stack_back = &stack[stack_end_idx - 1];
+		if (!(stack_back->pte.flags & PTEF_VALID)) {
+			--stack_end_idx;
+			continue;
+		}
+		if (stack_back->idx >= 512) {
+			--stack_end_idx;
+			continue;
+		}
+		if (!stack_back->printed) {
+			u16 vaddr_slice[5];
+			memset(vaddr_slice, 0, sizeof(vaddr_slice));
+			for (u8 i = 0; i < stack_end_idx - 1; ++i) {
+				vaddr_slice[pt_height - 1 - i] = stack[i].idx - 1;
+			}
+			print_pte(stack_back->pte, stack_end_idx - 1, pt_height, vaddr_slice);
+			stack_back->printed = true;
+		}
+		if (is_pte_leaf(stack_back->pte)) {
+			--stack_end_idx;
+		} else {
+			raw_pte_t* page_table = physical_to_effective(ppn_to_phys_addr(stack_back->pte.ppn, 0));
+			page_table_entry_t next_pte = read_raw_pte(page_table[stack_back->idx++]);
+			stack[stack_end_idx++] = (stack_entry_t){
+			    .pte = next_pte,
+			    .idx = 0,
+			    .printed = false,
+			};
+		}
 	}
-	print_pte(root_pte, 0, h, 0);
+	return true;
 }

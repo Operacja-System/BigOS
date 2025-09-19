@@ -91,7 +91,7 @@ error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 #endif
 	KLOGLN_TRACE("Adding a region to address space");
 	KLOG_INDENT_BLOCK_START;
-	// This is not created in address_space_create so that empty address spaces wont have memory overhead
+	// This is not created in address_space_create so that empty address spaces won't have memory overhead
 	if (!ash->valid) {
 		ppn_t ppn = 0;
 		error_t err = phys_mem_alloc_frame(PAGE_SIZE_4kB, &ppn);
@@ -112,6 +112,9 @@ error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 	flags |= PTEF_USER * region.user;
 	flags |= PTEF_GLOBAL * region.global;
 
+	u8 os_flags = 0;
+	os_flags |= PTEOSF_MAPPED * region.mapped;
+
 	const u64 delta_size = page_size_get_in_bytes(region.ps);
 	const u8 root_flags = PTEF_VALID | ((int)(ash->global) ? PTEF_GLOBAL : 0) | ((int)(ash->user) ? PTEF_USER : 0);
 	const page_table_entry_t root_pte = {.flags = root_flags, .os_flags = 0, .ppn = ash->root_pte, .pbmt = 0, .N = 0};
@@ -131,7 +134,7 @@ error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		}
 		page_table_entry_t new_entry = {
 		    .flags = flags,
-		    .os_flags = 0,
+		    .os_flags = os_flags,
 		    .ppn = ppn,
 		    .pbmt = 0,
 		    .N = 0,
@@ -142,6 +145,27 @@ error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		curr_addr += delta_size;
 	}
 	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
+}
+
+error_t address_space_remove_region(as_handle_t* ash, virt_mem_region_t region) {
+	u8 flags = PTEF_VALID;
+	flags |= PTEF_READ * region.read;
+	flags |= PTEF_WRITE * region.write;
+	flags |= PTEF_EXECUTE * region.execute;
+	flags |= PTEF_USER * region.user;
+	flags |= PTEF_GLOBAL * region.global;
+
+	u8 os_flags = 0;
+	os_flags |= PTEOSF_MAPPED * region.mapped;
+
+	page_table_entry_t root_pte = {
+		.N = 0,
+		.pbmt = 0,
+		.flags = flags,
+		.os_flags = os_flags,
+		.ppn = ash->root_pte,
+	};
+	return page_table_remove_region(&root_pte, region);
 }
 
 error_t address_space_set_stack_data(as_handle_t* ash, void* stack_start, size_t stack_size) {
@@ -180,7 +204,7 @@ error_t address_space_vaddr_to_paddr(as_handle_t* ash, void* vaddr, phys_addr_t*
 	return page_table_walk(&pte, vaddr, paddrOUT);
 }
 
-void address_space_print_page_table(as_handle_t* ash) {
+void address_space_print_page_table(const as_handle_t* ash) {
 	u8 flags = 0;
 	if (ash->valid)
 		flags |= PTEF_VALID;
@@ -189,7 +213,8 @@ void address_space_print_page_table(as_handle_t* ash) {
 	if (ash->user)
 		flags |= PTEF_USER;
 	page_table_entry_t pte = {.flags = flags, .os_flags = 0, .N = 0, .pbmt = 0, .ppn = ash->root_pte};
-	page_table_print(pte);
+	if(!page_table_print(pte))
+		KLOGLN_WARNING("Page table for asid: %u failed to print", ash->asid);
 }
 
 error_t address_space_set_active(as_handle_t* ash) {

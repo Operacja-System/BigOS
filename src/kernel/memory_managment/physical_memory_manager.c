@@ -298,15 +298,15 @@ error_t phys_mem_free_frame(ppn_t ppn) {
 		return ERR_NOT_INITIALIZED;
 #endif
 
-	ppn -= ram_data.phys_addr >> 12;
+	ppn_t ppn_idx = ppn - (ram_data.phys_addr >> 12);
 
-	const u64 MB_idx = ppn >> 9;
-	const u64 GB_idx = ppn >> 18;
+	const u64 MB_idx = ppn_idx >> 9;
+	const u64 GB_idx = ppn_idx >> 18;
 	u64* kiloframe_bitmap = physical_to_effective(s_kiloframe_bitmap);
 	megaframe_data_t* megaframe_data = physical_to_effective(s_megaframe_data);
 	gigaframe_data_t* gigaframe_data = physical_to_effective(s_gigaframe_data);
-	if (read_bitmap(ppn, kiloframe_bitmap)) {
-		set_bitmap(false, ppn, kiloframe_bitmap);
+	if (read_bitmap(ppn_idx, kiloframe_bitmap)) {
+		set_bitmap(false, ppn_idx, kiloframe_bitmap);
 		++megaframe_data[MB_idx].free_kiloframes;
 		++gigaframe_data[GB_idx].free_kiloframes;
 		if (megaframe_data[MB_idx].free_kiloframes == 512)

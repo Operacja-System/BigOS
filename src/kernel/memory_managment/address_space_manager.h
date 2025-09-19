@@ -32,7 +32,7 @@ error_t address_space_destroy(as_handle_t* ash);
 error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region);
 
 [[nodiscard]]
-error_t address_space_delete_region(as_handle_t* ash, virt_mem_region_t region);
+error_t address_space_remove_region(as_handle_t* ash, virt_mem_region_t region);
 
 [[nodiscard]]
 error_t address_space_resolve_page_fault(as_handle_t* ash, void* fault_addr, bool read, bool write, bool execute);
@@ -49,6 +49,6 @@ error_t address_space_vaddr_to_paddr(as_handle_t* ash, void* vaddr, phys_addr_t*
 [[nodiscard]]
 error_t address_space_set_active(as_handle_t* ash);
 
-void address_space_print_page_table(as_handle_t* ash);
+void address_space_print_page_table(const as_handle_t* ash);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGMENT_ADDRESS_SPACE_MANAGER
