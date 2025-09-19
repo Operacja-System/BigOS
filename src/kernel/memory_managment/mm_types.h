@@ -57,6 +57,6 @@ typedef struct {
 	const char* debug_comment;
 } virt_mem_region_t;
 
-void log_virt_mem_region(virt_mem_region_t* vmr);
+void log_virt_mem_region(const virt_mem_region_t* vmr);
 
 #endif // !BIGOS_KERNEL_MEMORY_MENAGMENT_MM_TYPES

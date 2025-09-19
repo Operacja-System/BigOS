@@ -56,10 +56,6 @@ buffer_t kernel_config_get(kercfg_field_t field) {
 	}
 }
 
-buffer_t kernel_config_read_device_tree(const char* node_path, const char* arg_name) {
-	return (buffer_t){.data = nullptr, .size = 0};
-}
-
 void kernel_config_log() {
 	KLOGLN_NOTE("Kernel config");
 	if (!s_is_set) {

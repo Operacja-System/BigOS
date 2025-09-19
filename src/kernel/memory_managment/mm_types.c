@@ -13,7 +13,7 @@ u64 page_size_get_in_bytes(page_size_t ps) {
 	}
 }
 
-void log_virt_mem_region(virt_mem_region_t* vmr) {
+void log_virt_mem_region(const virt_mem_region_t* vmr) {
 	KLOGLN_NOTE("addr range: %p-%p", vmr->addr, vmr->addr + vmr->size - 1);
 	KLOGLN_NOTE("size: %lu", vmr->size);
 	KLOGLN_NOTE("mapped: %b", vmr->mapped);

@@ -163,8 +163,10 @@ error_t page_table_add_entry(const page_table_entry_t* page_table, page_size_t p
 	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
 }
 
-error_t page_table_remove_region(page_table_entry_t* root_pte,
-                                 virt_mem_region_t region) { // FIX: This needs implementing
+// FIX: This \/ needs implementing
+error_t page_table_remove_region(page_table_entry_t* root_pte, virt_mem_region_t region) {
+	(void)root_pte;
+	(void)region;
 	return ERR_NOT_IMPLEMENTED;
 }
 

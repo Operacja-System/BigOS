@@ -8,7 +8,5 @@ set_target_properties(example_machine
 
 target_link_libraries(example_machine PRIVATE Debug)
 
-target_link_libraries(example_machine PRIVATE drivers)
-
 COMPILE_BINARY(example_machine)
 ADD_QEMU_TARGET(example_machine BIOS_IMAGE)
