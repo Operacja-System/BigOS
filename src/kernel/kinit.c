@@ -189,11 +189,13 @@
 	IF_ANY_ERR_LOG_AND_PANIC(err, "Updating kernel address space");
 
 	KLOGLN_NOTE("Kernel initialization complete. Enabling virtual memory...");
-	virt_mem_set_satp(max_asid, kercfg.target_vms, kernel_ash.root_pte);
-	virt_mem_flush_TLB();
+	err = address_space_set_active(&kernel_ash);
+	IF_ANY_ERR_LOG_AND_PANIC(err, "Setting kernel address space as active");
 	KLOGLN_NOTE("Virtual memory online. Jumping to kernel...");
+
 	// TODO: Kernel should jump to a higher address space before jumping to main
 	// TODO: Kernel identy mapping should be deleted here (after this /\)
+
 	kmain();
 
 	KLOGLN_ERROR("kmain returned. This should never happen!");

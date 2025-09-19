@@ -14,8 +14,6 @@
 //				  Private
 // ========================================
 
-static constexpr u32 pt_entries_amount = 512;
-
 static page_table_entry_t read_raw_pte(u64 raw_pte) {
 	const page_table_entry_t pte = {
 	    .flags = raw_pte & 0xff,

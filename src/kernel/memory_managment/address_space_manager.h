@@ -46,6 +46,9 @@ error_t address_space_set_heap_data(as_handle_t* ash, void* heap_start, size_t h
 [[nodiscard]]
 error_t address_space_vaddr_to_paddr(as_handle_t* ash, void* vaddr, phys_addr_t* paddrOUT);
 
+[[nodiscard]]
+error_t address_space_set_active(as_handle_t* ash);
+
 void address_space_print_page_table(as_handle_t* ash);
 
 #endif // !BIGOS_KERNEL_MEMORY_MANAGMENT_ADDRESS_SPACE_MANAGER

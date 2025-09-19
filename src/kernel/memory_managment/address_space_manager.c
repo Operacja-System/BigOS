@@ -3,6 +3,7 @@
 #include <stdbigos/buffer.h>
 #include <stdbigos/string.h>
 
+#include "kernel_config.h"
 #include "klog.h"
 #include "memory_managment/mm_types.h"
 #include "memory_managment/page_table.h"
@@ -189,4 +190,14 @@ void address_space_print_page_table(as_handle_t* ash) {
 		flags |= PTEF_USER;
 	page_table_entry_t pte = {.flags = flags, .os_flags = 0, .N = 0, .pbmt = 0, .ppn = ash->root_pte};
 	page_table_print(pte);
+}
+
+error_t address_space_set_active(as_handle_t* ash) {
+	kerconf_virtual_memory_scheme_t tvms = 0;
+	buffer_t kerbuf = kernel_config_get(KERCFG_TARGET_VMS);
+	if (!buffer_read_u8(kerbuf, 0, &tvms))
+		return ERR_INTERNAL_FAILURE;
+	virt_mem_set_satp(s_max_asid, tvms, ash->root_pte);
+	address_space_verify_asid(ash); // Flushes TLB if needed
+	return ERR_NONE;
 }
