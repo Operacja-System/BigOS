@@ -12,7 +12,7 @@
 
 static u16 s_max_asid = 0;
 static u16 s_next_asid = 0;
-static u64 s_generation = 0;
+static u64 s_generation = 1;
 
 #ifdef __DEBUG__
 static bool s_is_init = false;
@@ -23,6 +23,7 @@ static bool s_is_init = false;
 // Necessary after every change in the address space (manages TBL)
 static void address_space_update_asid(as_handle_t* ash) {
 	ash->asid = s_next_asid++;
+	ash->generation = s_generation;
 	if (ash->asid > s_max_asid || ash->asid == 0) {
 		s_next_asid = 0;
 		ash->asid = s_next_asid++;
@@ -56,7 +57,7 @@ error_t address_space_managment_init(u16 max_asid) {
 error_t address_space_create(as_handle_t* ashOUT, bool user, bool global) {
 #ifdef __DEBUG__
 	if (!s_is_init)
-		return ERR_NOT_INITIALIZED;
+		KLOG_TRACE_ERROR_RETURN(ERR_NOT_INITIALIZED);
 #endif
 	ashOUT->valid = false;
 	ashOUT->user = user;
@@ -70,7 +71,7 @@ error_t address_space_create(as_handle_t* ashOUT, bool user, bool global) {
 error_t address_space_destroy(as_handle_t* ash) {
 #ifdef __DEBUG__
 	if (!s_is_init)
-		return ERR_NOT_INITIALIZED;
+		KLOG_TRACE_ERROR_RETURN(ERR_NOT_INITIALIZED);
 #endif
 	page_table_entry_t pte = {0};
 	pte.ppn = ash->root_pte;
@@ -79,7 +80,7 @@ error_t address_space_destroy(as_handle_t* ash) {
 	pte.flags = PTEF_VALID;
 	const error_t err = page_table_destroy(&pte);
 	if (err)
-		return err;
+		KLOG_TRACE_ERROR_RETURN(err);
 	*ash = (as_handle_t){.asid = 0, .root_pte = 0, .valid = false, .global = false, .user = false};
 	return ERR_NONE;
 }
@@ -87,7 +88,7 @@ error_t address_space_destroy(as_handle_t* ash) {
 error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 #ifdef __DEBUG__
 	if (!s_is_init)
-		return ERR_NOT_INITIALIZED;
+		KLOG_TRACE_ERROR_RETURN(ERR_NOT_INITIALIZED);
 #endif
 	KLOGLN_TRACE("Adding a region to address space");
 	KLOG_INDENT_BLOCK_START;
@@ -97,7 +98,7 @@ error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		error_t err = phys_mem_alloc_frame(PAGE_SIZE_4kB, &ppn);
 		if (err) {
 			KLOGLN_TRACE("Failed to allocate a frame for the root page");
-			KLOG_END_BLOCK_AND_RETURN(err);
+			KLOG_TRACE_ERROR_RETURN_AND_END_BLOCK(err);
 		}
 		void* page_table_page = physical_to_effective(ppn_to_phys_addr(ppn, 0));
 		memset(page_table_page, 0, page_size_get_in_bytes(PAGE_SIZE_4kB));
@@ -130,7 +131,7 @@ error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		} else {
 			error_t err = phys_mem_alloc_frame(region.ps, &ppn);
 			if (err)
-				KLOG_END_BLOCK_AND_RETURN(err);
+				KLOG_TRACE_ERROR_RETURN_AND_END_BLOCK(err);
 		}
 		page_table_entry_t new_entry = {
 		    .flags = flags,
@@ -141,7 +142,7 @@ error_t address_space_add_region(as_handle_t* ash, virt_mem_region_t region) {
 		};
 		error_t err = page_table_add_entry(&root_pte, region.ps, virt_addr_to_vpn(curr_addr), new_entry);
 		if (err)
-			KLOG_END_BLOCK_AND_RETURN(err);
+			KLOG_TRACE_ERROR_RETURN_AND_END_BLOCK(err);
 		curr_addr += delta_size;
 	}
 	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
@@ -159,19 +160,22 @@ error_t address_space_remove_region(as_handle_t* ash, virt_mem_region_t region) 
 	os_flags |= PTEOSF_MAPPED * region.mapped;
 
 	page_table_entry_t root_pte = {
-		.N = 0,
-		.pbmt = 0,
-		.flags = flags,
-		.os_flags = os_flags,
-		.ppn = ash->root_pte,
+	    .N = 0,
+	    .pbmt = 0,
+	    .flags = flags,
+	    .os_flags = os_flags,
+	    .ppn = ash->root_pte,
 	};
-	return page_table_remove_region(&root_pte, region);
+	error_t err = page_table_remove_region(&root_pte, region);
+	if (err)
+		KLOG_TRACE_ERROR_RETURN(err);
+	return ERR_NONE;
 }
 
 error_t address_space_set_stack_data(as_handle_t* ash, void* stack_start, size_t stack_size) {
 #ifdef __DEBUG__
 	if (!s_is_init)
-		return ERR_NOT_INITIALIZED;
+		KLOG_TRACE_ERROR_RETURN(ERR_NOT_INITIALIZED);
 #endif
 	vpn_t stack_end_vpn = ((vpn_t)stack_start - stack_size) >> 12;
 	ash->stack_top_page = stack_end_vpn;
@@ -181,7 +185,7 @@ error_t address_space_set_stack_data(as_handle_t* ash, void* stack_start, size_t
 error_t address_space_set_heap_data(as_handle_t* ash, void* heap_start, size_t heap_size) {
 #ifdef __DEBUG__
 	if (!s_is_init)
-		return ERR_NOT_INITIALIZED;
+		KLOG_TRACE_ERROR_RETURN(ERR_NOT_INITIALIZED);
 #endif
 	vpn_t heap_end_vpn = ((vpn_t)heap_start + heap_size) >> 12;
 	ash->heap_top_page = heap_end_vpn;
@@ -190,7 +194,7 @@ error_t address_space_set_heap_data(as_handle_t* ash, void* heap_start, size_t h
 
 error_t address_space_vaddr_to_paddr(as_handle_t* ash, void* vaddr, phys_addr_t* paddrOUT) {
 	if (!ash->valid)
-		return ERR_NOT_VALID;
+		KLOG_TRACE_ERROR_RETURN(ERR_NOT_VALID);
 	u8 flags = 0;
 	flags |= PTEF_VALID * ash->valid;
 	flags |= PTEF_GLOBAL * ash->global;
@@ -201,7 +205,10 @@ error_t address_space_vaddr_to_paddr(as_handle_t* ash, void* vaddr, phys_addr_t*
 	    .N = 0,
 	    .pbmt = 0,
 	};
-	return page_table_walk(&pte, vaddr, paddrOUT);
+	error_t err = page_table_walk(&pte, vaddr, paddrOUT);
+	if (err)
+		KLOG_TRACE_ERROR_RETURN(err);
+	return ERR_NONE;
 }
 
 void address_space_print_page_table(const as_handle_t* ash) {
@@ -213,7 +220,7 @@ void address_space_print_page_table(const as_handle_t* ash) {
 	if (ash->user)
 		flags |= PTEF_USER;
 	page_table_entry_t pte = {.flags = flags, .os_flags = 0, .N = 0, .pbmt = 0, .ppn = ash->root_pte};
-	if(!page_table_print(pte))
+	if (!page_table_print(pte))
 		KLOGLN_WARNING("Page table for asid: %u failed to print", ash->asid);
 }
 
@@ -221,7 +228,7 @@ error_t address_space_set_active(as_handle_t* ash) {
 	kerconf_virtual_memory_scheme_t tvms = 0;
 	buffer_t kerbuf = kernel_config_get(KERCFG_TARGET_VMS);
 	if (!buffer_read_u8(kerbuf, 0, &tvms))
-		return ERR_INTERNAL_FAILURE;
+		KLOG_TRACE_ERROR_RETURN(ERR_INTERNAL_FAILURE);
 	virt_mem_set_satp(s_max_asid, tvms, ash->root_pte);
 	address_space_verify_asid(ash); // Flushes TLB if needed
 	return ERR_NONE;

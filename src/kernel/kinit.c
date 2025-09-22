@@ -53,7 +53,7 @@
 	u16 max_asid = virt_mem_get_max_asid();
 	err = address_space_managment_init(max_asid);
 	IF_ANY_ERR_LOG_AND_PANIC(err, "Address space manager initialization");
-	KLOGLN_NOTE("Address space manager initialized");
+	KLOGLN_NOTE("Address space manager initialized (max asid: %u)", max_asid);
 
 	u8 as_bits = 0;
 	buffer_t as_bits_buffer = kernel_config_get(KERCFG_ADDRESS_SPACE_BITS);
@@ -193,9 +193,11 @@
 	KLOGLN_NOTE("Kernel initialization complete. Enabling virtual memory...");
 	err = address_space_set_active(&kernel_ash);
 	IF_ANY_ERR_LOG_AND_PANIC(err, "Setting kernel address space as active");
+	virt_mem_flush_TLB(); // Needed only the first time address space is set active
 	KLOGLN_NOTE("Virtual memory online. Jumping to kernel...");
 
 	// TODO: Kernel should jump to a higher address space before jumping to main
+	halt(); // Until kernel jump is not implemented this \/ will break
 	err = address_space_remove_region(&kernel_ash, kernel_address_space_regions[5]);
 	IF_ANY_ERR_LOG_AND_PANIC(err, "Destruction of kernel address space");
 

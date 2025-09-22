@@ -44,7 +44,7 @@ static inline bool is_pte_leaf(page_table_entry_t pte) {
 	return (pte.flags & (PTEF_READ | PTEF_WRITE | PTEF_EXECUTE)) != 0;
 }
 
-[[nodiscard]]
+[[nodiscard]] [[maybe_unused]]
 static bool is_pointer_pt_empty(page_table_entry_t pte) {
 	raw_pte_t* raw_page_table = physical_to_effective(ppn_to_phys_addr(pte.ppn, 0));
 	for (u16 i = 0; i < 512; ++i) {
@@ -63,7 +63,7 @@ static error_t delete_page_table(page_table_entry_t root_pte) {
 	} stack_entry_t;
 	u8 pt_height = 0;
 	if (!buffer_read_u8(kernel_config_get(KERCFG_PT_HEIGHT), 0, &pt_height))
-		return ERR_INTERNAL_FAILURE;
+		KLOG_TRACE_ERROR_RETURN(ERR_INTERNAL_FAILURE);
 	const size_t stack_size = pt_height + 2;
 	stack_entry_t stack[stack_size];
 	memset(stack, 0, sizeof(stack));
@@ -76,7 +76,8 @@ static error_t delete_page_table(page_table_entry_t root_pte) {
 
 	while (stack_end_idx != 0) {
 		if (stack_end_idx >= stack_size - 1)
-			return ERR_BAD_ARG; // This may leave dangling pages, but if this happened the page table is broken anyways
+			KLOG_TRACE_ERROR_RETURN(
+			    ERR_BAD_ARG); // This may leave dangling pages, but if this happened the page table is broken anyways
 		stack_entry_t* stack_back = &stack[stack_end_idx - 1];
 		if (!(stack_back->pte.flags & PTEF_VALID)) {
 			--stack_end_idx;
@@ -85,7 +86,7 @@ static error_t delete_page_table(page_table_entry_t root_pte) {
 		if (stack_back->idx >= 512) {
 			const error_t err = phys_mem_free_frame(stack_back->pte.ppn);
 			if (err)
-				return ERR_INTERNAL_FAILURE;
+				KLOG_TRACE_ERROR_RETURN(ERR_INTERNAL_FAILURE);
 			--stack_end_idx;
 			continue;
 		}
@@ -93,7 +94,7 @@ static error_t delete_page_table(page_table_entry_t root_pte) {
 			if (!(stack_back->pte.os_flags & PTEOSF_MAPPED)) {
 				const error_t err = phys_mem_free_frame(stack_back->pte.ppn);
 				if (err)
-					return ERR_INTERNAL_FAILURE;
+					KLOG_TRACE_ERROR_RETURN(ERR_INTERNAL_FAILURE);
 			}
 			--stack_end_idx;
 		} else {
@@ -148,10 +149,10 @@ error_t page_table_create(page_table_entry_t* page_tableOUT) {
 
 error_t page_table_destroy(page_table_entry_t* page_table) {
 	if (!(page_table->flags & PTEF_VALID))
-		return ERR_NOT_VALID;
+		KLOG_TRACE_ERROR_RETURN(ERR_NOT_VALID);
 	const error_t err = delete_page_table(*page_table);
 	if (err)
-		return err;
+		KLOG_TRACE_ERROR_RETURN(err);
 	*page_table = (page_table_entry_t){0};
 	return ERR_NONE;
 }
@@ -181,10 +182,8 @@ error_t page_table_add_entry(const page_table_entry_t* page_table, page_size_t p
 		if ((current_pte.flags & PTEF_VALID) == 0) {
 			ppn_t new_ppn = 0;
 			error_t err = phys_mem_alloc_frame(PAGE_SIZE_4kB, &new_ppn);
-			if (err) {
-				KLOGLN_TRACE("Failed to allocate a frame.");
-				KLOG_END_BLOCK_AND_RETURN(err);
-			}
+			if (err)
+				KLOG_TRACE_ERROR_RETURN_AND_END_BLOCK(err);
 			current_pte.ppn = new_ppn;
 			memset(physical_to_effective(ppn_to_phys_addr(current_pte.ppn, 0)), 0,
 			       page_size_get_in_bytes(PAGE_SIZE_4kB));
@@ -197,7 +196,7 @@ error_t page_table_add_entry(const page_table_entry_t* page_table, page_size_t p
 	}
 	page_table_entry_t target_pte = read_raw_pte(current_page[vpn_slice[ps]]);
 	if (target_pte.flags & PTEF_VALID)
-		KLOG_END_BLOCK_AND_RETURN(ERR_BAD_ARG);
+		KLOG_TRACE_ERROR_RETURN_AND_END_BLOCK(ERR_BAD_ARG);
 	KLOGLN_TRACE("Adding a target frame of ppn: #%lx at index: %u...", entry.ppn, vpn_slice[ps]);
 	current_page[vpn_slice[ps]] = write_raw_pte(entry);
 	KLOG_END_BLOCK_AND_RETURN(ERR_NONE);
@@ -216,11 +215,11 @@ error_t page_table_remove_region(page_table_entry_t* root_pte, virt_mem_region_t
 		u8 pt_height = 0;
 		if (!buffer_read_u8(kernel_config_get(KERCFG_PT_HEIGHT), 0, &pt_height)) {
 			KLOGLN_TRACE("Failed to read buffer.");
-			return ERR_INTERNAL_FAILURE;
+			KLOG_TRACE_ERROR_RETURN(ERR_INTERNAL_FAILURE);
 		}
 
 		if ((root_pte->flags & PTEF_VALID) == 0)
-			return ERR_NOT_VALID;
+			KLOG_TRACE_ERROR_RETURN(ERR_NOT_VALID);
 		ppn_t current_ppn = root_pte->ppn;
 
 		for (i32 lvl = pt_height - 1; lvl >= 0; --lvl) {
@@ -229,14 +228,14 @@ error_t page_table_remove_region(page_table_entry_t* root_pte, virt_mem_region_t
 			page_table_entry_t pte = read_raw_pte(*raw_page_table_entry);
 
 			if ((pte.flags & PTEF_VALID) == 0)
-				return ERR_NOT_VALID;
+				KLOG_TRACE_ERROR_RETURN(ERR_NOT_VALID);
 
 			if (is_pte_leaf(pte)) {
 				*raw_page_table_entry = 0;
 				if (!(pte.os_flags & PTEOSF_MAPPED)) {
 					error_t err = phys_mem_free_frame(pte.ppn);
 					if (err)
-						return err;
+						KLOG_TRACE_ERROR_RETURN(err);
 				}
 				current_address += page_size_get_in_bytes(lvl);
 				break;
@@ -256,11 +255,11 @@ error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t
 	u8 pt_height = 0;
 	if (!buffer_read_u8(kernel_config_get(KERCFG_PT_HEIGHT), 0, &pt_height)) {
 		KLOGLN_TRACE("Failed to read buffer.");
-		return ERR_INTERNAL_FAILURE;
+		KLOG_TRACE_ERROR_RETURN(ERR_INTERNAL_FAILURE);
 	}
 
 	if ((page_table->flags & PTEF_VALID) == 0)
-		return ERR_NOT_VALID;
+		KLOG_TRACE_ERROR_RETURN(ERR_NOT_VALID);
 	ppn_t current_ppn = page_table->ppn;
 
 	for (i32 lvl = pt_height - 1; lvl >= 0; --lvl) {
@@ -269,7 +268,7 @@ error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t
 		page_table_entry_t pte = read_raw_pte(raw_page_table_entry);
 
 		if ((pte.flags & PTEF_VALID) == 0)
-			return ERR_NOT_FOUND;
+			KLOG_TRACE_ERROR_RETURN(ERR_NOT_FOUND);
 
 		current_ppn = pte.ppn;
 		if (is_pte_leaf(pte)) {
@@ -282,7 +281,7 @@ error_t page_table_walk(page_table_entry_t* page_table, void* vaddr, phys_addr_t
 			return ERR_NONE;
 		}
 	}
-	return ERR_NOT_VALID; // Should never happen (if this happens page table is invalid)
+	KLOG_TRACE_ERROR_RETURN(ERR_NOT_VALID); // Should never happen (if this happens page table is invalid)
 }
 
 // This returns a bool instead of an error so that one can check if the reason nothing is printing is that this function
