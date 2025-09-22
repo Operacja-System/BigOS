@@ -1,13 +1,12 @@
 #include "page_table.h"
 
-#include <debug/debug_stdio.h>
 #include <stdbigos/buffer.h>
 #include <stdbigos/string.h>
 
 #include "kernel_config.h"
 #include "klog.h"
-#include "memory_managment/mm_types.h"
-#include "memory_managment/physical_memory_manager.h"
+#include "memory_management/mm_types.h"
+#include "memory_management/physical_memory_manager.h"
 #include "ram_map.h"
 
 // ========================================
@@ -110,9 +109,8 @@ static error_t delete_page_table(page_table_entry_t root_pte) {
 }
 
 static void print_pte(page_table_entry_t pte, u8 depth, u8 pt_height, const u16 vaddr_slice[5]) {
-	dputgap(depth);
 	if (!is_pte_leaf(pte)) {
-		KLOGLN_NOTE("Pointer page - ppn: #%lx", pte.ppn);
+		KLOGLN_INDENTED_NOTE(depth, "Pointer page - ppn: #%lx", pte.ppn);
 		return;
 	}
 	u64 vaddr_begin = ((u64)vaddr_slice[4] & 0x1ff) << (9 * 4) | ((u64)vaddr_slice[3] & 0x1ff) << (9 * 3) |

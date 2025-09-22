@@ -2,10 +2,10 @@
 
 #include "kernel_config.h"
 #include "klog.h"
-#include "memory_managment/address_space_manager.h"
-#include "memory_managment/mm_types.h"
-#include "memory_managment/physical_memory_manager.h"
-#include "memory_managment/virtual_memory_managment.h"
+#include "memory_management/address_space_manager.h"
+#include "memory_management/mm_types.h"
+#include "memory_management/physical_memory_manager.h"
+#include "memory_management/virtual_memory_manager.h"
 #include "power.h"
 #include "ram_map.h"
 
@@ -17,10 +17,10 @@
 		}                                                                               \
 	} while (0)
 
-[[noreturn]] extern void kmain();
+[[noreturn]] extern void kmain(as_handle_t kernel_ash);
 
 [[noreturn]] void kinit([[maybe_unused]] volatile u64 boot_hartid, volatile phys_addr_t device_tree) {
-	KLOGLN_NOTE("Begining kernel initialization");
+	KLOGLN_NOTE("Beginning kernel initialization");
 
 	kernel_config_t kercfg = {0};
 	phys_addr_t ram_start = 0x80000000;                            // TODO: Read from DT
@@ -48,10 +48,10 @@
 	phys_buffer_t phys_buffer = (phys_buffer_t){.count = 1, .regions = &kreg};
 	err = phys_mem_init(phys_buffer);
 	IF_ANY_ERR_LOG_AND_PANIC(err, "Physical memory manager initialization");
-	KLOGLN_NOTE("Phisical memory manager initialized");
+	KLOGLN_NOTE("Physical memory manager initialized");
 
 	u16 max_asid = virt_mem_get_max_asid();
-	err = address_space_managment_init(max_asid);
+	err = address_space_manager_init(max_asid);
 	IF_ANY_ERR_LOG_AND_PANIC(err, "Address space manager initialization");
 	KLOGLN_NOTE("Address space manager initialized (max asid: %u)", max_asid);
 
@@ -148,8 +148,8 @@
 	                        },
 	    (virt_mem_region_t){
 	                        .addr = (void*)0x0,
-	                        .size = ram_data.phys_addr + ram_data.size,
-	                        .mapped = true,
+	                        .size = ram_data.phys_addr + ram_data.size, // TODO: Read this from dt in some smart way
+ .mapped = true,
 	                        .map_region = physical_address_space,
 	                        .ps = PAGE_SIZE_1GB,
 	                        .global = true,
@@ -201,7 +201,7 @@
 	err = address_space_remove_region(&kernel_ash, kernel_address_space_regions[5]);
 	IF_ANY_ERR_LOG_AND_PANIC(err, "Destruction of kernel address space");
 
-	kmain();
+	kmain(kernel_ash);
 
 	KLOGLN_ERROR("kmain returned. This should never happen!");
 	halt(); // TODO: Panic

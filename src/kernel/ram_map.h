@@ -1,9 +1,10 @@
 #ifndef BIGOS_KERNEL_RAM_MAP
 #define BIGOS_KERNEL_RAM_MAP
 
+#include <stdbigos/error.h>
 #include <stdbigos/types.h>
 
-#include "memory_managment/physical_memory_manager.h"
+#include "memory_management/mm_types.h"
 
 typedef struct {
 	void* addr;

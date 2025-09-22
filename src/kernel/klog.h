@@ -11,26 +11,28 @@ typedef enum {
 void klog_indent_increase();
 void klog_indent_decrease();
 
-[[gnu::format(printf, 2, 3)]]
-void klog(klog_severity_level_t loglvl, const char* fmt, ...);
+[[gnu::format(printf, 3, 4)]]
+void klog(klog_severity_level_t loglvl, unsigned int depth, const char* fmt, ...);
 
-[[gnu::format(printf, 2, 3)]]
-void klogln(klog_severity_level_t loglvl, const char* fmt, ...);
+[[gnu::format(printf, 3, 4)]]
+void klogln(klog_severity_level_t loglvl, unsigned int depth, const char* fmt, ...);
 
-#define KLOG_ERROR(fmt, ...) klog(KLSL_ERROR, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define KLOG_ERROR(fmt, ...) klog(KLSL_ERROR, 0, fmt __VA_OPT__(, ) __VA_ARGS__)
 #define __LOG_ERROR__
-#define KLOGLN_ERROR(fmt, ...) klogln(KLSL_ERROR, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define KLOGLN_ERROR(fmt, ...) klogln(KLSL_ERROR, 0, fmt __VA_OPT__(, ) __VA_ARGS__)
 #if __LOGLVL__ >= 1
-	#define KLOG_WARNING(fmt, ...)   klog(KLSL_WARNING, fmt __VA_OPT__(, ) __VA_ARGS__)
-	#define KLOGLN_WARNING(fmt, ...) klogln(KLSL_WARNING, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOG_WARNING(fmt, ...)   klog(KLSL_WARNING, 0, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOGLN_WARNING(fmt, ...) klogln(KLSL_WARNING, 0, fmt __VA_OPT__(, ) __VA_ARGS__)
 	#define __LOG_WARNING__
 #else
 	#define KLOG_WARNING(fmt, ...)
 	#define KLOGLN_WARNING(fmt, ...)
 #endif
 #if __LOGLVL__ >= 2
-	#define KLOG_NOTE(fmt, ...)   klog(KLSL_NOTE, fmt __VA_OPT__(, ) __VA_ARGS__)
-	#define KLOGLN_NOTE(fmt, ...) klogln(KLSL_NOTE, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOG_NOTE(fmt, ...)                   klog(KLSL_NOTE, 0, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOGLN_NOTE(fmt, ...)                 klogln(KLSL_NOTE, 0, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOG_INDENTED_NOTE(depth, fmt, ...)   klogln(KLSL_NOTE, depth, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOGLN_INDENTED_NOTE(depth, fmt, ...) klogln(KLSL_NOTE, depth, fmt __VA_OPT__(, ) __VA_ARGS__)
 	#define __ENABLE_LOG_INDENT__
 	#define __LOG_NOTE__
 #else
@@ -38,8 +40,10 @@ void klogln(klog_severity_level_t loglvl, const char* fmt, ...);
 	#define KLOGLN_NOTE(fmt, ...)
 #endif
 #if __LOGLVL__ >= 3
-	#define KLOG_TRACE(fmt, ...)   klog(KLSL_TRACE, fmt __VA_OPT__(, ) __VA_ARGS__)
-	#define KLOGLN_TRACE(fmt, ...) klogln(KLSL_TRACE, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOG_TRACE(fmt, ...)                   klog(KLSL_TRACE, 0, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOGLN_TRACE(fmt, ...)                 klogln(KLSL_TRACE, 0, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOG_INDENTED_TRACE(depth, fmt, ...)   klogln(KLSL_TRACE, depth, fmt __VA_OPT__(, ) __VA_ARGS__)
+	#define KLOGLN_INDENTED_TRACE(depth, fmt, ...) klogln(KLSL_TRACE, depth, fmt __VA_OPT__(, ) __VA_ARGS__)
 	#define KLOG_TRACE_ERROR_RETURN(err)                                          \
 		do {                                                                      \
 			KLOGLN_TRACE("Returned error: %u at %s:%u", err, __FILE__, __LINE__); \

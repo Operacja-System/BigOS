@@ -1,13 +1,14 @@
-#include "memory_managment/address_space_manager.h"
+#include "address_space_manager.h"
 
-#include <stdbigos/buffer.h>
+#include <stdbigos/error.h>
 #include <stdbigos/string.h>
+#include <stdbigos/types.h>
 
 #include "kernel_config.h"
 #include "klog.h"
-#include "memory_managment/mm_types.h"
-#include "memory_managment/page_table.h"
-#include "memory_managment/virtual_memory_managment.h"
+#include "memory_management/page_table.h"
+#include "memory_management/physical_memory_manager.h"
+#include "memory_management/virtual_memory_manager.h"
 #include "ram_map.h"
 
 static u16 s_max_asid = 0;
@@ -46,7 +47,7 @@ static inline void address_space_verify_asid(as_handle_t* ash) {
 
 /// Public
 
-error_t address_space_managment_init(u16 max_asid) {
+error_t address_space_manager_init(u16 max_asid) {
 	s_max_asid = max_asid;
 #ifdef __DEBUG__
 	s_is_init = true;

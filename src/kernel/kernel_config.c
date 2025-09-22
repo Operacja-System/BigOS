@@ -1,7 +1,8 @@
 #include "kernel_config.h"
 
-#include <debug/debug_stdio.h>
-#include <drivers/dt/dt.h>
+#include <stdbigos/buffer.h>
+#include <stdbigos/error.h>
+#include <stdbigos/types.h>
 
 #include "klog.h"
 #include "ram_map.h"
@@ -72,7 +73,7 @@ void kernel_config_log() {
 	}
 	KLOGLN_NOTE("MODE:\t%u", s_kercfg.mode);
 	KLOGLN_NOTE("MACHINE:\triscv");
-	KLOGLN_NOTE("ENDIANNES:\t%s", (s_kercfg.cpu_endian == 1) ? "little" : "big");
+	KLOGLN_NOTE("ENDIANNESS:\t%s", (s_kercfg.cpu_endian == 1) ? "little" : "big");
 	KLOGLN_NOTE("TARGET VMS:\t%s", target_vms);
 	KLOGLN_NOTE("PT HEIGHT:\t%u", s_pt_height);
 	KLOGLN_NOTE("DT ADDR:\t0x%lx", s_kercfg.device_tree_phys_addr);

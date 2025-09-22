@@ -2,7 +2,6 @@
 #define BIGOS_KERNEL_MEMORY_MANAGMENT_ADDRESS_SPACE_MANAGER
 
 #include <stdbigos/error.h>
-#include <stdbigos/types.h>
 
 #include "mm_types.h"
 
@@ -20,7 +19,7 @@ typedef struct {
 } as_handle_t;
 
 [[nodiscard]]
-error_t address_space_managment_init(u16 max_asid);
+error_t address_space_manager_init(u16 max_asid);
 
 [[nodiscard]]
 error_t address_space_create(as_handle_t* ashOUT, bool user, bool global);

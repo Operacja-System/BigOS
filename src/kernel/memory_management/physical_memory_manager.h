@@ -2,7 +2,6 @@
 #define BIGOS_KERNEL_MEMORY_MANAGER_PMM
 
 #include <stdbigos/error.h>
-#include <stdbigos/types.h>
 
 #include "mm_types.h"
 

@@ -1,4 +1,4 @@
-#include "virtual_memory_managment.h"
+#include "virtual_memory_manager.h"
 
 #include <stdbigos/csr.h>
 

@@ -1,5 +1,5 @@
-#ifndef BIGOS_KERNEL_MEMORY_MENAGMENT_MM_TYPES
-#define BIGOS_KERNEL_MEMORY_MENAGMENT_MM_TYPES
+#ifndef BIGOS_KERNEL_MEMORY_MANAGMENT_MM_TYPES
+#define BIGOS_KERNEL_MEMORY_MANAGMENT_MM_TYPES
 
 #include <stdbigos/types.h>
 
@@ -59,4 +59,4 @@ typedef struct {
 
 void log_virt_mem_region(const virt_mem_region_t* vmr);
 
-#endif // !BIGOS_KERNEL_MEMORY_MENAGMENT_MM_TYPES
+#endif // !BIGOS_KERNEL_MEMORY_MANAGMENT_MM_TYPES

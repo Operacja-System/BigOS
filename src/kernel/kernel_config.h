@@ -2,9 +2,8 @@
 #define BIGOS_KERNEL_KERNEL_CONFIG
 
 #include <stdbigos/buffer.h>
-#include <stdbigos/types.h>
 
-#include "memory_managment/mm_types.h"
+#include "memory_management/mm_types.h"
 
 typedef enum : u8 {
 	KC_MODE_32 = 32,
