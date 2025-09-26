@@ -5,6 +5,7 @@
 [[noreturn]] void kmain(as_handle_t kernel_ash) {
 	(void)kernel_ash;
 
+#ifdef __DEBUG__
 	dprintf(" ____  _        ____   _____ \n");
 	dprintf("|  _ \\(_)      / __ \\ / ____|\n");
 	dprintf("| |_) |_  __ _| |  | | (___  \n");
@@ -13,5 +14,6 @@
 	dprintf("|____/|_|\\__, |\\____/|_____/ \n");
 	dprintf("          __/ |              \n");
 	dprintf("         |___/               \n");
+#endif
 	halt();
 }

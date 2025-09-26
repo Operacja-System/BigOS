@@ -15,6 +15,7 @@ void klog_indent_decrease() {
 }
 
 void klog(klog_severity_level_t loglvl, unsigned int depth, const char* fmt, ...) {
+#ifdef __DEBUG__
 	dputgap(depth);
 	static const char* prefixes[] = {"[ERROR]", "[WARNING]", "[ ]", "[~]"};
 	va_list args;
@@ -23,9 +24,15 @@ void klog(klog_severity_level_t loglvl, unsigned int depth, const char* fmt, ...
 	dprintf("%s ", prefixes[loglvl]);
 	dvprintf(fmt, args);
 	va_end(args);
+#else
+	(void)loglvl;
+	(void)depth;
+	(void)fmt;
+#endif
 }
 
 void klogln(klog_severity_level_t loglvl, unsigned int depth, const char* fmt, ...) {
+#ifdef __DEBUG__
 	dputgap(depth);
 	static const char* prefixes[] = {"[ERROR]", "[WARNING]", "[ ]", "[~]"};
 	va_list args;
@@ -35,4 +42,9 @@ void klogln(klog_severity_level_t loglvl, unsigned int depth, const char* fmt, .
 	dvprintf(fmt, args);
 	dputc('\n');
 	va_end(args);
+#else
+	(void)loglvl;
+	(void)depth;
+	(void)fmt;
+#endif
 }
