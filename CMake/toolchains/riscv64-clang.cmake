@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 if(RISCV_CLANG_TOOLCHAIN_INCLUDED)
-  return()
+    return()
 endif()
 set(RISCV_CLANG_TOOLCHAIN_INCLUDED TRUE)
 

@@ -19,6 +19,7 @@ EXT - Extended File System (ext2, ext3, ext4)
 f32 - single-precision, 32-bit IEEE 754 floating-point representation  
 f64 - double-precision, 64-bit IEEE 754 floating-point representation  
 FAT - File Allocation Table  
+FS - File System
 
 ## G
 GUI - Graphical User Interface  
@@ -29,6 +30,9 @@ i32 - 32-bit signed integer
 i64 - 64-bit signed integer  
 i8 - 8-bit signed integer  
 Inx - Index  
+
+## K
+Kompot - VFS FS Server Communication Protocoll  
 
 ## M
 Max - Maximum  
