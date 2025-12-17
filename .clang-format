@@ -39,7 +39,7 @@ AlignConsecutiveShortCaseStatements:
 AlignEscapedNewlines: LeftWithLastLine
 AlignTrailingComments:
   Kind: Always
-  OverEmptyLines: 2
+  OverEmptyLines: 1
 AlignArrayOfStructures: Right
 # ---
 BreakBeforeBraces: Attach

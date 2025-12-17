@@ -63,10 +63,12 @@ typedef enum : u8 {
 
 #define KLOG_DO_RETURN(ret, flag)                                                   \
 	do {                                                                            \
-		if ((flag) & KLRF_END_BLOCK)                                                \
+		if ((flag) & KLRF_END_BLOCK) {                                              \
 			KLOG_INDENT_BLOCK_END;                                                  \
-		if ((flag) & KLRF_TRACE_ERR)                                                \
+		}                                                                           \
+		if ((flag) & KLRF_TRACE_ERR) {                                              \
 			KLOGLN_TRACE("Returned error: %u at %s:%u", (ret), __FILE__, __LINE__); \
+		}                                                                           \
 		return (ret);                                                               \
 	} while (0)
 
