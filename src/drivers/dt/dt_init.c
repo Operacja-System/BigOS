@@ -4,6 +4,7 @@
 #include <stdbigos/types.h>
 
 #include "dt_alloc.h"
+#include "dt_defines.h"
 #include "dt_node.h"
 #include "dt_parser.h"
 
@@ -21,20 +22,6 @@ void dt_cleanup(void) {
 	root_node = nullptr;
 }
 
-#define FDT_MAGIC                 0xd00dfeed
-#define FDT_OFF_MAGIC             0x00
-#define FDT_OFF_TOTAL_SIZE        0x04
-#define FDT_OFF_OFF_DT_STRUCT     0x08
-#define FDT_OFF_OFF_DT_STRINGS    0x0C
-#define FDT_OFF_MEM_RSVMAP        0x10
-#define FDT_OFF_VERSION           0x14
-#define FDT_OFF_LAST_COMP_VERSION 0x18
-#define FDT_OFF_BOOT_CPUID_PHYS   0x1C
-#define FDT_OFF_SIZE_DT_STRINGS   0x20
-#define FDT_OFF_SIZE_DT_STRUCT    0x24
-
-static const u32 fdt_compatible_version = 17;
-
 int dt_init(const void* fdt) {
 	if (!fdt)
 		return -1;
@@ -43,7 +30,7 @@ int dt_init(const void* fdt) {
 	if (magic != FDT_MAGIC)
 		return -1;
 
-	u32 fdt_size = read_be32((u8*)fdt + 4);
+	u32 fdt_size = read_be32((u8*)fdt + FDT_OFF_TOTAL_SIZE);
 
 	buffer_t fdt_buf = make_buffer(fdt, fdt_size);
 
@@ -62,7 +49,7 @@ int dt_init(const void* fdt) {
 	    !buffer_read_u32_be(fdt_buf, FDT_OFF_VERSION, &fdt_version))
 		return -2;
 
-	if (fdt_version > fdt_compatible_version)
+	if (fdt_version > FDT_COMPATIBLE_VERSION)
 		return -3;
 
 	if (struct_off + struct_size > total_size)

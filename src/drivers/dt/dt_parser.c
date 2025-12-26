@@ -7,17 +7,8 @@
 #include <stdbigos/types.h>
 
 #include "dt_alloc.h"
+#include "dt_defines.h"
 #include "dt_node.h"
-
-// FDT token values
-typedef enum : u32 {
-	FDT_BEGIN_NODE = 0x1,
-	FDT_END_NODE = 0x2,
-	FDT_PROP = 0x3,
-	FDT_NOP = 0x4,
-	// Unused/Reserved 0x5 - 0x8
-	FDT_END = 0x9
-} fdt_token_t;
 
 // Function to parse a block of properties starting at props_offset with props_size size in the FDT with fdt
 // being a ptr to the start of the flattened device tree blob
@@ -155,4 +146,4 @@ dt_node_t* parse_subtree(const buffer_t* fdt_buf, u32* offset, u32 max_offset, u
 
 	DEBUG_PRINTF("Invalid FDT structure\n");
 	return nullptr;
-};
+}
