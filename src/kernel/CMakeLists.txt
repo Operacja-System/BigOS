@@ -1,3 +1,5 @@
+add_subdirectory(dt)
+
 SETUP_EXECUTABLE(kernel)
 
 target_compile_definitions(kernel PRIVATE $<IF:$<CONFIG:DEBUG>,__DEBUG__ __LOGLVL__=3, __LOGLVL__=1>)
