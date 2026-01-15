@@ -41,6 +41,10 @@ bool buffer_read_u32_le(buffer_t buf, size_t offset, u32* out);
 [[nodiscard]]
 bool buffer_read_u64_le(buffer_t buf, size_t offset, u64* out);
 
+// Read a zero-terminated C-string from buf at offset and output it's length
+[[nodiscard]]
+bool buffer_read_cstring_len(buffer_t buf, size_t offset, const char** out_str, u64* len);
+
 // Read a zero-terminated C-string from buf at offset
 [[nodiscard]]
 bool buffer_read_cstring(buffer_t buf, size_t offset, const char** out_str);

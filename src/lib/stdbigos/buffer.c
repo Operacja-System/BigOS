@@ -31,7 +31,7 @@ bool buffer_read_u64_le(buffer_t buf, size_t offset, u64* out) {
 	return ok;
 }
 
-bool buffer_read_cstring(buffer_t buf, size_t offset, const char** out_str) {
+bool buffer_read_cstring_len(buffer_t buf, size_t offset, const char** out_str, u64* len) {
 	if (!buffer_is_valid(buf) || !out_str || offset >= buf.size)
 		return false;
 
@@ -43,7 +43,15 @@ bool buffer_read_cstring(buffer_t buf, size_t offset, const char** out_str) {
 
 	// found null
 	*out_str = beg;
+
+	if (len)
+		*len = (u64)((const char*)end - beg);
+
 	return true;
+}
+
+bool buffer_read_cstring(buffer_t buf, size_t offset, const char** out_str) {
+	return buffer_read_cstring_len(buf, offset, out_str, nullptr);
 }
 
 buffer_t buffer_sub_buffer(buffer_t buf, size_t offset, size_t max_size) {
