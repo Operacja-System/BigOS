@@ -23,6 +23,9 @@ FAT - File Allocation Table
 ## G
 GUI - Graphical User Interface  
 
+## H
+HAL - Hardware Abstraction Layer  
+
 ## I
 i16 - 16-bit signed integer  
 i32 - 32-bit signed integer  

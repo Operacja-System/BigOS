@@ -3,17 +3,17 @@
 
 #include <stdbigos/types.h>
 
+// memory_region_t represents a contiguous range of valid, addressable memory.
 typedef struct {
 	void* addr;
 	size_t size;
 } memory_region_t;
-// memory_region_t represents a contiguous range of valid, addressable memory.
 
+// memory_area_t represents a range of memory, which isn't necessarily addressable.
 typedef struct {
 	uintptr_t addr;
 	size_t size;
 } memory_area_t;
-// memory_area_t represents a range of memory, which isn't necessarily addressable.
 
 [[nodiscard]]
 memory_area_t memory_region_get_area(memory_region_t reg);
