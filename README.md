@@ -14,7 +14,7 @@ BigOS is an operating system developed by students at the University of Wrocław
 
 ## Building Quickstart
 
-Complete information about build system can be found in [build system docs](https://Operacja-System.github.io/BigOS/build_system/).  
+Complete information about build system can be found in [build system docs](build_system.md).
 Here is just enough to get you started.
 
 ### Cross-Compiling
@@ -45,8 +45,6 @@ To run the OS in QEMU use one of the targets:
 cmake --build build --target run-<target to run> # ex. run-example_sbi
 # To exit just enter Ctrl+a x
 ```
-
-All available targets are listed in [build system target docs](build_system/targets).
 
 ---
 
