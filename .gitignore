@@ -73,5 +73,7 @@ install/
 # CMake info
 CMakeUserPresets.json
 
-# Github pages data
-site/
+# Doxygen output
+docs/xml/
+# HTML of the sphinx page
+docs/build/

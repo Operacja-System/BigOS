@@ -1,0 +1,37 @@
+name: Build and Deploy Docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen
+          pip install sphinx furo breathe ghp-import
+
+      - name: Run Doxygen
+        run: |
+          doxygen docs/Doxyfile
+
+      - name: Build Sphinx docs
+        run: |
+          make -C docs/ html
+
+      - name: Deploy to GitHub Pages
+        run: |
+          ghp-import -n -p -f docs/build/html
