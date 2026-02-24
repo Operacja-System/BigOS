@@ -1,15 +1,8 @@
-.. BigOS documentation master file, created by
-   sphinx-quickstart on Mon Feb 23 15:27:56 2026.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 BigOS documentation
 ===================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
+Welcome to the **BigOS Documentation**!
+This guide will help you navigate BigOS and understand the core concepts of operating systems.
 
 .. toctree::
     :maxdepth: 2
@@ -20,3 +13,4 @@ documentation for details.
     pages/wiki/index
     pages/bigos/index
     pages/api/index
+    pages/license

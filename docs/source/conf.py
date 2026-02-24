@@ -29,12 +29,16 @@ breathe_default_project = "BigOS"
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'furo'
+html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
-
-html_context = {
-    "display_github": True,
-    "github_user": "YOUR_GITHUB_USERNAME",
-    "github_repo": "YOUR_REPO",
-    "github_version": "main/docs/",
+html_theme_options = {
+    "navbar_end": ["navbar-icon-links.html"],
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/Operacja-System/BigOS",
+            "icon": "fab fa-github",
+            "type": "fontawesome",
+        },
+    ],
 }

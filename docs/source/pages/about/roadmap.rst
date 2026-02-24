@@ -1,6 +1,9 @@
 Roadmap
 =======
 
+:Author: Oskar Meler
+:Date: 23-02-2026
+
 This roadmap outlines the planned development direction of BigOS. It reflects current priorities and may evolve as the project matures.
 
 =============
@@ -74,6 +77,3 @@ Ideas for the future
 - Custom executable format
 - Custom file system
 - Support for MMU-less hardware
-
-:Author: Oskar Meler
-:Date: 23-02-2026

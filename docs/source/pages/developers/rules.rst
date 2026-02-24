@@ -2,6 +2,10 @@
 Contributing Rules
 ==================
 
+:Author: Oskar Meler
+:Date: 23-02-2026
+:Revision: 1
+
 These rules exist to keep the BigOS codebase consistent and readable, and to create clear expectations about code quality.
 Any changes not following these rules may not be merged. Revisions to these rules may be made; in such cases, the entire codebase must be adjusted.
 
@@ -45,15 +49,17 @@ Best practices
         dynamic_array_push(dynamic_array_t darr, int value)
 
 * Functions that can fail must explicitly return an error.
-* Only :doc:`allowed abbreviations </pages/bigos/abbreviations>` may be used:
+* Only :doc:`allowed abbreviations </pages/bigos/general/abbreviations>` may be used:
 
     * For argument names, if the type makes it clear.
+
     .. code-block:: c
         :caption: Example
 
         foo(flags_t f, dynamic_array_t darr)
 
     * For `enum` field names to abbreviate the `enum` type name.
+
     .. code-block:: c
         :caption: Example
 
@@ -92,7 +98,3 @@ Git
 * Use pull requests, no direct pushes to `main`.
 * Be thorough when performing code reviews. Check readability, correctness, adherence to style, and maintainability.
 * Pull requests require at least one review before merging.
-
-:Author: Oskar Meler
-:Date: 23-02-2026
-:Revision: 1

@@ -1,5 +1,9 @@
 Documentation Guidelines
-======================
+========================
+
+:Author: Oskar Meler
+:Date: 24-02-2026
+:Revision: 1
 
 This page describes the BigOS documentation workflow, style guidelines,
 and overall approach to documentation.
@@ -48,7 +52,7 @@ All documentation must follow a formal, academic writing style.
 Text should be precise, technically accurate, and free of colloquial language.
 
 Every documentation page must include an Author and Date field
-at the beginning of the document, formatted as follows:
+at the beginning of the document, after the title, formatted as follows:
 
 Single author::
 
@@ -64,6 +68,11 @@ Date::
 
 All documentation pages containing guidelines or rules must include a Revision field.
 The revision number shall start at 1 and must be incremented for every logical change.
+
+    .. note::
+
+        The purpose of the Author field is to indicate who should be contacted regarding the content of the page.
+        An author should be added only when modifying the content of a page, not for stylistic, formatting, or consistency changes.
 
 -------------------------
 Approach to Documentation
@@ -87,7 +96,3 @@ studying it, a reader should be capable of designing
 and implementing an operating system from scratch, as well as
 understanding existing operating systems with confidence.
 All documentation must meaningfully contribute to achieving this objective.
-
-:Author: Oskar Meler
-:Date: 24-02-2026
-:Revision: 1

@@ -22,10 +22,11 @@ def read_dictionary(file_path):
 def write_dictionary(file_path, sections):
     """Writes the dictionary back to the file, sorted alphabetically."""
     with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(`Abbreviations Dictionary\n========================\n\n `)
         for section in sorted(sections.keys()):
-            f.write('--\n')
+            f.write('~~\n')
             f.write(section + '\n')
-            f.write('--\n\n')
+            f.write('~~\n\n')
             for entry in sorted(sections[section], key=lambda x: x.lower()):
                 f.write('| ' + entry + '\n')
             f.write('\n')
