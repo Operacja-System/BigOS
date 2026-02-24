@@ -2,5 +2,6 @@ General
 =======
 
 .. toctree::
-    versioning
-    abbreviations
+   versioning
+   build_system
+   abbreviations

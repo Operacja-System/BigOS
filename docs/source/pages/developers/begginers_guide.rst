@@ -35,7 +35,7 @@ After finishing the implementation ensure the following:
 - Verify that the implementation works, try to test it as best you can
 
 - The documentation covers everything that was changed
-  
+
 - All GitHub actions pass
 
 - Clean up commits if necessary
