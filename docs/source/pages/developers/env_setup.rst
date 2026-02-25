@@ -1,4 +1,0 @@
-Developer Environment Setup
-===========================
-
-*TODO*

@@ -2,9 +2,11 @@ Developers
 ==========
 
 .. toctree::
+   :maxdepth: 1
+
    begginers_guide
    rules
    docs_tutorial
-   env_setup
+   env/index
    ../bigos/general/build_system
    ../bigos/general/abbreviations

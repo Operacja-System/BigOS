@@ -2,4 +2,7 @@ BigOS System Overview
 =====================
 
 .. toctree::
-    general/index
+   :maxdepth: 2
+
+   general/index
+
