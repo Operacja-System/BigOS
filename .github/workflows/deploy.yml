@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    if: github.repository == 'OWNER/REPO'
+    if: github.repository == 'Operacja-System/BigOS'
     runs-on: ubuntu-latest
 
     steps:
