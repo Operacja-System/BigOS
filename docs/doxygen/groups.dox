@@ -1,0 +1,6 @@
+/**
+@defgroup kernel Kernel
+	@defgroup kinit Kernel initialization
+	@defgroup hal Hardware abstraction layer
+@defgroup dt Device tree
+*/
