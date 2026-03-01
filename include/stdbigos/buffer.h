@@ -1,11 +1,12 @@
 #ifndef _STDBIGOS_BUFFER_H
 #define _STDBIGOS_BUFFER_H
 
+#include <stdbigos/array_sizes.h>
 #include <stdbigos/types.h>
 
 typedef struct buffer_t {
-	const void* data;
 	size_t size;
+	const void* data __sized_by(size);
 } buffer_t;
 
 // Helpers to create buffers

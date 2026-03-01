@@ -71,7 +71,7 @@ static error_t add_region_pair(memory_region_pair_t regp, memory_region_pair_t* 
 
 static error_t find_free_subregion(const memory_area_t* res_regs, u32 count, physical_memory_region_t reg, u32 size,
                                    physical_memory_region_t* regOUT) {
-	*regOUT = (physical_memory_region_t){nullptr, 0};
+	*regOUT = (physical_memory_region_t){0};
 	bool found = true;
 	phys_addr_t reg_end = reg.addr + reg.size;
 	while (reg.addr < reg_end) {
@@ -111,7 +111,7 @@ error_t phys_mem_init(physical_memory_region_t prim_reg, const memory_area_t* re
 		               "permitted, but is probably a mistake!");
 	}
 #endif
-	physical_memory_region_t res_regs_alloc_region = {nullptr, 0};
+	physical_memory_region_t res_regs_alloc_region = {0};
 	error_t err = find_free_subregion(res_regs, res_regs_count, prim_reg, _4kB, &res_regs_alloc_region);
 	if (err)
 		KLOG_DO_RETURN(err, KLRF_TRACE_ERR | KLRF_END_BLOCK);
@@ -131,7 +131,7 @@ error_t phys_mem_init(physical_memory_region_t prim_reg, const memory_area_t* re
 	if (err)
 		KLOG_DO_RETURN(err, KLRF_TRACE_ERR | KLRF_END_BLOCK);
 
-	physical_memory_region_t allocation_regions = {nullptr, 0};
+	physical_memory_region_t allocation_regions = {0};
 	err = find_free_subregion(reserved_areas_array, g_reserved_regions.count, prim_reg, _4kB, &allocation_regions);
 	if (err)
 		KLOG_DO_RETURN(err, KLRF_TRACE_ERR | KLRF_END_BLOCK);
@@ -154,7 +154,7 @@ error_t phys_mem_add_region(physical_memory_region_t reg) {
 	KLOGLN_TRACE("Adding a region [%p - %p] to physical memory manager...", reg.addr, reg.addr + reg.size);
 	memory_area_t* reserved_areas_array = get_reserved_areas_array();
 	size_t header_size = pmallocator_get_header_size(pmr_to_area(reg));
-	physical_memory_region_t header_reg = {nullptr, 0};
+	physical_memory_region_t header_reg = {0};
 	KLOGLN_TRACE("Allocating header region...");
 	error_t err = find_free_subregion(reserved_areas_array, g_reserved_regions.count, reg, header_size, &header_reg);
 	if (err)
