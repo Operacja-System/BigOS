@@ -9,8 +9,8 @@
 typedef __phys void* phys_addr_t;
 
 typedef struct {
-	phys_addr_t addr;
 	size_t size;
+	phys_addr_t addr __sized_by(size);
 } physical_memory_region_t;
 
 static inline memory_area_t pmr_to_area(physical_memory_region_t region) {

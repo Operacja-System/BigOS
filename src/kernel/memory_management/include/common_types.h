@@ -1,18 +1,18 @@
 #ifndef KERNEL_MEMORY_MANAGEMENT_COMMON_TYPES
 #define KERNEL_MEMORY_MANAGEMENT_COMMON_TYPES
 
-#include <stdbigos/address.h>
+#include <stdbigos/array_sizes.h>
 #include <stdbigos/types.h>
 
 typedef struct {
-	void* addr;
 	size_t size;
+	void* addr __sized_by(size);
 } memory_region_t;
 // memory_region_t represents a contiguous range of valid, addressable memory.
 
 typedef struct {
-	uintptr_t addr;
 	size_t size;
+	uintptr_t addr;
 } memory_area_t;
 // memory_area_t represents a range of memory, which isn't necessarily addressable.
 
