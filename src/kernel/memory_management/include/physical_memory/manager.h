@@ -2,14 +2,32 @@
 #define BIGOS_KERNEL_MEMORY_MANAGEMENT_PHYSICAL_MEMORY_MANAGER
 
 #include <memory_management/include/common_types.h>
+#include <stdbigos/address.h>
 #include <stdbigos/error.h>
 #include <stdbigos/types.h>
 
-typedef uintptr_t phys_addr_t;
+typedef __phys void* phys_addr_t;
 
-typedef memory_area_t physical_memory_region_t;
+typedef struct {
+	phys_addr_t addr;
+	size_t size;
+} physical_memory_region_t;
 
-static inline void* physical_to_effective([[maybe_unused]] phys_addr_t addr) {
+static inline memory_area_t pmr_to_area(physical_memory_region_t region) {
+	memory_area_t area;
+	area.addr = (uintptr_t)region.addr;
+	area.size = region.size;
+	return area;
+}
+
+static inline physical_memory_region_t area_to_pmr(memory_area_t area) {
+	physical_memory_region_t region;
+	region.addr = (phys_addr_t)area.addr;
+	region.size = area.size;
+	return region;
+}
+
+static inline void* physical_to_effective([[maybe_unused]] __phys void* addr) {
 	return nullptr;
 } // TODO: this is here temporarly
 
