@@ -1,6 +1,7 @@
 #ifndef KERNEL_MEMORY_MANAGEMENT_COMMON_TYPES
 #define KERNEL_MEMORY_MANAGEMENT_COMMON_TYPES
 
+#include <stdbigos/address.h>
 #include <stdbigos/types.h>
 
 typedef struct {
