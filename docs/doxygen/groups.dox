@@ -9,8 +9,8 @@
 @defgroup stdbigos
 	@defgroup sbi
 	@defgroup csr
-	@defgroup trap
 	@defgroup types
 	@defgroup string
 	@defgroup bitutils
+@defgroup trap Interrupt and exception handling
 */
