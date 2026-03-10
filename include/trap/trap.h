@@ -35,6 +35,7 @@ typedef enum trap_exception_type {
 	TRAP_EXC_ENV_CALL_S = 9,
 	TRAP_EXC_INSTR_PAGE_FAULT = 12,
 	TRAP_EXC_LOAD_PAGE_FAULT = 13,
+	TRAP_EXC_STORE_PAGE_FAULT = 15,
 	TRAP_EXC_SOFTWARE_CHECK = 18,
 	TRAP_EXC_HARDWARE_ERROR = 19,
 	// 24-31 designated for custom use

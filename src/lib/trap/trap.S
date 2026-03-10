@@ -9,7 +9,7 @@
 .equ FRAME_SIZE, 0x110
 
 // sscratch should have kernel stack pointer IIF in user-mode
-// when comming from kernel-space then it should be 0
+// when coming from kernel-space then it should be 0
 
 // the thread pointer should be at the base of the sscratch location if it is not 0
 

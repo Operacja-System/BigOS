@@ -45,7 +45,7 @@ void user_fn() {
 		__asm__ volatile("ecall" : "+r"(a0));
 		DEBUG_PRINTF("syscall returned: 0x%lx\n", a0);
 
-		// try do do something bad with sp, so we know kernel will not break
+		// try to do something bad with sp, so we know kernel will not break
 		__asm__ volatile("mv t0, sp\n\t"
 		                 "mv sp, zero\n\t"
 		                 "ecall\n\t"
@@ -82,7 +82,7 @@ void kernel_continuation(void* usr) {
 	tf.sp = (reg_t)user_stack_top;
 	tf.sepc = (reg_t)user_fn;   // setup user entry point
 	tf.sstatus = CSR_READ_RELAXED(sstatus);
-	tf.sstatus &= ~(1ull << 8); // clear previous privilage S -> sret will return to U mode
+	tf.sstatus &= ~(1ull << 8); // clear previous privilege S -> sret will return to U mode
 
 	if (trap_utils_prepare_stack_for_transition(&kernel_stack_top, &tf) != ERR_NONE) {
 		DEBUG_PRINTF("failed to prepare stack for transition\n");
