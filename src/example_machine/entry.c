@@ -2,10 +2,10 @@
 #include <relocations/reloc.h>
 #include <stdbigos/csr.h>
 #include <stdbigos/string.h>
-#include <stdbigos/trap.h>
 #include <stdbigos/types.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <trap/trap.h>
 
 // NOLINTBEGIN(readability-identifier-naming)
 extern u8 bss_start[];
@@ -19,6 +19,8 @@ static volatile u64* g_mtimecmp = (u64*)(g_clint_base + 0x4000);
 
 static const u64 g_quant = 50000llu;
 
+#define INTERRUPT_TIMER_M 7
+
 void main() {
 	for (u32 i = 0;; ++i) {
 		CSR_CLEAR(mstatus, 8); // disable interrupts
@@ -30,12 +32,12 @@ void main() {
 [[gnu::interrupt("machine")]]
 void int_handler() {
 	reg_t cause = CSR_READ(mcause);
-	if (is_interrupt(cause)) {
+	if (trap_is_interrupt(cause)) {
 		// interrupt
-		reg_t int_no = get_interrupt_code(cause);
+		reg_t int_no = trap_get_interrupt_code(cause);
 
 		switch (int_no) {
-		case IntMTimer:
+		case INTERRUPT_TIMER_M:
 			dputs("got timer interrupt\n");
 			g_mtimecmp[hartid()] = *g_mtime + g_quant;
 			break;
@@ -64,7 +66,7 @@ void start() {
 	CSR_SET(mstatus, 8);
 
 	// set TIMER in mie
-	CSR_SET(mie, 1lu << IntMTimer);
+	CSR_SET(mie, 1lu << INTERRUPT_TIMER_M);
 
 	main();
 

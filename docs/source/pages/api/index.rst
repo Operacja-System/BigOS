@@ -6,6 +6,7 @@ API Documentation
    :caption: Modules:
 
    dt
+   trap
 
 ..
    .. doxygenindex:: struct

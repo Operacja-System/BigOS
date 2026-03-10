@@ -66,5 +66,11 @@ static inline void wfi() {
 static inline void ebreak() {
 	__asm__ volatile("ebreak" ::: "memory");
 }
+static inline void intr_enable() {
+	CSR_SET(sstatus, 1 << 1);
+}
+static inline void intr_disable() {
+	CSR_CLEAR(sstatus, 1 << 1);
+}
 
 #endif

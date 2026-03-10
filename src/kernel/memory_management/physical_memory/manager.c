@@ -1,12 +1,12 @@
 #include "memory_management/include/physical_memory/manager.h"
 
 #include <logging/klog.h>
-#include <stdbigos/string.h>
 
 #include "allocator.h"
 #include "memory_management/include/common_types.h"
 #include "stdbigos/address.h"
 #include "stdbigos/error.h"
+#include "stdbigos/types.h"
 
 // ==========================================
 //					Private
