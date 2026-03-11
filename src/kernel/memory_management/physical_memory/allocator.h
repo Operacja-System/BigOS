@@ -17,13 +17,13 @@
  *
  *	@param area The phiscal memory area to allocate from. Will be aligned to at least 4KiB boundry
  *	@param reserved_areas An array of reserved areas from which allocations are not allowed
- *	@param count The count of reserved areas
+ *	@param reserved_areas_count The count of reserved areas
  *
  *	@retval ERR_NONE Success
- *	@retval ERR_BAD_ARG if @p reserved_areas is null and @p count is non zero or vice versa.
+ *	@retval ERR_BAD_ARG if @p reserved_areas is null and @p reserved_areas_count is non zero or vice versa.
  * */
 [[gnu::nonnull(4)]]
-error_t pmallocator_get_header(memory_area_t area, const memory_area_t* reserved_areas, u32 count,
+error_t pmallocator_get_header(memory_area_t area, const memory_area_t* reserved_areas, u32 reserved_areas_count,
                                memory_area_t* headerOUT);
 
 /**
@@ -33,10 +33,10 @@ error_t pmallocator_get_header(memory_area_t area, const memory_area_t* reserved
  *	@param area The phiscal memory area to allocate from. Will be aligned to at least 4KiB boundry
  *	@param header A memory region of size at least `pmallocator_get_header_size(@p area)` aligned to 4KiB boundry
  *	@param reserved_areas An array of reserved areas from which allocations are not allowed
- *	@param count The count of reserved areas
+ *	@param reserved_areas_count The count of reserved areas
  *
  *	@retval ERR_NONE Success
- *	@retval ERR_BAD_ARG if @p reserved_areas is null and @p count is non zero or vice versa.
+ *	@retval ERR_BAD_ARG if @p reserved_areas is null and @p reserved_areas_count is non zero or vice versa.
  *
  *	@note The header region overlaps with area, it must be marked and not be allocated from.
  * area.
@@ -44,7 +44,7 @@ error_t pmallocator_get_header(memory_area_t area, const memory_area_t* reserved
  * after the change, no pointers can be stored inside the `header` region.
  * */
 error_t pmallocator_init_region(memory_area_t area, memory_region_t header, const memory_area_t* reserved_areas,
-                                u32 count);
+                                u32 reserved_areas_count);
 
 /**
  *	@ingroup kmm
