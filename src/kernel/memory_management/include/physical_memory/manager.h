@@ -71,7 +71,7 @@ typedef enum : u8 {
 
 /// @ingroup kmm
 /// @ingroup pmm
-u64 phys_mem_get_frame_size_in_bytes(frame_size_t fs);
+u64 phys_mem_get_frame_size_in_bytes(frame_order_t fs);
 
 /**
  *	@ingroup kmm
