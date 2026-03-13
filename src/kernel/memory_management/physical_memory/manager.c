@@ -52,9 +52,9 @@ static error_t store_header(physical_memory_region_t header) {
 		} else {
 			physical_memory_region_t new_reg = {
 			    .addr = nullptr,
-			    .size = phys_mem_get_frame_size_in_bytes(FRAME_SIZE_4KiB),
+			    .size = PAGE_SIZE,
 			};
-			error_t err = phys_mem_alloc_frame(FRAME_SIZE_4KiB, &new_reg.addr);
+			error_t err = phys_mem_alloc_frame(FRAME_ORDER_4KiB, &new_reg.addr);
 			if (err)
 				return err;
 			err = init_header_storage_node(new_reg);
@@ -73,7 +73,7 @@ static error_t store_header(physical_memory_region_t header) {
 //					Public
 // ==========================================
 
-u64 phys_mem_get_frame_size_in_bytes(frame_size_t fs) {
+u64 phys_mem_get_frame_size_in_bytes(frame_order_t fs) {
 	const u64 size_4KiB = 0x1000;
 	return (size_4KiB << fs);
 }
@@ -113,10 +113,10 @@ error_t phys_mem_init(const physical_memory_region_t* pmrs, size_t pmr_count, co
 		}
 		if (g_root_header_storage_node == nullptr) {
 			physical_memory_region_t new_reg = {
-			    .size = phys_mem_get_frame_size_in_bytes(FRAME_SIZE_4KiB),
+			    .size = PAGE_SIZE,
 			    .addr = nullptr,
 			};
-			err = pmallocator_allocate(12, header_region, &new_reg.addr);
+			err = pmallocator_allocate(FRAME_ORDER_4KiB, header_region, &new_reg.addr);
 			// NOTE: Since we failed to allocate the smallest possible frame size, we assume that this region is
 			// useless.
 			if (err) {
@@ -149,13 +149,13 @@ error_t phys_mem_init(const physical_memory_region_t* pmrs, size_t pmr_count, co
 }
 // NOLINTEND readability-function-cognitive-complexity
 
-error_t phys_mem_alloc_frame(frame_size_t frame_size, phys_addr_t* addrOUT) {
+error_t phys_mem_alloc_frame(frame_order_t frame_size, phys_addr_t* addrOUT) {
 	u32 idx = 0;
 	physical_memory_region_t header_pmr;
 	while (get_header_pmr(idx, &header_pmr) == ERR_NONE) {
 		memory_region_t header_region = phys_mem_reg_to_reg(header_pmr);
 		phys_addr_t frame_data = nullptr;
-		error_t err = pmallocator_allocate(frame_size + 12, header_region, &frame_data);
+		error_t err = pmallocator_allocate(frame_size, header_region, &frame_data);
 		if (err) {
 			++idx;
 			continue;
@@ -169,12 +169,12 @@ error_t phys_mem_alloc_frame(frame_size_t frame_size, phys_addr_t* addrOUT) {
 	return ERR_OUT_OF_MEMORY;
 }
 
-error_t phys_mem_free_frame(phys_addr_t addr) {
+error_t phys_mem_free_frame(frame_order_t frame_size, phys_addr_t addr) {
 	u32 idx = 0;
 	physical_memory_region_t header_pmr;
 	while (get_header_pmr(idx, &header_pmr) == ERR_NONE) {
 		memory_region_t header_region = phys_mem_reg_to_reg(header_pmr);
-		error_t err = pmallocator_free(addr, header_region);
+		error_t err = pmallocator_free(frame_size, addr, header_region);
 		if (err) {
 			++idx;
 			continue;
