@@ -294,7 +294,9 @@ When defining dependencies you also need to define them in natural order:
 * if `b` depends on `a`, `b` must be before `a` in any `target_link_libraries` calls
 
 Take note that if you define:
+
     .. code-block:: cmake
+
         target_link_libraries(b PUBLIC a)
 
         # correct

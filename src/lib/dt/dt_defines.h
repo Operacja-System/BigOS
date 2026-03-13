@@ -1,4 +1,5 @@
 /**
+ * @ingroup dt
  * @file dt_defines.h
  * @brief Magic number, offsets for the device tree header and minimum compatible version.
  */
@@ -6,7 +7,9 @@
 #ifndef SRC_LIB_DT_DEFINES
 #define SRC_LIB_DT_DEFINES
 
-/** @name Defines
+/**
+ * @ingroup dt
+ * @name Defines
  *  @{
  */
 #define FDT_MAGIC                 0xd00dfeed /**< FDT magic number. */
@@ -24,6 +27,7 @@
 /** @} */
 
 /**
+ * @ingroup dt
  * @brief FDT token values.
  */
 typedef enum : u32 {

@@ -1,8 +1,8 @@
 /**
 @defgroup kernel Kernel
 	@defgroup kmm Kernel memory management
-		@defgroup kmm_manager Kernel memory manager
-		@defgroup phys_allocator Physical memory allocator
+		@defgroup pmm Kernel physical memory manager
+		@defgroup palloc Physical memory allocator
 	@defgroup kinit Kernel initialization
 	@defgroup hal Hardware abstraction layer
 @defgroup dt Device tree

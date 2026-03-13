@@ -96,3 +96,10 @@ studying it, a reader should be capable of designing
 and implementing an operating system from scratch, as well as
 understanding existing operating systems with confidence.
 All documentation must meaningfully contribute to achieving this objective.
+
+----------------------------------
+Building the documentation locally
+----------------------------------
+
+To build the documentation locally run ``/scripts/build_docs.sh``.
+To open the documentation open ``/docs/build/html/index.html`` in your browser of choice.

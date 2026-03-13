@@ -21,7 +21,6 @@ Phase 0 - Development Environment & Minimal Working Kernel
 * Define a boot protocol
 * Implement a bootloader capable of booting in at least a virtualized environment
 * Minimal kernel capable of:
-
     * Initializing virtual memory
     * Handling interupts
 

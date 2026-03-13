@@ -10,7 +10,7 @@
 
 /**
  *	@ingroup kmm
- *	@ingroup phys_allocator
+ *	@ingroup palloc
  *
  *	@brief Looks for an area of suitable size and alignment to store all metadata about the @p area that the allocator
  * needs
@@ -28,7 +28,7 @@ error_t pmallocator_get_header(memory_area_t area, const memory_area_t* reserved
 
 /**
  *	@ingroup kmm
- *	@ingroup phys_allocator
+ *	@ingroup palloc
  *
  *	@param area The physical memory area to allocate from. Will be aligned to at least 4KiB boundary
  *	@param header_region A memory region of size at least `pmallocator_get_header_size(@p area)` aligned to 4KiB boundary
@@ -48,7 +48,7 @@ error_t pmallocator_init_region(memory_area_t area, memory_region_t header_regio
 
 /**
  *	@ingroup kmm
- *	@ingroup phys_allocator
+ *	@ingroup palloc
  *
  *	@param frame_order The number of 4KiB frames to allocate is `(1 << frame_order)`
  *	@param header_region
@@ -67,7 +67,7 @@ error_t pmallocator_allocate(frame_order_t frame_order, memory_region_t header_r
 
 /**
  *	@ingroup kmm
- *	@ingroup phys_allocator
+ *	@ingroup palloc
  *
  *	@param frame_order
  *	@param addr
