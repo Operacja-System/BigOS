@@ -42,15 +42,15 @@ save_regs:
 	csrrw t0, sscratch, zero
 
 	// Save everything, but sp (x2)
-	.irp i, 0,1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
-		sd x\i, \i*8(sp)
+	.irp i, 1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+		sd x\i, (\i - 1)*8(sp)
 	.endr
 
 	csrr t0, sepc
 	csrr t1, sstatus
 
-	sd t0, 32*8(sp)
-	sd t1, 33*8(sp)
+	sd t0, 31*8(sp)
+	sd t1, 32*8(sp)
 
 	andi t1, t1, SSTATUS_SPP
 	bnez t1, run_handler
@@ -67,8 +67,8 @@ run_handler:
 	call trap_handler_trampoline
 
 kernel_trap_restore:
-	ld t0, 32*8(sp)
-	ld t1, 33*8(sp)
+	ld t0, 31*8(sp)
+	ld t1, 32*8(sp)
 
 	// disable interrupts and restore sstatus and sepc
 	and t2, t1, ~SSTATUS_SIE
@@ -86,10 +86,10 @@ restore_umode:
 
 load_regs:
 	.irp i, 1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
-		ld x\i, \i*8(sp)
+		ld x\i, (\i - 1)*8(sp)
 	.endr
 
-	ld sp, 2*8(sp)
+	ld sp, (2 - 1)*8(sp)
 	sret
 
 trap_restore_with_cleanup:

@@ -55,9 +55,8 @@ typedef enum trap_exception_type {
 typedef struct trap_frame {
 	union {
 		/** @brief General-purpose registers */
-		reg_t gpr[32];
+		reg_t gpr[31];
 		struct {
-			reg_t zero;
 			reg_t ra;
 			reg_t sp;
 			reg_t gp;
