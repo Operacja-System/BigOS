@@ -10,7 +10,7 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR riscv64)
 set(CMAKE_CROSSCOMPILING 1)
 
-set(RISCV_ARCH "rv64ima_zicsr_zifencei" CACHE STRING "RISC-V instruction set")
+set(RISCV_ARCH "rv64imac_zicsr_zifencei" CACHE STRING "RISC-V instruction set")
 set(RISCV_ABI "lp64" CACHE STRING "RISC-V abi")
 set(RISCV_CMODEL "medany" CACHE STRING "RISC-V cmodel")
 

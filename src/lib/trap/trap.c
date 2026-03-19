@@ -11,14 +11,28 @@ extern void trap_entry();
 static pfn_trap_handler_t g_trap_handler = nullptr;
 
 void trap_handler_trampoline(trap_frame_t* tf) {
+	// disable:
+	// - floating point extensions
+	// - vector extensions
+	// - MXR - memory executable readable
+	// - SUM - supervisor read userspace
+	// - SDT - double trap detection
+	CSR_CLEAR(sstatus,
+		   (CSR_SSTATUS_VS_MASK << CSR_SSTATUS_VS_OFFSET) |
+		   (CSR_SSTATUS_FS_MASK << CSR_SSTATUS_FS_OFFSET) |
+		   CSR_SSTATUS_MXR |
+		   CSR_SSTATUS_SUM |
+		   CSR_SSTATUS_SDT |
+		   0
+	);
 	if (g_trap_handler)
 		g_trap_handler(tf);
 }
 
 error_t trap_init(pfn_trap_handler_t handler) {
+	g_trap_handler = handler;
 	CSR_WRITE(sscratch, 0);
 	CSR_WRITE(stvec, trap_entry);
-	g_trap_handler = handler;
 	return ERR_NONE;
 }
 

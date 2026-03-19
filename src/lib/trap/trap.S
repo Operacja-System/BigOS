@@ -4,9 +4,9 @@
 .global trap_restore_with_cleanup
 .global trap_utils_jump_with_stack
 
-.equ SSTATUS_SIE, 0x00000002 // Supervisor Interrupt Enable
-.equ SSTATUS_SPP, 0x00000100 // Supervisor Previous Privilege (1 = S-mode, 0 = U-mode)
-.equ FRAME_SIZE, 0x110
+.equ FRAME_SIZE, 0x120
+
+#include <stdbigos/csr_vals.h>
 
 // sscratch should have kernel stack pointer IIF in user-mode
 // when coming from kernel-space then it should be 0
@@ -16,44 +16,52 @@
 .align 4
 trap_entry:
 	csrrw sp, sscratch, sp
-	csrrw t0, sscratch, t0
+	csrrw a0, sscratch, a0
 
 	// sp <- sscratch
-	// t0 <- old sp
-	// sscratch <- old t0
-	bnez sp, save_regs
+	// a0 <- old sp
+	// sscratch <- old a0
+	bnez sp, .Lsave_regs
 
-from_smode:
+.Lfrom_smode:
 	// sp == 0
-	// t0 <- old sp (kernel stack pointer)
-	// sscratch <- old t0
+	// a0 <- old sp (kernel stack pointer)
+	// sscratch <- old a0
 
 	// someone could be stupid and have made kernel's sp not 8-byte aligned -> align down to 16-bytes
-	and sp, t0, -16
+	and sp, a0, -16
 
-save_regs:
+	// we have our hart's info in tp
+	// TODO: use this to validate if we are not at the end of the stack
+	//       otherwise setup panic stack and panic
+
+.Lsave_regs:
 	// sp != 0 - valid kernel stack pointer
-	// t0 <- old sp
-	// sscratch <- old t0
+	// a0 <- old sp
+	// sscratch <- old a0
 
 	add sp, sp, -FRAME_SIZE
 	// save original sp, restore original t0 in sscratch and restore sscratch invariant
-	sd t0, 2*8(sp)
-	csrrw t0, sscratch, zero
+	sd a0, 1*8(sp)
+
+	csrrw a0, sscratch, zero
 
 	// Save everything, but sp (x2)
 	.irp i, 1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
 		sd x\i, (\i - 1)*8(sp)
 	.endr
 
-	csrr t0, sepc
-	csrr t1, sstatus
+	csrr a0, sepc
+	csrr a1, sstatus
+	csrr a2, stval
+	csrr a3, scause
+	sd a0, 31*8(sp)
+	sd a1, 32*8(sp)
+	sd a2, 33*8(sp)
+	sd a3, 34*8(sp)
 
-	sd t0, 31*8(sp)
-	sd t1, 32*8(sp)
-
-	andi t1, t1, SSTATUS_SPP
-	bnez t1, run_handler
+	andi a1, a1, CSR_SSTATUS_SPP
+	bnez a1, .Lrun_handler
 
 .option push
 .option norelax
@@ -62,34 +70,37 @@ save_regs:
 
 	ld tp, FRAME_SIZE(sp)
 
-run_handler:
+.Lrun_handler:
 	mv a0, sp
 	call trap_handler_trampoline
 
 kernel_trap_restore:
-	ld t0, 31*8(sp)
-	ld t1, 32*8(sp)
+	ld a0, 31*8(sp)
+	ld a1, 32*8(sp)
 
 	// disable interrupts and restore sstatus and sepc
-	and t2, t1, ~SSTATUS_SIE
-	csrw sstatus, t2
-	csrw sepc, t0
+	and a2, a1, ~CSR_SSTATUS_SIE
+	// set double trap bit
+	li t0, CSR_SSTATUS_SDT
+	or a2, a2, t0
+	csrw sstatus, a2
+	csrw sepc, a0
 
-	and t2, t1, SSTATUS_SPP
-	bnez t2, load_regs
+	and a2, a1, CSR_SSTATUS_SPP
+	bnez a2, .Lload_regs
 
-restore_umode:
+.Lrestore_umode:
 	sd tp, FRAME_SIZE(sp)
 
-	add t0, sp, FRAME_SIZE
-	csrw sscratch, t0
+	add a0, sp, FRAME_SIZE
+	csrw sscratch, a0
 
-load_regs:
+.Lload_regs:
 	.irp i, 1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
 		ld x\i, (\i - 1)*8(sp)
 	.endr
 
-	ld sp, (2 - 1)*8(sp)
+	ld sp, 1*8(sp)
 	sret
 
 trap_restore_with_cleanup:

@@ -2,6 +2,13 @@
 #define STDBIGOS_CSR
 
 #include "types.h"
+#include "csr_vals.h"
+
+/**
+ * @addtogroup stdbigos
+ * @addtogroup csr
+ * @{
+ */
 
 #define CSR_SWAP(csr, val)                                                               \
 	({                                                                                   \
@@ -57,15 +64,6 @@
 		__asm__ volatile("csrc " #csr ", %0" : : "rK"(_val) : "memory"); \
 	})
 
-/// @addtogroup stdbigos
-/// @{
-/// @addtogroup csr
-/// @{
-
-static inline u32 hartid() {
-	return CSR_READ_RELAXED(mhartid);
-}
-
 static inline void wfi() {
 	__asm__ volatile("wfi" ::: "memory");
 }
@@ -74,13 +72,12 @@ static inline void ebreak() {
 	__asm__ volatile("ebreak" ::: "memory");
 }
 static inline void intr_enable() {
-	CSR_SET(sstatus, 1 << 1);
+	CSR_SET(sstatus, CSR_SSTATUS_SIE);
 }
 static inline void intr_disable() {
-	CSR_CLEAR(sstatus, 1 << 1);
+	CSR_CLEAR(sstatus, CSR_SSTATUS_SIE);
 }
 
-/// @}
 /// @}
 
 #endif // !STDBIGOS_CSR

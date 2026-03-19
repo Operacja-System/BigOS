@@ -7,7 +7,6 @@ Stdbigos
 
    sbi
    csr
-   trap
    types
    string
    bitutils

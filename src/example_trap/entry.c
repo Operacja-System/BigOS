@@ -5,7 +5,7 @@
 #include <trap/trap.h>
 
 void handle_exc(trap_exception_type_t exc, trap_frame_t* tf) {
-	[[maybe_unused]] reg_t stval = CSR_READ_RELAXED(stval);
+	[[maybe_unused]] reg_t stval = tf->stval;
 
 	switch (exc) {
 	case TRAP_EXC_ENV_CALL_U:
@@ -25,7 +25,7 @@ void handle_exc(trap_exception_type_t exc, trap_frame_t* tf) {
 }
 
 void my_trap_handler(trap_frame_t* tf) {
-	reg_t scause = CSR_READ_RELAXED(scause);
+	reg_t scause = tf->scause;
 	if (trap_is_interrupt(scause)) {
 		DEBUG_PRINTF("got interrupt: %lu\n", (u64)trap_get_interrupt_code(scause));
 	} else {

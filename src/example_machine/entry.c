@@ -39,7 +39,7 @@ void int_handler() {
 		switch (int_no) {
 		case INTERRUPT_TIMER_M:
 			dputs("got timer interrupt\n");
-			g_mtimecmp[hartid()] = *g_mtime + g_quant;
+			g_mtimecmp[CSR_READ(mhartid)] = *g_mtime + g_quant;
 			break;
 		default: dprintf("unknown interrupt (%ld)\n", int_no); break;
 		}
@@ -60,7 +60,7 @@ void start() {
 	CSR_WRITE(mtvec, int_handler);
 
 	// request a timer interrupt
-	g_mtimecmp[hartid()] = *g_mtime + g_quant;
+	g_mtimecmp[CSR_READ(mhartid)] = *g_mtime + g_quant;
 
 	// set MIE in mstatus
 	CSR_SET(mstatus, 8);

@@ -1,18 +1,15 @@
-/**
- * @file trap.h
- * @brief Supervisor-mode trap dispatch and context transition helpers.
- */
-
-#ifndef KERNEL_TRAP_H_
-#define KERNEL_TRAP_H_
+#ifndef TRAP_H
+#define TRAP_H
 
 #include <stdbigos/error.h>
 #include <stdbigos/types.h>
 
 /**
- * @ingroup trap
- * @brief Encoded interrupt cause values from the RISC-V `scause` CSR.
+ * @addtogroup trap
+ * @{
  */
+
+/// @brief Encoded interrupt cause values from the RISC-V `scause` CSR.
 typedef enum trap_interrupt_type {
 	TRAP_INT_S_SOFTWARE = 1,
 	TRAP_INT_S_TIMER = 5,
@@ -44,7 +41,6 @@ typedef enum trap_exception_type {
 } trap_exception_type_t;
 
 /**
- * @ingroup trap
  * @brief Saved trap context.
  *
  * Structure representing the saved context of a trap, including general-purpose registers and relevant CSRs.
@@ -54,7 +50,7 @@ typedef enum trap_exception_type {
  */
 typedef struct trap_frame {
 	union {
-		/** @brief General-purpose registers */
+		/// General-purpose registers
 		reg_t gpr[31];
 		struct {
 			reg_t ra;
@@ -90,25 +86,26 @@ typedef struct trap_frame {
 			reg_t t6;
 		};
 	};
-	/** @brief value of `sepc` CSR */
+	/// value of `sepc` CSR
 	reg_t sepc;
-	/** @brief value of `sstatus` CSR */
+	/// value of `sstatus` CSR
 	reg_t sstatus;
+	/// value of `stval` CSR
+	reg_t stval;
+	/// value of `scause` CSR
+	reg_t scause;
 } trap_frame_t;
 
 /**
- * @ingroup trap
  * @brief Trap handler callback executed by the trap trampoline.
  */
 typedef void (*pfn_trap_handler_t)(trap_frame_t* tf);
 /**
- * @ingroup trap
  * @brief Continuation callback used by stack transition helpers.
  */
 typedef void (*pfn_continuation_t)(void* user);
 
 /**
- * @ingroup trap
  * @brief Returns `true` if a trap cause corresponds to an interrupt.
  * @param cause Raw `scause` value.
  * @return `true` if the cause is an interrupt, `false` if it is an exception.
@@ -116,7 +113,6 @@ typedef void (*pfn_continuation_t)(void* user);
 bool trap_is_interrupt(reg_t cause);
 
 /**
- * @ingroup trap
  * @brief Extracts interrupt code from `scause` by clearing the interrupt bit.
  * @param cause Raw `scause` value.
  * @return Interrupt code.
@@ -124,7 +120,6 @@ bool trap_is_interrupt(reg_t cause);
 trap_interrupt_type_t trap_get_interrupt_code(reg_t cause);
 
 /**
- * @ingroup trap
  * @brief Returns exception code from `scause`.
  * @param cause Raw `scause` value.
  * @return Exception code.
@@ -132,31 +127,28 @@ trap_interrupt_type_t trap_get_interrupt_code(reg_t cause);
 trap_exception_type_t trap_get_exception_code(reg_t cause);
 
 /**
- * @ingroup trap
  * @brief Installs trap entry and sets kernel trap callback.
  *
  * @param handler Non-null C trap handler.
  *
- * @retval ERR_NONE - success
+ * @retval ERR_NONE success
  */
 [[gnu::nonnull]]
 error_t trap_init(pfn_trap_handler_t handler);
 
 /**
- * @ingroup trap
  * @brief Prepares a stack so trap restore can continue from a supplied frame.
  *
  * @param stack In/out top of the kernel stack pointer after the transition. Updated to point to the new top after
  * pushing the trap frame.
  * @param tf Trap frame copied onto the target stack.
  *
- * @retval ERR_NONE - success
+ * @retval ERR_NONE success
  */
 [[gnu::nonnull]]
 error_t trap_utils_prepare_stack_for_transition(void** stack, const trap_frame_t* tf);
 
 /**
- * @ingroup trap
  * @brief Switches to `stack` and transfers control to `continuation(user)`.
  *
  * This is a helper routine for performing stack/context transitions, e.g. when
@@ -171,7 +163,6 @@ error_t trap_utils_prepare_stack_for_transition(void** stack, const trap_frame_t
 void trap_utils_jump_with_stack(void* stack, void* user, pfn_continuation_t continuation);
 
 /**
- * @ingroup trap
  * @brief Restores trap context from `stack`, optionally running `cleanup(user)` first on the new stack.
  *
  * This is a helper routine for performing trap return with an optional cleanup step. If `cleanup` is non-null,
@@ -186,4 +177,6 @@ void trap_utils_jump_with_stack(void* stack, void* user, pfn_continuation_t cont
 [[noreturn, gnu::nonnull(1)]]
 void trap_restore_with_cleanup(void* stack, void* user, pfn_continuation_t cleanup);
 
-#endif
+/// @}
+
+#endif // !TRAP_H
