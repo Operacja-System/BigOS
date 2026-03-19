@@ -1,8 +1,8 @@
 #ifndef STDBIGOS_CSR
 #define STDBIGOS_CSR
 
-#include "types.h"
 #include "csr_vals.h"
+#include "types.h"
 
 /**
  * @addtogroup stdbigos

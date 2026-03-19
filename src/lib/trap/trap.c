@@ -17,14 +17,8 @@ void trap_handler_trampoline(trap_frame_t* tf) {
 	// - MXR - memory executable readable
 	// - SUM - supervisor read userspace
 	// - SDT - double trap detection
-	CSR_CLEAR(sstatus,
-		   (CSR_SSTATUS_VS_MASK << CSR_SSTATUS_VS_OFFSET) |
-		   (CSR_SSTATUS_FS_MASK << CSR_SSTATUS_FS_OFFSET) |
-		   CSR_SSTATUS_MXR |
-		   CSR_SSTATUS_SUM |
-		   CSR_SSTATUS_SDT |
-		   0
-	);
+	CSR_CLEAR(sstatus, (CSR_SSTATUS_VS_MASK << CSR_SSTATUS_VS_OFFSET) | (CSR_SSTATUS_FS_MASK << CSR_SSTATUS_FS_OFFSET) |
+	                       CSR_SSTATUS_MXR | CSR_SSTATUS_SUM | CSR_SSTATUS_SDT | 0);
 	if (g_trap_handler)
 		g_trap_handler(tf);
 }

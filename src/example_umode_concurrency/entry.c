@@ -50,17 +50,17 @@ static inline void user_sys_print(const char* str) {
 [[noreturn]] void user_task_a() {
 	while (true) {
 		user_sys_print("[U-task A] running\n");
-        u64 start = read_time();
-        while (read_time() - start < 10000);
-    }
+		u64 start = read_time();
+		while (read_time() - start < 10000);
+	}
 }
 
 [[noreturn]] void user_task_b() {
 	while (true) {
 		user_sys_print("[U-task B] running\n");
-        u64 start = read_time();
-        while (read_time() - start < 10000);
-    }
+		u64 start = read_time();
+		while (read_time() - start < 10000);
+	}
 }
 
 static void init_task(task_ctx_t* task, void (*entry)(), void* user_stack_top) {
@@ -98,13 +98,13 @@ void my_trap_handler(trap_frame_t* tf) {
 	const reg_t scause = tf->scause;
 	if (trap_is_interrupt(scause)) {
 		if (trap_get_interrupt_code(scause) == TRAP_INT_S_TIMER) {
-            if (read_time() < tf->stval) {
-                // Spurious timer interrupt, ignore.
-                return;
-            }
+			if (read_time() < tf->stval) {
+				// Spurious timer interrupt, ignore.
+				return;
+			}
 			arm_next_timer();
 			switch_to_next_task(tf);
-            dprintf("switched to task %u\n", g_current_task);
+			dprintf("switched to task %u\n", g_current_task);
 			return;
 		}
 
@@ -113,9 +113,7 @@ void my_trap_handler(trap_frame_t* tf) {
 	}
 
 	switch (trap_get_exception_code(scause)) {
-	case TRAP_EXC_ENV_CALL_U:
-		handle_syscall(tf);
-		break;
+	case TRAP_EXC_ENV_CALL_U: handle_syscall(tf); break;
 	default:
 		dprintf("unexpected exception %lu stval=%p\n", (u64)trap_get_exception_code(scause), (void*)tf->stval);
 		break;
