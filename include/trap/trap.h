@@ -96,6 +96,8 @@ typedef struct trap_frame {
 	reg_t scause;
 } trap_frame_t;
 
+static_assert(sizeof(trap_frame_t) == 35 * sizeof(reg_t));
+
 /**
  * @brief Trap handler callback executed by the trap trampoline.
  */

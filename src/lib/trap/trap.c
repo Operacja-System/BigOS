@@ -38,7 +38,7 @@ error_t trap_init(pfn_trap_handler_t handler) {
 
 error_t trap_utils_prepare_stack_for_transition(void** stack, const trap_frame_t* tf) {
 	u8* sp = (u8*)ALIGN_DOWN((uintptr_t)*stack, 16);
-	sp = sp - 16 - sizeof(*tf); // leave space for tp and trap frame
+	sp = sp - ALIGN_UP(16 + sizeof(*tf), 16); // leave space for tp and trap frame
 	memcpy(sp, tf, sizeof(*tf));
 	*stack = sp;
 
