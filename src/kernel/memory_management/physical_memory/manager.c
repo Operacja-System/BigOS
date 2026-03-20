@@ -7,6 +7,7 @@
 #include "allocator.h"
 #include "stdbigos/address.h"
 #include "stdbigos/error.h"
+#include "stdbigos/types.h"
 
 // ==========================================
 //					Private

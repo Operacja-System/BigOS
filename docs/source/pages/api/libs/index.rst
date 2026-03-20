@@ -6,4 +6,5 @@ Bigos Libraries
    :maxdepth: 1
 
    dt
+   trap
    stdbigos/index
