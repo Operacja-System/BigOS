@@ -14,7 +14,7 @@ enum {
 // QEMU tells 10MHz
 #define TIMEBASE_FREQUENCY 10000000
 
-#define TASK_COUNT    2
+#define TASK_COUNT 2
 // switch every 4 seconds
 // sleep for 1 second each
 #define TIMER_QUANTUM (TIMEBASE_FREQUENCY * 4)
