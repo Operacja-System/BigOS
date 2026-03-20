@@ -21,6 +21,7 @@ typedef struct {
 
 static task_ctx_t g_tasks[TASK_COUNT];
 static u32 g_current_task = 0;
+static u64 g_next_switch = 0;
 
 static u8 g_user_mode_stack_a[4096] __attribute__((aligned(4096)));
 static u8 g_user_mode_stack_b[4096] __attribute__((aligned(4096)));
@@ -32,7 +33,8 @@ static inline u64 read_time() {
 }
 
 static void arm_next_timer() {
-	(void)sbi_set_timer(read_time() + TIMER_QUANTUM);
+	g_next_switch = read_time() + TIMER_QUANTUM;
+	(void)sbi_set_timer(g_next_switch);
 }
 
 static inline void user_sys_print(const char* str) {
@@ -92,7 +94,7 @@ void my_trap_handler(trap_frame_t* tf) {
 	const reg_t scause = tf->scause;
 	if (trap_is_interrupt(scause)) {
 		if (trap_get_interrupt_code(scause) == TRAP_INT_S_TIMER) {
-			if (read_time() < tf->stval) {
+			if (read_time() < g_next_switch) {
 				// Spurious timer interrupt, ignore.
 				return;
 			}
