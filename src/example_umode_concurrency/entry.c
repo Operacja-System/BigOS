@@ -22,11 +22,6 @@ typedef struct {
 static task_ctx_t g_tasks[TASK_COUNT];
 static u32 g_current_task = 0;
 
-// as our handlers are non-preemptive we only need one kernel stack
-// but if we wanted kernel preemption, we would need to have one stack
-// per task
-static u8 g_kernel_mode_stack[4096] __attribute__((aligned(4096)));
-
 static u8 g_user_mode_stack_a[4096] __attribute__((aligned(4096)));
 static u8 g_user_mode_stack_b[4096] __attribute__((aligned(4096)));
 
@@ -132,13 +127,11 @@ void main([[maybe_unused]] u32 hartid, [[maybe_unused]] const void* fdt) {
 	CSR_SET(sie, SIE_STIE);
 	arm_next_timer();
 
-	void* kernel_stack_top = &g_kernel_mode_stack[sizeof(g_kernel_mode_stack)];
-	trap_frame_t tf = g_tasks[g_current_task].tf;
+	// as our handlers are non-preemptive we only need one kernel stack
+	// but if we wanted kernel preemption, we would need to have one stack
+	// per task
 
-	if (trap_utils_prepare_stack_for_transition(&kernel_stack_top, &tf) != ERR_NONE) {
-		dputs("failed to prepare transition stack\n");
-		return;
-	}
-
-	trap_restore_with_cleanup(kernel_stack_top, nullptr, nullptr);
+	// we will piggyback of our current stack
+	alignas(16) trap_frame_t tf = g_tasks[0].tf;
+	trap_restore_with_cleanup(&tf, nullptr, nullptr);
 }
