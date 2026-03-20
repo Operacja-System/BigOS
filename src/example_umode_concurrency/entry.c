@@ -10,10 +10,9 @@ enum {
 	SYSCALL_PRINT = 1,
 };
 
-#define TASK_COUNT 2
-
-static const u64 TIMER_QUANTUM = 50000;
-static const reg_t SIE_STIE = (1ul << TRAP_INT_S_TIMER);
+#define TASK_COUNT    2
+#define TIMER_QUANTUM 50000ul
+#define SIE_STIE      (1ul << TRAP_INT_S_TIMER)
 
 typedef struct {
 	trap_frame_t tf;
