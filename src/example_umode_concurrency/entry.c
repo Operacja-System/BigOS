@@ -12,7 +12,7 @@ enum {
 
 // extracted from fdt /cpus/timebase-frequency
 // QEMU tells 10MHz
-#define TIMEBASE_FREQUENCY 10000000
+#define TIMEBASE_FREQUENCY 10000000ul
 
 #define TASK_COUNT 2
 // switch every 4 seconds
