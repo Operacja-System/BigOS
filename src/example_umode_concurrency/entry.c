@@ -15,10 +15,11 @@ enum {
 #define TIMEBASE_FREQUENCY 10000000ul
 
 #define TASK_COUNT 2
-// switch every 4 seconds
+
+// switch 100 times per second
 // sleep for 1 second each
-#define TIMER_QUANTUM (TIMEBASE_FREQUENCY * 4)
-#define SLEEP_TIME    (TIMEBASE_FREQUENCY * 1)
+#define TIMER_QUANTUM (u64)(TIMEBASE_FREQUENCY / 100)
+#define SLEEP_TIME    (u64)(TIMEBASE_FREQUENCY * 1)
 #define SIE_STIE      (1ul << TRAP_INT_S_TIMER)
 
 typedef struct {
@@ -107,7 +108,6 @@ void my_trap_handler(trap_frame_t* tf) {
 			}
 			arm_next_timer();
 			switch_to_next_task(tf);
-			dprintf("switched to task %u\n", g_current_task);
 			return;
 		}
 
