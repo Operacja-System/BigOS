@@ -10,8 +10,15 @@ enum {
 	SYSCALL_PRINT = 1,
 };
 
+// extracted from fdt /cpus/timebase-frequency
+// QEMU tells 10MHz
+#define TIMEBASE_FREQUENCY 10000000
+
 #define TASK_COUNT    2
-#define TIMER_QUANTUM 50000ul
+// switch every 4 seconds
+// sleep for 1 second each
+#define TIMER_QUANTUM (TIMEBASE_FREQUENCY * 4)
+#define SLEEP_TIME    (TIMEBASE_FREQUENCY * 1)
 #define SIE_STIE      (1ul << TRAP_INT_S_TIMER)
 
 typedef struct {
@@ -47,7 +54,7 @@ static inline void user_sys_print(const char* str) {
 	while (true) {
 		user_sys_print("[U-task A] running\n");
 		u64 start = read_time();
-		while (read_time() - start < 10000);
+		while (read_time() - start < SLEEP_TIME);
 	}
 }
 
@@ -55,7 +62,7 @@ static inline void user_sys_print(const char* str) {
 	while (true) {
 		user_sys_print("[U-task B] running\n");
 		u64 start = read_time();
-		while (read_time() - start < 10000);
+		while (read_time() - start < SLEEP_TIME);
 	}
 }
 
