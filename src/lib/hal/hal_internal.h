@@ -1,0 +1,4 @@
+#ifndef LIB_HAL_HAL_INTERNAL
+#define LIB_HAL_HAL_INTERNAL
+
+#endif // !LIB_HAL_HAL_INTERNAL
