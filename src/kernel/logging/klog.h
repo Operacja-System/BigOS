@@ -10,8 +10,8 @@ typedef enum {
 	KLSL_TRACE = 3,
 } klog_severity_level_t;
 
-void klog_indent_increase();
-void klog_indent_decrease();
+// void klog_indent_increase();
+// void klog_indent_decrease();
 
 [[gnu::format(printf, 2, 3)]]
 void klog(klog_severity_level_t loglvl, const char* fmt, ...);
