@@ -1,7 +1,7 @@
 #include "klog.h"
 
-#include <../../external/include/stb_sprintf.h>
 #include <stdarg.h>
+#include <stdbigos/stdio.h>
 #include <stdbigos/types.h>
 
 #include "debug/debug_stdio.h"
@@ -33,62 +33,64 @@ static ring_buffer_t* get_buffer() {
 	return &g_buffer;
 }
 
-static void put_char(ring_buffer_t* buf, const char c) {
+static void put_char(ring_buffer_t* rb, const char c) {
 	if (c == '\0')
 		return; // Null characters are not suppossed to be logged.
-	buf->ring[buf->write++] = c;
-	buf->write %= RING_BUF_SIZE;
-	if (buf->full) {
-		buf->read = (buf->read + 1) % RING_BUF_SIZE;
-		buf->overflown = true;
+	rb->ring[rb->write++] = c;
+	rb->write %= RING_BUF_SIZE;
+	if (rb->full) {
+		rb->read = (rb->read + 1) % RING_BUF_SIZE;
+		rb->overflown = true;
 	}
-	buf->full = buf->read == buf->write;
-	if (buf->uart_tx)
-		buf->uart_tx(c);
+	rb->full = rb->read == rb->write;
+	if (rb->uart_tx)
+		rb->uart_tx(c);
 }
 
-static void put_string(ring_buffer_t* buf, const char* str) {
+static void put_string(ring_buffer_t* rb, const char* str) {
 	size_t it = 0;
-	while (str[it]) put_char(buf, str[it++]);
+	while (str[it]) put_char(rb, str[it++]);
 }
 
-static void put_overflow_warning(ring_buffer_t* buf) {
+static void put_overflow_warning(ring_buffer_t* rb) {
 	size_t it = 0;
-	i32 temp_write = buf->write;
-	while (g_overflow_warning[it]){
-		buf->ring[temp_write++] = g_overflow_warning;
+	i32 temp_write = rb->write;
+	while (g_overflow_warning[it]) {
+		rb->ring[temp_write++] = g_overflow_warning[it++];
 		temp_write %= RING_BUF_SIZE;
 	}
 }
 
-static void put_msg(ring_buffer_t* buf, const char* msg) {
-	put_string(buf, msg);
-	if (buf->overflown)
-		put_overflow_warning(buf);
+static void put_msg(ring_buffer_t* rb, const char* msg) {
+	put_string(rb, msg);
+	if (rb->overflown)
+		put_overflow_warning(rb);
 }
 
-static char get_char(ring_buffer_t* buf) {
-	if (buf->read == buf->write && !buf->full)
+char ring_buffer_get_char() {
+	ring_buffer_t* rb = get_buffer();
+	if (rb->read == rb->write && !rb->full)
 		return 0;
-	const char ret = buf->ring[buf->read++];
-	buf->read %= RING_BUF_SIZE;
-	buf->full = false;
+	const char ret = rb->ring[rb->read++];
+	rb->read %= RING_BUF_SIZE;
+	rb->full = false;
+	rb->overflown = false;
 	return ret;
 }
 
-void flush_to_uart() {
-	ring_buffer_t* buf = get_buffer();
-	if (!buf->uart_tx)
+void ring_buffer_flush_to_uart() {
+	ring_buffer_t* rb = get_buffer();
+	if (!rb->uart_tx)
 		return;
 	char c;
-	while ((c = get_char(buf))) buf->uart_tx(c);
+	while ((c = ring_buffer_get_char())) rb->uart_tx(c);
 }
 
-void set_uart_tx_function(void (*uart_tx)(char c), bool flush) {
-	ring_buffer_t* buf = get_buffer();
-	buf->uart_tx = uart_tx;
+void ring_buffer_set_uart_tx_function(void (*uart_tx)(char c), bool flush) {
+	ring_buffer_t* rb = get_buffer();
+	rb->uart_tx = uart_tx;
 	if (flush)
-		flush_to_uart();
+		ring_buffer_flush_to_uart();
 }
 
 void klog_indent_increase() {
@@ -116,7 +118,7 @@ static void klogv(klog_severity_level_t loglvl, const char* fmt, va_list va) {
 
 	va_list copy;
 	va_copy(copy, va);
-	int n = stbsp_vsnprintf(temp_buffer + written, TEMP_BUF_SIZE - written, fmt, copy);
+	int n = vsnprintf(temp_buffer + written, TEMP_BUF_SIZE - written, fmt, copy);
 	va_end(copy);
 
 	// stbsp_vsnprintf doesn't return errors, so just check for truncation
@@ -128,7 +130,8 @@ static void klogv(klog_severity_level_t loglvl, const char* fmt, va_list va) {
 		written = TEMP_BUF_SIZE - 1;
 	temp_buffer[written] = '\0';
 
-	put_msg(&g_buffer, temp_buffer);
+	ring_buffer_t* rb = get_buffer();
+	put_msg(rb, temp_buffer);
 
 	// DEBUG_PUTGAP(g_indent_level);
 	// DEBUG_PRINTF("%s ", g_prefixes[loglvl]);
