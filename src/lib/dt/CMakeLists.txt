@@ -1,6 +1,6 @@
-SETUP_LIBRARY(device_tree_access)
+SETUP_LIBRARY(dt_access)
 
-target_link_libraries(device_tree_access
+target_link_libraries(dt_access
     PUBLIC stdbigos
     PRIVATE Debug
 )

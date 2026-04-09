@@ -1,4 +1,4 @@
-#include <hal/hal.h>
+#include "hal/include/hal.h"
 
 #include "dt/dt.h"
 

@@ -1,5 +1,6 @@
-#include <hal/memory_regions.h>
 #include <stdbigos/error.h>
+
+#include "hal/include/memory_regions.h"
 
 typedef struct {
 	u32 idx;

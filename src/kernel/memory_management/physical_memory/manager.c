@@ -5,7 +5,7 @@
 #include <stdbigos/string.h>
 
 #include "allocator.h"
-#include "hal/memory_regions.h"
+#include "hal/include/memory_regions.h"
 #include "stdbigos/address.h"
 #include "stdbigos/error.h"
 
