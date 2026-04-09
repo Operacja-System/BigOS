@@ -1,0 +1,5 @@
+SETUP_EXECUTABLE(example_umode_concurrency)
+
+target_link_libraries(example_umode_concurrency PRIVATE startup hal Debug stdbigos)
+
+ADD_QEMU_TARGET(example_umode_concurrency)
