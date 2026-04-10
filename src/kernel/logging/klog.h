@@ -10,6 +10,9 @@ typedef enum {
 	KLSL_TRACE = 3,
 } klog_severity_level_t;
 
+char ring_buffer_get_char();
+void ring_buffer_flush_to_uart();
+void ring_buffer_set_uart_tx_function(void (*uart_tx)(char c), bool flush);
 void klog_indent_increase();
 void klog_indent_decrease();
 
