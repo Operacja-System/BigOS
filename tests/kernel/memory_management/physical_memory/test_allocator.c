@@ -37,7 +37,7 @@ static memory_area_t g_area;
 static size_t g_header_pages;
 
 void setUp(void) {
-	g_area_buf = calloc(1, TEST_SIZE);
+	g_area_buf = aligned_alloc(PAGE_SIZE, TEST_SIZE);
 
 	g_area = (memory_area_t){
 		.addr = (uintptr_t)g_area_buf,
