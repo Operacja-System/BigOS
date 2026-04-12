@@ -291,6 +291,7 @@
           "displayName": "Run Unit Tests",
           "description": "Run unit tests via CTest on native platform.",
           "output": {
+            "verbosity": "verbose",
             "outputOnFailure": true
           }
         }
