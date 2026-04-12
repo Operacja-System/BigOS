@@ -197,3 +197,20 @@ jobs:
         with:
           name: build-artifacts-clang-macos-lto
           path: build/
+
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: '~3.29.0'
+
+      - name: Generate, build and run unit tests
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: 'tests-unit'
+          buildPreset: 'tests-unit'
+          testPreset: 'tests-unit'

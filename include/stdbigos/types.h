@@ -28,7 +28,10 @@ typedef int64_t i64;
 typedef unsigned long reg_t;
 
 typedef signed long ireg_t;
+
+#ifdef __riscv
 static_assert(sizeof(reg_t) * 8 == __riscv_xlen);
+#endif
 
 typedef enum {
 	ENDIAN_LITTLE = 0,
