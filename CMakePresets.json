@@ -289,7 +289,10 @@
           "name": "tests-unit",
           "configurePreset": "tests-unit",
           "displayName": "Run Unit Tests",
-          "description": "Run unit tests via CTest on native platform."
+          "description": "Run unit tests via CTest on native platform.",
+          "output": {
+            "outputOnFailure": true
+          }
         }
     ]
 }
