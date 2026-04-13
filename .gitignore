@@ -58,6 +58,7 @@ dkms.conf
 
 # Build
 build/
+build-tests/
 .cache/
 
 # Disk images

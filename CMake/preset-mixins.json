@@ -104,6 +104,14 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Darwin"
             }
+        },
+        {
+            "name": "native-host-tests",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build-tests",
+            "cacheVariables": {
+                "BIGOS_BUILD_TESTS": "ON"
+            }
         }
     ]
 }

@@ -226,6 +226,12 @@
             ],
             "displayName": "CI MacOS Configuration with LTO",
             "description": "CI MacOS configuration with LTO using Ninja with warnings as errors"
+        },
+        {
+            "name": "tests-unit",
+            "inherits": ["native-host-tests", "compile-commands", "debug-type"],
+            "displayName": "Unit Tests",
+            "description": "Native host build for unit tests"
         }
     ],
     "buildPresets": [
@@ -264,6 +270,12 @@
             "configurePreset": "ci-macos-clang-lto",
             "displayName": "CI Ninja Build for MacOS - clang (LTO)",
             "description": "Build using CI Ninja configuration on MacOS (clang) (LTO)."
+        },
+        {
+            "name": "tests-unit",
+            "configurePreset": "tests-unit",
+            "displayName": "Build Unit Tests",
+            "description": "Build unit tests on native platform."
         }
     ],
     "testPresets": [
@@ -272,6 +284,16 @@
             "configurePreset": "ci-gcc",
             "displayName": "CI Ninja Test - GCC",
             "description": "Test using CI Ninja configuration (GCC)."
+        },
+        {
+          "name": "tests-unit",
+          "configurePreset": "tests-unit",
+          "displayName": "Run Unit Tests",
+          "description": "Run unit tests via CTest on native platform.",
+          "output": {
+            "verbosity": "verbose",
+            "outputOnFailure": true
+          }
         }
     ]
 }
