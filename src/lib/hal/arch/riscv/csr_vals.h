@@ -19,4 +19,6 @@
 #define CSR_SSTATUS_UXL_MASK   0b11
 #define CSR_SSTATUS_SD         (1ul << 63)
 
+#define CSR_SIE_STIE           (1ul << 5)
+
 #endif // !HAL_RISCV_CSR_VALS

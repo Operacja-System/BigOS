@@ -1,7 +1,7 @@
 #include <stdbigos/clock.h>
-#include <stdbigos/csr.h>
+#include <hal/timer.h>
+#include <hal/trap.h>
 #include <stdbigos/sbi.h>
-#include <stdbigos/trap.h>
 #include <stdbigos/types.h>
 #include <stdbool.h>
 
@@ -9,23 +9,20 @@ static void sbi_puts(const char* str) {
 	while (*str) sbi_debug_console_write_byte(*str++);
 }
 
-[[gnu::interrupt("supervisor")]]
-static void int_handler() {
-	reg_t cause = CSR_READ(scause);
-	if (!is_interrupt(cause)) {
-		return;
-	}
-
-	reg_t int_no = get_interrupt_code(cause);
-	if (int_no != IntSTimer) {
-		return;
-	}
-
+static void timer_handler(void) {
 	(void)clock_on_timer_interrupt();
 }
 
 void main([[maybe_unused]] u32 hartid, [[maybe_unused]] const void* fdt) {
-	CSR_WRITE(stvec, int_handler);
+	if (hal_trap_init() != ERR_NONE) {
+		sbi_puts("trap init failed\n");
+		return;
+	}
+
+	if (hal_trap_register_timer_handler(timer_handler) != ERR_NONE) {
+		sbi_puts("timer handler register failed\n");
+		return;
+	}
 
 	struct sbiret ret = clock_init(50000llu);
 	if (ret.error != SBI_SUCCESS) {
@@ -33,14 +30,16 @@ void main([[maybe_unused]] u32 hartid, [[maybe_unused]] const void* fdt) {
 		return;
 	}
 
-	CSR_SET(sie, 1lu << IntSTimer);
-	CSR_SET(sstatus, 1lu << 1);
+	if (hal_timer_enable_interrupts() != ERR_NONE) {
+		sbi_puts("timer irq enable failed\n");
+		return;
+	}
 
 	sbi_puts("clock started\n");
 
 	u64 last_tick = 0;
 	while (true) {
-		wfi();
+		hal_wait_for_interrupt();
 
 		u64 ticks = clock_ticks();
 		if (ticks != last_tick && (ticks % 100) == 0) {
