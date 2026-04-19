@@ -100,6 +100,12 @@ typedef i64	Elf64_Sxword;
 #define DT_DEBUG	21
 #define DT_TEXTREL	22
 #define DT_JMPREL	23
+#define DT_INIT_ARRAY	25
+#define DT_FINI_ARRAY	26
+#define DT_INIT_ARRAYSZ	27
+#define DT_FINI_ARRAYSZ	28
+#define DT_PREINIT_ARRAY	32
+#define DT_PREINIT_ARRAYSZ	33
 #define DT_ENCODING	32
 #define OLD_DT_LOOS	0x60000000
 #define DT_LOOS		0x6000000d
@@ -304,7 +310,7 @@ typedef struct elf64_phdr {
 #define SHN_ABS		0xfff1
 #define SHN_COMMON	0xfff2
 #define SHN_HIRESERVE	0xffff
- 
+
 typedef struct elf32_shdr {
   Elf32_Word	sh_name;
   Elf32_Word	sh_type;

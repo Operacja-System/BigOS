@@ -20,7 +20,7 @@
 #define FDT_OFF_TOTAL_SIZE        0x04       /**< Offset to total size. */
 #define FDT_OFF_OFF_DT_STRUCT     0x08       /**< Offset to structure block offset. */
 #define FDT_OFF_OFF_DT_STRINGS    0x0C       /**< Offset to strings block offset. */
-#define FDT_OFF_MEM_RSVMAP        0x10       /**< Offset to memory reservation map. */
+#define FDT_OFF_OFF_MEM_RSVMAP    0x10       /**< Offset to memory reservation map offset. */
 #define FDT_OFF_VERSION           0x14       /**< Offset to version. */
 #define FDT_OFF_LAST_COMP_VERSION 0x18       /**< Offset to last compatible version. */
 #define FDT_OFF_BOOT_CPUID_PHYS   0x1C       /**< Offset to boot CPU physical ID. */

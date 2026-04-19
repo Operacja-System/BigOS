@@ -32,10 +32,19 @@ typedef struct {
 	dt_node_t root_node; /**< Root node offset. */
 	u32 total_size;      /**< Total size of the FDT. */
 	u32 struct_off;      /**< Structure block offset. */
+	u32 rsvmap_off;      /**< Memory reservation map offset. */
 	u32 strings_off;     /**< Strings block offset. */
 	u32 struct_size;     /**< Structure block size. */
 	u32 fdt_version;     /**< FDT version. */
 } fdt_t;
+
+/**
+ * @brief Reserved memory entry structure.
+ */
+typedef struct {
+	u64 address; /**< Entry address. */
+	u64 size;    /**< Entry size. */
+} fdt_rsv_entry;
 
 /**
  * @brief Read the header at fdt and set fields of obj.
@@ -213,6 +222,19 @@ error_t dt_get_prop_name_ptr(const fdt_t* fdt, dt_prop_t prop, const char** ptrO
  */
 [[gnu::nonnull(3)]]
 error_t dt_get_prop_buffer(const fdt_t* fdt, dt_prop_t prop, buffer_t* bufOUT);
+
+/**
+ * @brief Get a reserved memory entry at index from the Memory Reservation Block.
+ * @param fdt Pointer to the fdt object.
+ * @param index Index of the entry to get.
+ * @param[out] entryOUT Entry at index.
+ * @retval ERR_NONE on success
+ * @retval ERR_BAD_ARG on nullptr args
+ * @retval ERR_NOT_VALID if the FDT is invalid
+ * @retval ERR_OUT_OF_BOUNDS if index is out of bounds or the Memory Reservation Block is malformed
+ */
+[[gnu::nonnull(3)]]
+error_t dt_get_rsv_mem_entry(const fdt_t* fdt, u32 index, fdt_rsv_entry* entryOUT);
 
 /// @}
 

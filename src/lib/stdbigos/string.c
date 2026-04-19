@@ -2,6 +2,16 @@
 #include <stdbigos/types.h>
 #include <stddef.h>
 
+#if __has_attribute(externally_visible)
+    // make GCC's LTO not remove those definitions, because if the compiler
+    // generates reference to them (e.g when doing `var = {0}`), it will not be able
+    // to find them and will error out (will generate PLT redirection)
+	#define EXTERNALLY_VISIBLE [[gnu::externally_visible]]
+#else
+	#define EXTERNALLY_VISIBLE
+#endif
+
+EXTERNALLY_VISIBLE
 void* memcpy(void* restrict dest, const void* restrict src, size_t n) {
 	u8* d = dest;
 	const u8* s = src;
@@ -24,6 +34,7 @@ void* memccpy(void* restrict dest, const void* restrict src, int ch, size_t coun
 	return nullptr;
 }
 
+EXTERNALLY_VISIBLE
 void* memset(void* dest, int val, size_t n) {
 	u8* d = dest;
 	while (n--) *d++ = val;
@@ -36,6 +47,7 @@ void* memset_explicit(void* dest, int val, size_t n) {
 	return dest;
 }
 
+EXTERNALLY_VISIBLE
 void* memmove(void* dest, const void* src, size_t n) {
 	u8* d = dest;
 	const u8* s = src;

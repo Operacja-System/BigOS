@@ -31,9 +31,10 @@ error_t dt_init(const void* fdt, fdt_t* obj) {
 	if (!buffer_read_u32_be(fdt_buf, FDT_OFF_TOTAL_SIZE, &obj->total_size) ||
 	    !buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRUCT, &obj->struct_off) ||
 	    !buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_DT_STRINGS, &obj->strings_off) ||
+	    !buffer_read_u32_be(fdt_buf, FDT_OFF_OFF_MEM_RSVMAP, &obj->rsvmap_off) ||
 	    !buffer_read_u32_be(fdt_buf, FDT_OFF_SIZE_DT_STRUCT, &obj->struct_size) ||
 	    !buffer_read_u32_be(fdt_buf, FDT_OFF_VERSION, &obj->fdt_version) ||
-	    !buffer_read_u32_be(fdt_buf, FDT_OFF_VERSION, &last_comp_version)) {
+	    !buffer_read_u32_be(fdt_buf, FDT_OFF_LAST_COMP_VERSION, &last_comp_version)) {
 		obj->fdt_buffer = make_buffer(nullptr, 0);
 		return ERR_NOT_VALID;
 	}

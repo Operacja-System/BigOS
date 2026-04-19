@@ -11,7 +11,7 @@ PHDRS {
 
 SECTIONS
 {
-    __stack_size = DEFINED(__stack_size) ? __stack_size : 32M;
+    __stack_size = DEFINED(__stack_size) ? __stack_size : 16K;
 
     .init 0x80200000 : {
         *(SORT_NONE(.init))
@@ -70,15 +70,15 @@ SECTIONS
         *(.gnu.linkonce.s.*)
     } :data
 
+    __bss_start = .;
     .bss (NOLOAD): {
-         __bss_start = .;
         *(.sbss*)
         *(.gnu.linkonce.sb.*)
         *(.bss .bss.*)
         *(.gnu.linkonce.b.*)
         *(COMMON)
-        __bss_end = .;
     } :data
+    _end = .;
 
     .stack (NOLOAD) : ALIGN(16) {
         . += __stack_size;

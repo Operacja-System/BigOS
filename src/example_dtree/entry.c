@@ -54,4 +54,14 @@ void main([[maybe_unused]] u32 hartid, const void* fdt) {
 	DEBUG_PRINTF("First prop: %s\n", prop_name);
 	error = dt_get_prop_name_ptr(&fdt_obj, next_prop, &prop_name);
 	DEBUG_PRINTF("Next prop: %s\n", prop_name);
+
+	fdt_rsv_entry entry;
+	error = dt_get_rsv_mem_entry(&fdt_obj, 0, &entry);
+
+	if (error != ERR_NONE) {
+		// To show that there's only one (terminating) entry in the rsvmap
+		DEBUG_PRINTF("%u %u\n", fdt_obj.rsvmap_off, fdt_obj.struct_off);
+		DEBUG_PRINTF("Failed to get reserved memory entry: %d\n", error);
+		return;
+	}
 }

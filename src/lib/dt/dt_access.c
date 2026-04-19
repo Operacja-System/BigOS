@@ -363,3 +363,37 @@ error_t dt_get_prop_buffer(const fdt_t* fdt, dt_prop_t prop, buffer_t* bufOUT) {
 
 	return ERR_NONE;
 }
+
+error_t dt_get_rsv_mem_entry(const fdt_t* fdt, u32 index, fdt_rsv_entry* entryOUT) {
+	if (fdt == nullptr)
+		return ERR_BAD_ARG;
+
+	buffer_t fdt_buf = fdt->fdt_buffer;
+
+	u32 curr_index = 0;
+
+	u32 max_offset = fdt->struct_off;
+
+	fdt_rsv_entry entry;
+
+	for (u32 curr_offset = fdt->rsvmap_off; curr_offset + 2 * sizeof(u64) <= max_offset;
+	     curr_offset += 2 * sizeof(u64)) {
+		if (!buffer_read_u64_be(fdt_buf, curr_offset, &entry.address) ||
+		    !buffer_read_u64_be(fdt_buf, curr_offset + sizeof(u64), &entry.size)) {
+			return ERR_NOT_VALID;
+		}
+
+		if (entry.address == 0 && entry.size == 0) {
+			return ERR_OUT_OF_BOUNDS;
+		}
+
+		if (curr_index == index) {
+			*entryOUT = entry;
+			return ERR_NONE;
+		}
+
+		curr_index += 1;
+	}
+
+	return ERR_NOT_VALID;
+}

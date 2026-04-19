@@ -67,8 +67,6 @@ Merging
 After the pull request has been approved and all conversations are resolved, You can merge the changes into the main branch.
 If merge conflicts occur, consult the team members responsible for the affected files.
 
-If You're working with branches, delete the branch after merging, unless it is intended for ongoing work.
-
 -----------------------
 Reviewing Pull Requests
 -----------------------
