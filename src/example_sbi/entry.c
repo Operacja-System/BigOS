@@ -24,8 +24,8 @@ void main([[maybe_unused]] u32 hartid, [[maybe_unused]] const void* fdt) {
 		return;
 	}
 
-	struct sbiret ret = clock_init(50000llu);
-	if (ret.error != SBI_SUCCESS) {
+	error_t err = clock_init(50000llu);
+	if (err != ERR_NONE) {
 		sbi_puts("clock init failed\n");
 		return;
 	}

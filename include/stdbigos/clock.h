@@ -1,7 +1,7 @@
 #ifndef STDBIGOS_CLOCK
 #define STDBIGOS_CLOCK
 
-#include "sbi.h"
+#include "error.h"
 #include "types.h"
 
 /// @ingroup stdbigos
@@ -12,9 +12,9 @@
 u64 clock_now(void);
 u64 clock_ticks(void);
 
-struct sbiret clock_init(u64 tick_quantum);
-struct sbiret clock_rearm(void);
-struct sbiret clock_on_timer_interrupt(void);
+error_t clock_init(u64 tick_quantum);
+error_t clock_rearm(void);
+error_t clock_on_timer_interrupt(void);
 
 /// @}
 /// @}
