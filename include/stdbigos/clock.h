@@ -9,12 +9,14 @@
 /// @ingroup clock
 /// @{
 
-u64 clock_now(void);
-u64 clock_ticks(void);
-
 error_t clock_init(u64 tick_quantum);
-error_t clock_rearm(void);
-error_t clock_on_timer_interrupt(void);
+
+u64 clock_now(void);
+u64 clock_ticks_now(void);
+
+error_t clock_set_next_switch_in(u64 ticks_from_now);
+error_t clock_next_switch_tick(u64* out_tick);
+error_t clock_ticks_to_next_switch(u64* out_ticks);
 
 /// @}
 /// @}

@@ -9,18 +9,9 @@ static void sbi_puts(const char* str) {
 	while (*str) sbi_debug_console_write_byte(*str++);
 }
 
-static void timer_handler(void) {
-	(void)clock_on_timer_interrupt();
-}
-
 void main([[maybe_unused]] u32 hartid, [[maybe_unused]] const void* fdt) {
 	if (hal_trap_init() != ERR_NONE) {
 		sbi_puts("trap init failed\n");
-		return;
-	}
-
-	if (hal_trap_register_timer_handler(timer_handler) != ERR_NONE) {
-		sbi_puts("timer handler register failed\n");
 		return;
 	}
 
@@ -37,9 +28,14 @@ void main([[maybe_unused]] u32 hartid, [[maybe_unused]] const void* fdt) {
 
 	sbi_puts("clock started\n");
 
-	while (clock_ticks() == 0) {
+	u64 last_tick = clock_ticks_now();
+	while (true) {
 		hal_wait_for_interrupt();
-	}
 
-	sbi_puts("tick one-shot\n");
+		u64 now_tick = clock_ticks_now();
+		if (now_tick != last_tick) {
+			sbi_puts("tick periodic\n");
+			last_tick = now_tick;
+		}
+	}
 }

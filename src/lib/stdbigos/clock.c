@@ -1,9 +1,17 @@
 #include <hal/timer.h>
+#include <hal/trap.h>
 #include <stdbigos/clock.h>
 
 static u64 g_tick_quantum;
 static u64 g_next_deadline;
 static u64 g_ticks;
+static u64 g_next_switch_tick;
+
+static error_t clock_on_timer_interrupt(void);
+
+static void clock_timer_irq_handler(void) {
+	(void)clock_on_timer_interrupt();
+}
 
 static error_t clock_program_timer(u64 deadline) {
 	error_t err = hal_timer_set_deadline(deadline);
@@ -18,11 +26,11 @@ u64 clock_now(void) {
 	return hal_timer_now();
 }
 
-u64 clock_ticks(void) {
+u64 clock_ticks_now(void) {
 	return g_ticks;
 }
 
-error_t clock_rearm(void) {
+static error_t clock_rearm(void) {
 	if (g_tick_quantum == 0) {
 		return ERR_NOT_INITIALIZED;
 	}
@@ -36,18 +44,82 @@ error_t clock_init(u64 tick_quantum) {
 		return ERR_BAD_ARG;
 	}
 
-	g_ticks = 0;
-	g_tick_quantum = tick_quantum;
-	return clock_rearm();
-}
-
-error_t clock_on_timer_interrupt(void) {
-	++g_ticks;
-
-	error_t err = hal_timer_set_deadline(~0ull);
+	error_t err = hal_trap_register_timer_handler(clock_timer_irq_handler);
 	if (err != ERR_NONE) {
 		return err;
 	}
 
+	g_ticks = 0;
+	g_tick_quantum = tick_quantum;
+	g_next_switch_tick = 0;
+	return clock_rearm();
+}
+
+static error_t clock_on_timer_interrupt(void) {
+	++g_ticks;
+
+	g_next_deadline += g_tick_quantum;
+	u64 now = clock_now();
+	if (g_next_deadline <= now) {
+		g_next_deadline = now + g_tick_quantum;
+	}
+
+	error_t err = clock_program_timer(g_next_deadline);
+	if (err != ERR_NONE) {
+		return err;
+	}
+
+	return ERR_NONE;
+}
+
+error_t clock_set_next_switch_in(u64 ticks_from_now) {
+	if (g_tick_quantum == 0) {
+		return ERR_NOT_INITIALIZED;
+	}
+
+	if (ticks_from_now == 0) {
+		return ERR_BAD_ARG;
+	}
+
+	g_next_switch_tick = g_ticks + ticks_from_now;
+	return ERR_NONE;
+}
+
+error_t clock_next_switch_tick(u64* out_tick) {
+	if (out_tick == NULL) {
+		return ERR_BAD_ARG;
+	}
+
+	if (g_tick_quantum == 0) {
+		return ERR_NOT_INITIALIZED;
+	}
+
+	if (g_next_switch_tick == 0) {
+		return ERR_NOT_FOUND;
+	}
+
+	*out_tick = g_next_switch_tick;
+	return ERR_NONE;
+}
+
+error_t clock_ticks_to_next_switch(u64* out_ticks) {
+	if (out_ticks == NULL) {
+		return ERR_BAD_ARG;
+	}
+
+	if (g_tick_quantum == 0) {
+		return ERR_NOT_INITIALIZED;
+	}
+
+	if (g_next_switch_tick == 0) {
+		return ERR_NOT_FOUND;
+	}
+
+	if (g_ticks >= g_next_switch_tick) {
+		*out_ticks = 0;
+		return ERR_NONE;
+	}
+
+	*out_ticks = g_next_switch_tick - g_ticks;
 	return ERR_NONE;
 }
