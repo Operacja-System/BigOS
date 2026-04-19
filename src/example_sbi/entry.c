@@ -37,15 +37,9 @@ void main([[maybe_unused]] u32 hartid, [[maybe_unused]] const void* fdt) {
 
 	sbi_puts("clock started\n");
 
-	u64 last_tick = 0;
-	while (true) {
+	while (clock_ticks() == 0) {
 		hal_wait_for_interrupt();
-
-		u64 ticks = clock_ticks();
-		if (ticks != last_tick && (ticks % 100) == 0) {
-			sbi_puts("tick x100\n");
-		}
-
-		last_tick = ticks;
 	}
+
+	sbi_puts("tick one-shot\n");
 }

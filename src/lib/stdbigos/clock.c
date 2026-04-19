@@ -58,5 +58,11 @@ struct sbiret clock_init(u64 tick_quantum) {
 
 struct sbiret clock_on_timer_interrupt(void) {
 	++g_ticks;
-	return clock_rearm();
+
+	error_t err = hal_timer_set_deadline(~0ull);
+	if (err != ERR_NONE) {
+		return make_error(err);
+	}
+
+	return (struct sbiret){.error = SBI_SUCCESS, .value = 0};
 }
