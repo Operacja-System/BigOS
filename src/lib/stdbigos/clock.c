@@ -7,12 +7,6 @@ static u64 g_next_deadline;
 static u64 g_ticks;
 static u64 g_next_switch_tick;
 
-static error_t clock_on_timer_interrupt(void);
-
-static void clock_timer_irq_handler(void) {
-	(void)clock_on_timer_interrupt();
-}
-
 static error_t clock_program_timer(u64 deadline) {
 	error_t err = hal_timer_set_deadline(deadline);
 	if (err != ERR_NONE) {
@@ -22,21 +16,26 @@ static error_t clock_program_timer(u64 deadline) {
 	return ERR_NONE;
 }
 
-u64 clock_now(void) {
-	return hal_timer_now();
-}
-
-u64 clock_ticks_now(void) {
-	return g_ticks;
-}
-
-static error_t clock_rearm(void) {
+static error_t clock_schedule_next_deadline(void) {
 	if (g_tick_quantum == 0) {
 		return ERR_NOT_INITIALIZED;
 	}
 
 	g_next_deadline = clock_now() + g_tick_quantum;
 	return clock_program_timer(g_next_deadline);
+}
+
+static void clock_timer_irq_handler(void) {
+	++g_ticks;
+	(void)clock_schedule_next_deadline();
+}
+
+u64 clock_now(void) {
+	return hal_timer_now();
+}
+
+u64 clock_ticks_now(void) {
+	return g_ticks;
 }
 
 error_t clock_init(u64 tick_quantum) {
@@ -52,24 +51,7 @@ error_t clock_init(u64 tick_quantum) {
 	g_ticks = 0;
 	g_tick_quantum = tick_quantum;
 	g_next_switch_tick = 0;
-	return clock_rearm();
-}
-
-static error_t clock_on_timer_interrupt(void) {
-	++g_ticks;
-
-	g_next_deadline += g_tick_quantum;
-	u64 now = clock_now();
-	if (g_next_deadline <= now) {
-		g_next_deadline = now + g_tick_quantum;
-	}
-
-	error_t err = clock_program_timer(g_next_deadline);
-	if (err != ERR_NONE) {
-		return err;
-	}
-
-	return ERR_NONE;
+	return clock_schedule_next_deadline();
 }
 
 error_t clock_set_next_switch_in(u64 ticks_from_now) {

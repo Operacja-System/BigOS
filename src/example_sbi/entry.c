@@ -34,7 +34,9 @@ void main([[maybe_unused]] u32 hartid, [[maybe_unused]] const void* fdt) {
 
 		u64 now_tick = clock_ticks_now();
 		if (now_tick != last_tick) {
-			sbi_puts("tick periodic\n");
+			if ((now_tick % 100) == 0) {
+				sbi_puts("tick periodic\n");
+			}
 			last_tick = now_tick;
 		}
 	}
