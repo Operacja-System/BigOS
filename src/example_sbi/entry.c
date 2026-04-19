@@ -1,6 +1,6 @@
-#include <stdbigos/clock.h>
 #include <hal/timer.h>
 #include <hal/trap.h>
+#include <stdbigos/clock.h>
 #include <stdbigos/sbi.h>
 #include <stdbigos/types.h>
 #include <stdbool.h>

@@ -5,10 +5,10 @@
 
 static error_t map_sbi_error(sbi_error_t err) {
 	switch (err) {
-	case SBI_SUCCESS: return ERR_NONE;
+	case SBI_SUCCESS:           return ERR_NONE;
 	case SBI_ERR_INVALID_PARAM: return ERR_BAD_ARG;
 	case SBI_ERR_NOT_SUPPORTED: return ERR_NOT_IMPLEMENTED;
-	default: return ERR_NOT_VALID;
+	default:                    return ERR_NOT_VALID;
 	}
 }
 

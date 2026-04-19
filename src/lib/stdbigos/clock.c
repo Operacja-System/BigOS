@@ -1,5 +1,5 @@
-#include <stdbigos/clock.h>
 #include <hal/timer.h>
+#include <stdbigos/clock.h>
 
 static u64 g_tick_quantum;
 static u64 g_next_deadline;
