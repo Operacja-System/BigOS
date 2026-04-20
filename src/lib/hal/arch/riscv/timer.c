@@ -14,7 +14,9 @@ static error_t map_sbi_error(sbi_error_t err) {
 }
 
 u64 hal_timer_now(void) {
-	return CSR_READ(time);
+	u64 now;
+	__asm__ volatile("rdtime %0" : "=r"(now)::"memory");
+	return now;
 }
 
 error_t hal_timer_set_deadline(u64 deadline) {
