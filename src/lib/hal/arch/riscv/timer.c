@@ -2,6 +2,7 @@
 #include <stdbigos/sbi.h>
 
 #include "csr.h"
+#include "trap.h"
 
 static error_t map_sbi_error(sbi_error_t err) {
 	switch (err) {
@@ -38,7 +39,6 @@ error_t hal_timer_arm_relative(u64 delta) {
 }
 
 error_t hal_timer_enable_interrupts(void) {
-	CSR_SET(sie, CSR_SIE_STIE);
-	CSR_SET(sstatus, CSR_SSTATUS_SIE);
+	CSR_SET(sie, 1ul << HAL_RISCV_TRAP_INT_S_TIMER);
 	return ERR_NONE;
 }
