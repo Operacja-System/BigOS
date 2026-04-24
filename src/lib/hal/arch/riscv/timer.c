@@ -1,17 +1,9 @@
 #include <hal/timer.h>
 #include <stdbigos/sbi.h>
+#include <stdbigos/sbi_utils.h>
 
 #include "csr.h"
 #include "trap.h"
-
-static error_t map_sbi_error(sbi_error_t err) {
-	switch (err) {
-	case SBI_SUCCESS:           return ERR_NONE;
-	case SBI_ERR_INVALID_PARAM: return ERR_BAD_ARG;
-	case SBI_ERR_NOT_SUPPORTED: return ERR_NOT_IMPLEMENTED;
-	default:                    return ERR_NOT_VALID;
-	}
-}
 
 u64 hal_timer_now(void) {
 	u64 now;
@@ -29,7 +21,7 @@ error_t hal_timer_arm_absolute(u64 deadline) {
 		ret = sbi_legacy_set_timer(deadline);
 	}
 
-	return map_sbi_error(ret.error);
+	return sbi_map_error(ret.error);
 }
 
 error_t hal_timer_arm_relative(u64 delta) {
