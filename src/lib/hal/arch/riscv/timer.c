@@ -35,3 +35,7 @@ error_t hal_timer_arm_relative(u64 delta) {
 void hal_timer_enable_interrupts(void) {
 	CSR_SET(sie, 1ul << HAL_RISCV_TRAP_INT_S_TIMER);
 }
+
+void hal_timer_disable_interrupts(void) {
+	CSR_CLEAR(sie, 1ul << HAL_RISCV_TRAP_INT_S_TIMER);
+}
