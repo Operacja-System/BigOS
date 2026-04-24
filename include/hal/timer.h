@@ -11,6 +11,7 @@
 
 /**
  * @brief Read current monotonic hardware timer value.
+ * @return Current hardware timer tick value.
  */
 u64 hal_timer_now(void);
 
@@ -39,7 +40,7 @@ error_t hal_timer_arm_relative(u64 delta);
 /**
  * @brief Enable supervisor timer interrupts and global supervisor IRQs.
  */
-error_t hal_timer_enable_interrupts(void);
+void hal_timer_enable_interrupts(void);
 
 /// @}
 

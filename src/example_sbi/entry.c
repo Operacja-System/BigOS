@@ -21,10 +21,7 @@ void main([[maybe_unused]] u32 hartid, [[maybe_unused]] const void* fdt) {
 		return;
 	}
 
-	if (hal_timer_enable_interrupts() != ERR_NONE) {
-		sbi_puts("timer irq enable failed\n");
-		return;
-	}
+	hal_timer_enable_interrupts();
 
 	sbi_puts("clock started\n");
 
