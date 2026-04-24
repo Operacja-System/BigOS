@@ -38,9 +38,14 @@ error_t hal_timer_arm_absolute(u64 deadline);
 error_t hal_timer_arm_relative(u64 delta);
 
 /**
- * @brief Enable supervisor timer interrupts and global supervisor IRQs.
+ * @brief Enable supervisor timer interrupts.
  */
 void hal_timer_enable_interrupts(void);
+
+/**
+ * @brief Disable supervisor timer interrupts.
+ */
+void hal_timer_disable_interrupts(void);
 
 /// @}
 
