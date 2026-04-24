@@ -3,7 +3,6 @@
 #include <stdbigos/clock.h>
 #include <stdbigos/sbi.h>
 #include <stdbigos/types.h>
-#include <stdbool.h>
 
 static void sbi_puts(const char* str) {
 	while (*str) sbi_debug_console_write_byte(*str++);
