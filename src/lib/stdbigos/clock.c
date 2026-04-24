@@ -8,7 +8,7 @@ static u64 g_ticks;
 static u64 g_next_switch_tick;
 
 static error_t clock_program_timer(u64 deadline) {
-	error_t err = hal_timer_set_deadline(deadline);
+	error_t err = hal_timer_arm_absolute(deadline);
 	if (err != ERR_NONE) {
 		return err;
 	}

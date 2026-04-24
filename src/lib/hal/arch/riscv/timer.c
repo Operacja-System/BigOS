@@ -19,7 +19,7 @@ u64 hal_timer_now(void) {
 	return now;
 }
 
-error_t hal_timer_set_deadline(u64 deadline) {
+error_t hal_timer_arm_absolute(u64 deadline) {
 	if (deadline == 0) {
 		return ERR_BAD_ARG;
 	}
@@ -37,7 +37,7 @@ error_t hal_timer_arm_relative(u64 delta) {
 		return ERR_BAD_ARG;
 	}
 
-	return hal_timer_set_deadline(hal_timer_now() + delta);
+	return hal_timer_arm_absolute(hal_timer_now() + delta);
 }
 
 error_t hal_timer_enable_interrupts(void) {

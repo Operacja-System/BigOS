@@ -23,7 +23,7 @@ u64 hal_timer_now(void);
  * @retval ERR_NOT_IMPLEMENTED Timer SBI extension unsupported
  * @retval ERR_NOT_VALID Other platform/firmware failure
  */
-error_t hal_timer_set_deadline(u64 deadline);
+error_t hal_timer_arm_absolute(u64 deadline);
 
 /**
  * @brief Program next timer interrupt relative to current time.
