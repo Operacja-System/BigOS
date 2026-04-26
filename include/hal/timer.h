@@ -43,7 +43,7 @@ error_t hal_timer_arm_relative(u64 delta);
 void hal_timer_enable_interrupts(void);
 
 /**
- * @brief Disable supervisor timer interrupts. 
+ * @brief Disable supervisor timer interrupts.
  */
 void hal_timer_disable_interrupts(void);
 
