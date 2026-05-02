@@ -88,4 +88,4 @@ error_t clock_ticks_to_next_switch(u64* out_ticks);
 /** @} */ /* end group clock */
 /** @} */ /* end group stdbigos */
 
-#endif // !STDBIGOS_CLOCK
+#endif    // !STDBIGOS_CLOCK
