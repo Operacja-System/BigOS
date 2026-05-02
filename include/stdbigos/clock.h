@@ -12,9 +12,9 @@
  * architecture-specific ticks and supports scheduling a "next switch"
  * tick for the scheduler to observe.
  *
- * @ingroup stdbigos
+ * @addtogroup stdbigos
  * @{
- * @ingroup clock
+ * @addtogroup clock
  * @{
  */
 
