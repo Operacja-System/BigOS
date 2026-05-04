@@ -1,5 +1,0 @@
-====
-Trap
-====
-
-.. doxygengroup:: trap

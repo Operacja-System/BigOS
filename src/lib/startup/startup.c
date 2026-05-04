@@ -7,7 +7,6 @@
 */
 
 #include <relocations/reloc.h>
-#include <stdbigos/csr.h>
 #include <stdbigos/string.h>
 #include <stdbigos/types.h>
 #include <stdint.h>
@@ -23,7 +22,7 @@ extern int main(u32 hartid, const void* fdt);
 
 [[gnu::section(".fini"), noreturn, gnu::noinline]]
 static void _Exit([[maybe_unused]] int return_code) {
-	while (1) wfi();
+	while (1) __asm__ volatile("wfi" ::: "memory");
 }
 
 // NOLINTBEGIN(clang-analyzer-security.ArrayBound)

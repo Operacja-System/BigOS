@@ -27,20 +27,24 @@ static inline memory_region_t physical_memory_region_to_effective(physical_memor
 }
 
 typedef enum : u8 {
-	FRAME_SIZE_4KiB = 0,
-	FRAME_SIZE_8KiB = 1,
-	FRAME_SIZE_16KiB = 2,
-	FRAME_SIZE_32KiB = 3,
-	FRAME_SIZE_64KiB = 4,
-	FRAME_SIZE_128KiB = 5,
-	FRAME_SIZE_256KiB = 6,
-	FRAME_SIZE_512KiB = 7,
-	FRAME_SIZE_1MiB = 8,
-	FRAME_SIZE_2MiB = 9,
-	FRAME_SIZE_1GiB = 18,
-} frame_size_t; // NOTE: value of frame_size_t is (4KiB << frame_size)
+	FRAME_ORDER_4KiB = 0,
+	FRAME_ORDER_8KiB = 1,
+	FRAME_ORDER_16KiB = 2,
+	FRAME_ORDER_32KiB = 3,
+	FRAME_ORDER_64KiB = 4,
+	FRAME_ORDER_128KiB = 5,
+	FRAME_ORDER_256KiB = 6,
+	FRAME_ORDER_512KiB = 7,
+	FRAME_ORDER_1MiB = 8,
+	FRAME_ORDER_2MiB = 9,
+	FRAME_ORDER_1GiB = 18,
+} frame_order_t; // NOTE: value is the order of 4KiB frames (frame count = 1 << order)
 
-u64 phys_mem_get_frame_size_in_bytes(frame_size_t fs);
+#define PAGE_SIZE 0x1000UL
+
+/// @ingroup kmm
+/// @ingroup kmm_manager
+u64 phys_mem_get_frame_size_in_bytes(frame_order_t fs);
 
 /**
  *	@brief Initializes physical memory manager
@@ -62,7 +66,7 @@ error_t phys_mem_init();
  *	@retval ERR_OUT_OF_MEMORY The block of specified size was not able to be allocated
  * */
 [[gnu::nonnull(2)]]
-error_t phys_mem_alloc_frame(frame_size_t frame_size, physical_memory_region_t* regOUT);
+error_t phys_mem_alloc_frame(frame_order_t frame_size, physical_memory_region_t* regOUT);
 
 /**
  *	@retval ERR_NONE

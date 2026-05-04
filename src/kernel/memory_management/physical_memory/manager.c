@@ -8,6 +8,7 @@
 #include "hal/include/memory_regions.h"
 #include "stdbigos/address.h"
 #include "stdbigos/error.h"
+#include "stdbigos/types.h"
 
 // ==========================================
 //					Private
@@ -57,7 +58,7 @@ static error_t store_header(physical_memory_region_t header) {
 			effective_hsn = physical_to_effective(effective_hsn->next);
 		} else {
 			physical_memory_region_t new_reg = {0};
-			error_t err = phys_mem_alloc_frame(FRAME_SIZE_4KiB, &new_reg);
+			error_t err = phys_mem_alloc_frame(FRAME_ORDER_4KiB, &new_reg);
 			if (err)
 				return err;
 			err = init_header_storage_node(new_reg);
@@ -76,7 +77,7 @@ static error_t store_header(physical_memory_region_t header) {
 //					Public
 // ==========================================
 
-u64 phys_mem_get_frame_size_in_bytes(frame_size_t fs) {
+u64 phys_mem_get_frame_size_in_bytes(frame_order_t fs) {
 	const u64 size_4KiB = 0x1000;
 	return (size_4KiB << fs);
 }
@@ -132,7 +133,7 @@ error_t phys_mem_init() {
 		}
 		if (g_root_header_storage_node == nullptr) {
 			memory_area_t new_area = {0};
-			err = pmallocator_allocate(12, header_eff_reg, &new_area);
+			err = pmallocator_allocate(FRAME_ORDER_4KiB, header_eff_reg, &new_area);
 			// NOTE: Since we failed to allocate the smallest possible frame size, we assume that this region is
 			// useless.
 			if (err) {
@@ -169,13 +170,13 @@ error_t phys_mem_init() {
 }
 // NOLINTEND readability-function-cognitive-complexity
 
-error_t phys_mem_alloc_frame(frame_size_t frame_size, physical_memory_region_t* regOUT) {
+error_t phys_mem_alloc_frame(frame_order_t frame_size, physical_memory_region_t* regOUT) {
 	u32 idx = 0;
 	physical_memory_region_t header_pmr;
 	while (get_header_pmr(idx, &header_pmr) == ERR_NONE) {
 		memory_region_t header_region = physical_memory_region_to_effective(header_pmr);
 		memory_area_t area_out;
-		error_t err = pmallocator_allocate(frame_size + 12, header_region, &area_out);
+		error_t err = pmallocator_allocate(frame_size, header_region, &area_out);
 		if (err) {
 			++idx;
 			continue;
