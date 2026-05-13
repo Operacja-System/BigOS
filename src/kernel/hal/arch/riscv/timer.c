@@ -1,4 +1,4 @@
-#include <hal/timer.h>
+#include <hal/include/timer.h>
 #include <stdbigos/sbi.h>
 #include <stdbigos/sbi_utils.h>
 

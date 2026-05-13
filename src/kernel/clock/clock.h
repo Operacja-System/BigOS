@@ -1,8 +1,8 @@
 #ifndef STDBIGOS_CLOCK
 #define STDBIGOS_CLOCK
 
-#include "error.h"
-#include "types.h"
+#include "stdbigos/error.h"
+#include "stdbigos/types.h"
 
 /**
  * @file include/stdbigos/clock.h

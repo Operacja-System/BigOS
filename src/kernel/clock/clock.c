@@ -1,6 +1,7 @@
-#include <hal/timer.h>
-#include <hal/trap.h>
-#include <stdbigos/clock.h>
+#include "clock.h"
+
+#include <hal/include/timer.h>
+#include <hal/include/trap.h>
 
 static u64 g_tick_quantum;
 static u64 g_next_deadline;
