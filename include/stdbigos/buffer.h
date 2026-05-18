@@ -31,16 +31,25 @@ static inline bool buffer_is_empty(buffer_t buf) {
 }
 
 [[nodiscard]]
-bool buffer_read_u32_be(buffer_t buf, size_t offset, u32* out);
+bool buffer_read_u8(buffer_t buf, size_t offset, u8* out);
 
 [[nodiscard]]
-bool buffer_read_u64_be(buffer_t buf, size_t offset, u64* out);
+bool buffer_read_u16_le(buffer_t buf, size_t offset, u16* out);
 
 [[nodiscard]]
 bool buffer_read_u32_le(buffer_t buf, size_t offset, u32* out);
 
 [[nodiscard]]
 bool buffer_read_u64_le(buffer_t buf, size_t offset, u64* out);
+
+[[nodiscard]]
+bool buffer_read_u16_be(buffer_t buf, size_t offset, u16* out);
+
+[[nodiscard]]
+bool buffer_read_u32_be(buffer_t buf, size_t offset, u32* out);
+
+[[nodiscard]]
+bool buffer_read_u64_be(buffer_t buf, size_t offset, u64* out);
 
 [[nodiscard]]
 bool buffer_read_cstring_len(buffer_t buf, size_t offset, const char** out_str, u64* len);
