@@ -3,15 +3,17 @@
 #include "dt/dt.h"
 #include "hal_internal.h"
 #include "stdbigos/buffer.h"
+#include "stdbigos/math.h"
 #include "stdbigos/string.h"
 
 /*
  * initramfs layout (big endian)
  *
  * u32 magic
- * u32 version
+ * u64 version
  * u16 - file_count
  *
+ * aligned to 16bit boundry relative to the start of initramfs
  *	u32 - offset (from the start of initramfs)
  *	u32 - size
  *	u8 - namesize
@@ -21,16 +23,19 @@
  * data blob
  * */
 
-static error_t validate(buffer_t initramfs_buff) {
+static error_t validate(buffer_t initramfs_buff, u64* cursorOUT) {
 	const u32 INITRAMFS_MAGIC = 0xB16B00B5;
 	u32 magic = 0;
-	u32 version = 0;
-	if (!buffer_read_u32_be(initramfs_buff, 0, &magic))
+	u64 version = 0;
+	*cursorOUT = 0;
+	if (!buffer_read_u32_be(initramfs_buff, *cursorOUT, &magic))
 		return ERR_INVALID_MEMORY_REGION;
+	*cursorOUT += sizeof(u32);
 	if (magic != INITRAMFS_MAGIC)
 		return ERR_INVALID_MEMORY_REGION;
-	if (!buffer_read_u32_be(initramfs_buff, 4, &version))
+	if (!buffer_read_u64_be(initramfs_buff, *cursorOUT, &version))
 		return ERR_INVALID_MEMORY_REGION;
+	*cursorOUT += sizeof(u64);
 	// TODO: Handle version
 	return ERR_NONE;
 }
@@ -58,8 +63,7 @@ typedef struct {
 } file_header_t;
 
 // TODO: Change filename to string_view
-static error_t find_file_by_name(const char* filename, buffer_t initramfs_buff, file_header_t* headerOUT) {
-	u64 cursor = 8;
+static error_t find_file_by_name(const char* filename, buffer_t initramfs_buff, file_header_t* headerOUT, u64 cursor) {
 	u16 filecount = 0;
 	if (!buffer_read_u16_be(initramfs_buff, cursor, &filecount))
 		return ERR_INVALID_MEMORY_REGION;
@@ -79,6 +83,7 @@ static error_t find_file_by_name(const char* filename, buffer_t initramfs_buff, 
 		buffer_t target_filename_buff = make_buffer(filename, strlen(filename));
 		buffer_t filename_buff = make_buffer(initramfs_buff.data + cursor, file_name_size);
 		cursor += file_name_size;
+		cursor = ALIGN_UP(cursor, sizeof(u16));
 
 		if (buffer_memcmp(target_filename_buff, filename_buff) == 0) {
 			if (headerOUT->offset + headerOUT->size > initramfs_buff.size)
@@ -96,11 +101,12 @@ error_t hal_initramfs_read(const char* filename, buffer_t* buffOUT) {
 	error_t err = find_initramfs_buffer(&initramfs_buff);
 	if (err)
 		return err;
-	err = validate(initramfs_buff);
+	u64 cursor = 0;
+	err = validate(initramfs_buff, &cursor);
 	if (err)
 		return err;
 	file_header_t file_header;
-	err = find_file_by_name(filename, initramfs_buff, &file_header);
+	err = find_file_by_name(filename, initramfs_buff, &file_header, cursor);
 	if (err)
 		return err;
 	*buffOUT = make_buffer(initramfs_buff.data + file_header.offset, file_header.size);

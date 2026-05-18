@@ -47,7 +47,6 @@ bool buffer_read_u32_be(buffer_t buf, size_t offset, u32* out) {
 	return ok;
 }
 
-
 bool buffer_read_u64_be(buffer_t buf, size_t offset, u64* out) {
 	bool ok = buffer_is_valid(buf) && offset + sizeof(*out) <= buf.size;
 	if (ok)

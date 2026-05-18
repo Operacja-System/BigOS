@@ -8,7 +8,6 @@
 /// @addtogroup bitutils
 /// @{
 
-
 u16 read_be16(const void* addr);
 
 u32 read_be32(const void* addr);
