@@ -12,5 +12,6 @@
 	@defgroup types
 	@defgroup string
 	@defgroup bitutils
+	@defgroup stdversion
 @defgroup trap Interrupt and exception handling
 */
