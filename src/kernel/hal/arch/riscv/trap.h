@@ -9,7 +9,7 @@
 #ifndef HAL_ARCH_RISCV_TRAP_H
 #define HAL_ARCH_RISCV_TRAP_H
 
-#include <stdbigos/types.h>
+#include <libcore/types.h>
 
 /**
  * @addtogroup trap

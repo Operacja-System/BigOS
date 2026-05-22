@@ -1,8 +1,8 @@
 #ifndef KERNEL_ADDRESS_SPACE_ADDRESS_SPACE
 #define KERNEL_ADDRESS_SPACE_ADDRESS_SPACE
 
-#include "stdbigos/error.h"
-#include "stdbigos/types.h"
+#include <libcore/error.h>
+#include <libcore/types.h>
 
 typedef enum : u16 {
 	AS_FLAGS_READ = (1ull << 0),

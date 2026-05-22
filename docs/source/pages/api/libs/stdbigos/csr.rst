@@ -1,5 +1,0 @@
-===
-CSR
-===
-
-.. doxygengroup:: csr

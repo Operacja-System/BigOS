@@ -18,6 +18,13 @@
             "toolchainFile": "${sourceDir}/CMake/toolchains/riscv64-clang.cmake"
         },
         {
+            "name": "host-clang",
+            "hidden": true,
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "clang"
+			}
+        },
+        {
             "name": "compile-commands",
             "hidden": true,
             "cacheVariables": {

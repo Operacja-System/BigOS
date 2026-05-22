@@ -3,7 +3,7 @@
 #define _LINUX_ELF_H
 
 #include "elf-em.h"
-#include <stdbigos/types.h>
+#include <libcore/types.h>
 
 /* 32-bit ELF base types. */
 typedef u32	Elf32_Addr;

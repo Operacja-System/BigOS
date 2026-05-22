@@ -1,14 +1,14 @@
 #include "memory_management/include/physical_memory/manager.h"
 
+#include <libcore/address.h>
+#include <libcore/error.h>
+#include <libcore/memory_types.h>
+#include <libcore/string.h>
+#include <libcore/types.h>
 #include <logging/klog.h>
-#include <stdbigos/memory_types.h>
-#include <stdbigos/string.h>
 
 #include "allocator.h"
 #include "hal/include/memory_regions.h"
-#include "stdbigos/address.h"
-#include "stdbigos/error.h"
-#include "stdbigos/types.h"
 
 // ==========================================
 //					Private

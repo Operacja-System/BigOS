@@ -1,8 +1,9 @@
-#include <unity.h>
+#include <libcore/memory_types.h>
 #include <stdlib.h>
-#include "allocator.h"
+#include <unity.h>
+
 #include "memory_management/include/physical_memory/manager.h"
-#include "stdbigos/memory_types.h"
+#include "memory_management/physical_memory/allocator.h"
 
 #define TEST_PAGES 64
 #define TEST_SIZE  (TEST_PAGES * PAGE_SIZE)
@@ -40,13 +41,13 @@ void setUp(void) {
 	g_area_buf = aligned_alloc(PAGE_SIZE, TEST_SIZE);
 
 	g_area = (memory_area_t){
-		.addr = (uintptr_t)g_area_buf,
-		.size = TEST_SIZE,
+	    .addr = (uintptr_t)g_area_buf,
+	    .size = TEST_SIZE,
 	};
 
 	memory_area_t reserved[] = {
-		{.addr = g_area.addr + RESERVED1_OFFSET, .size = RESERVED1_SIZE},
-		{.addr = g_area.addr + RESERVED2_OFFSET, .size = RESERVED2_SIZE},
+	    {.addr = g_area.addr + RESERVED1_OFFSET, .size = RESERVED1_SIZE},
+	    {.addr = g_area.addr + RESERVED2_OFFSET, .size = RESERVED2_SIZE},
 	};
 	reserved_ctx_t ctx = {.areas = reserved, .count = 2, .index = 0};
 
@@ -59,8 +60,8 @@ void setUp(void) {
 	g_header_pages = header_area.size / PAGE_SIZE;
 
 	g_header_region = (memory_region_t){
-		.addr = (void*)header_area.addr,
-		.size = header_area.size,
+	    .addr = (void*)header_area.addr,
+	    .size = header_area.size,
 	};
 
 	ctx.index = 0;
@@ -72,7 +73,6 @@ void tearDown(void) {
 	free(g_area_buf);
 	g_area_buf = NULL;
 }
-
 
 static void test_allocate_single_page(void) {
 	memory_area_t result;
@@ -91,24 +91,19 @@ static void test_allocate_until_full(void) {
 	size_t prev_addr = -1;
 
 	while (pmallocator_allocate(FRAME_ORDER_4KiB, g_header_region, &result) == ERR_NONE) {
-		TEST_ASSERT_FALSE(
-			do_memory_areas_overlap(result,(memory_area_t){ .addr = g_area.addr + RESERVED1_OFFSET, .size = RESERVED1_SIZE })
-		);
+		TEST_ASSERT_FALSE(do_memory_areas_overlap(
+		    result, (memory_area_t){.addr = g_area.addr + RESERVED1_OFFSET, .size = RESERVED1_SIZE}));
 
-		TEST_ASSERT_FALSE(
-			do_memory_areas_overlap(result,(memory_area_t){ .addr = g_area.addr + RESERVED2_OFFSET, .size = RESERVED2_SIZE })
-		);
+		TEST_ASSERT_FALSE(do_memory_areas_overlap(
+		    result, (memory_area_t){.addr = g_area.addr + RESERVED2_OFFSET, .size = RESERVED2_SIZE}));
 
-		TEST_ASSERT_FALSE(
-			prev_addr == result.addr
-		);
+		TEST_ASSERT_FALSE(prev_addr == result.addr);
 
 		prev_addr = result.addr;
 		count++;
 	}
 	TEST_ASSERT_EQUAL(expected, count);
 }
-
 
 static void test_free_and_reallocate(void) {
 	memory_area_t first;
@@ -134,17 +129,16 @@ static void test_free_double_free(void) {
 }
 
 static void test_free_out_of_bounds(void) {
-	memory_area_t bad = { .addr = g_area.addr - PAGE_SIZE, .size = PAGE_SIZE };
+	memory_area_t bad = {.addr = g_area.addr - PAGE_SIZE, .size = PAGE_SIZE};
 	error_t err = pmallocator_free(bad, g_header_region);
 	TEST_ASSERT_EQUAL(ERR_OUT_OF_BOUNDS, err);
 }
 
 static void test_free_not_allocated(void) {
-	memory_area_t not_allocated = { .addr = g_area.addr + 2 * PAGE_SIZE, .size = PAGE_SIZE };
+	memory_area_t not_allocated = {.addr = g_area.addr + 2 * PAGE_SIZE, .size = PAGE_SIZE};
 	error_t err = pmallocator_free(not_allocated, g_header_region);
 	TEST_ASSERT_EQUAL(ERR_NOT_VALID, err);
 }
-
 
 static void test_full_interleaved(void) {
 	memory_area_t a;
@@ -183,7 +177,6 @@ static void test_full_cycle(void) {
 	TEST_ASSERT_EQUAL(expected, count);
 	TEST_ASSERT_EQUAL(count, count2);
 }
-
 
 int main(void) {
 	UNITY_BEGIN();

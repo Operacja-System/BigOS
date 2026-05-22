@@ -1,4 +1,4 @@
-#include <stdbigos/error.h>
+#include <libcore/error.h>
 
 #include "hal/include/memory_regions.h"
 

@@ -1,6 +1,6 @@
 #include "hal/include/hal.h"
 
-#include "dt/dt.h"
+#include <libboot/dt/dt.h>
 
 //===========
 // Internals

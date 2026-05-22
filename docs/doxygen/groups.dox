@@ -5,10 +5,10 @@
 		@defgroup palloc Physical memory allocator
 	@defgroup kinit Kernel initialization
 	@defgroup hal Hardware abstraction layer
-@defgroup dt Device tree
-@defgroup stdbigos
+@defgroup libboot_dt
+@defgroup libcore
 	@defgroup sbi
-	@defgroup csr
+	@defgroup error
 	@defgroup types
 	@defgroup string
 	@defgroup bitutils

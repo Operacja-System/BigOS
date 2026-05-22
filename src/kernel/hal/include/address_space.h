@@ -1,9 +1,9 @@
 #ifndef HAL_ADDRESS_SPACE
 #define HAL_ADDRESS_SPACE
 
-#include "stdbigos/error.h"
-#include "stdbigos/memory_types.h"
-#include "stdbigos/types.h"
+#include <libcore/error.h>
+#include <libcore/memory_types.h>
+#include <libcore/types.h>
 
 typedef struct {
 	alignas(64) u8 data[32];

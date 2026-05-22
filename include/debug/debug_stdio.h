@@ -1,5 +1,4 @@
 #ifndef _DEBUG_STDIO_
-
 #define _DEBUG_STDIO_
 
 #include <stdarg.h>

@@ -1,8 +1,8 @@
 #include <hal/include/timer.h>
-#include <stdbigos/sbi.h>
-#include <stdbigos/sbi_utils.h>
 
 #include "csr.h"
+#include "sbi.h"
+#include "sbi_utils.h"
 #include "trap.h"
 
 u64 hal_timer_now(void) {

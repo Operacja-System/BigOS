@@ -1,9 +1,8 @@
 #ifndef HAL_TRAP_H
 #define HAL_TRAP_H
 
-#include <stdbigos/error.h>
-#include <stdbigos/types.h>
-#include <stddef.h>
+#include <libcore/error.h>
+#include <libcore/types.h>
 
 /**
  * @addtogroup trap
