@@ -6,7 +6,7 @@
 #include "../../include/memory_regions.h"
 
 static fdt_t g_hal_riscv_fdt;
-static bool g_hal_riscv_fdt_initialized = false;
+static void* g_hal_riscv_fdt_addr = NULL;
 
 static error_t hal_riscv_read_u32_cells_be(buffer_t buf, size_t offset, u32 cell_count, u64* out);
 
@@ -29,12 +29,17 @@ static error_t hal_riscv_get_fdt(const fdt_t** fdtOUT) {
 	if (fdtOUT == nullptr)
 		return ERR_BAD_ARG;
 
-	if (!g_hal_riscv_fdt_initialized) {
+	void* dtb = nullptr;
+	error_t err = ihal_get_dtb(&dtb);
+	if (err)
+		return err;
+
+	if (g_hal_riscv_fdt_addr != dtb) {
 		error_t err = hal_riscv_init_fdt(&g_hal_riscv_fdt);
 		if (err)
 			return err;
 
-		g_hal_riscv_fdt_initialized = true;
+		g_hal_riscv_fdt_addr = dtb;
 	}
 
 	*fdtOUT = &g_hal_riscv_fdt;
