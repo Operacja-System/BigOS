@@ -1,8 +1,8 @@
 #ifndef HAL_HAL
 #define HAL_HAL
 
-#include <stdbigos/address.h>
-#include <stdbigos/error.h>
+#include <libcore/address.h>
+#include <libcore/error.h>
 
 /// @addtogroup hal
 /// @{

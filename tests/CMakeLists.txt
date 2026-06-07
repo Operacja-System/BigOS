@@ -8,4 +8,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(unity)
 
-add_subdirectory(kernel/memory_management/physical_memory)
+file(GLOB CHILDREN RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *)
+foreach(CHILD ${CHILDREN})
+  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${CHILD})
+    add_subdirectory(${CHILD})
+  endif()
+endforeach()

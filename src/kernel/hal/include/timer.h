@@ -1,8 +1,8 @@
 #ifndef HAL_TIMER_H
 #define HAL_TIMER_H
 
-#include <stdbigos/error.h>
-#include <stdbigos/types.h>
+#include <libcore/error.h>
+#include <libcore/types.h>
 
 /**
  * @addtogroup hal

@@ -64,6 +64,9 @@ build-tests/
 # Disk images
 *.img
 *.iso
+# Keep .img files in tests/
+!tests/
+!tests/**/*.img
 
 # Compiler commands
 compile_commands.json

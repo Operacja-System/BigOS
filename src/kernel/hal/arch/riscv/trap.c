@@ -1,11 +1,10 @@
 #include "hal/include/trap.h"
 
 #include <debug/debug_stdio.h>
-#include <stdbigos/error.h>
-#include <stdbigos/math.h>
-#include <stdbigos/string.h>
-#include <stdbigos/types.h>
-#include <stdint.h>
+#include <libcore/error.h>
+#include <libcore/math.h>
+#include <libcore/string.h>
+#include <libcore/types.h>
 
 #include "csr.h"
 #include "csr_vals.h"
@@ -92,7 +91,7 @@ void hal_trap_frame_init_userspace(hal_trap_frame_t* frame, uintptr_t user_sp, u
 
 [[noreturn]]
 static void hal_riscv_trap_unhandled_interrupt(hal_riscv_trap_interrupt_t code) {
-	dprintf("Unhandled interrupt code=%lu\n", (u64)code);
+	DEBUG_PRINTF("Unhandled interrupt code=%lu\n", (u64)code); // TODO: Change to klog
 	while (true) {
 		hal_wait_for_interrupt();
 	}
@@ -101,7 +100,7 @@ static void hal_riscv_trap_unhandled_interrupt(hal_riscv_trap_interrupt_t code) 
 [[noreturn]]
 static void hal_riscv_trap_unhandled_exception(hal_riscv_trap_exception_t code, reg_t stval) {
 	CSR_CLEAR(sstatus, CSR_SSTATUS_SIE);
-	dprintf("Unhandled exception code=%lu, stval=%lu\n", (u64)code, (u64)stval);
+	DEBUG_PRINTF("Unhandled exception code=%lu, stval=%lu\n", (u64)code, (u64)stval); // TODO: Change to klog
 	while (true) {
 		hal_wait_for_interrupt();
 	}
@@ -208,7 +207,7 @@ error_t hal_trap_request_deferred_frame_swap(hal_trap_frame_t* frame) {
 __attribute__((noreturn)) void hal_trap_start_task(const hal_trap_frame_t* frame) {
 	if (!frame) {
 		// panic
-		dputs("hal_trap_start_task called with null frame\n");
+		DEBUG_PUTS("hal_trap_start_task called with null frame\n"); // TODO: Change to KLOG
 		while (true) {
 			hal_wait_for_interrupt();
 		}

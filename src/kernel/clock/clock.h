@@ -1,18 +1,18 @@
-#ifndef STDBIGOS_CLOCK
-#define STDBIGOS_CLOCK
+#ifndef LIBCORE_CLOCK
+#define LIBCORE_CLOCK
 
-#include "stdbigos/error.h"
-#include "stdbigos/types.h"
+#include <libcore/error.h>
+#include <libcore/types.h>
 
 /**
- * @file include/stdbigos/clock.h
+ * @file include/libcore/clock.h
  * @brief Public periodic clock API used by the scheduler and examples.
  *
  * The periodic clock provides a monotonic time source measured in
  * architecture-specific ticks and supports scheduling a "next switch"
  * tick for the scheduler to observe.
  *
- * @addtogroup stdbigos
+ * @addtogroup libcore
  * @{
  * @addtogroup clock
  * @{
@@ -86,6 +86,6 @@ error_t clock_next_switch_tick(u64* out_tick);
 error_t clock_ticks_to_next_switch(u64* out_ticks);
 
 /** @} */ /* end group clock */
-/** @} */ /* end group stdbigos */
+/** @} */ /* end group libcore */
 
-#endif    // !STDBIGOS_CLOCK
+#endif    // !LIBCORE_CLOCK

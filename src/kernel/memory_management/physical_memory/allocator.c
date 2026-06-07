@@ -1,9 +1,10 @@
 #include "allocator.h"
 
+#include <libcore/error.h>
+#include <libcore/math.h>
+#include <libcore/string.h>
+
 #include "memory_management/include/physical_memory/manager.h"
-#include "stdbigos/error.h"
-#include "stdbigos/math.h"
-#include "stdbigos/string.h"
 
 typedef struct {
 	uintptr_t area_base_addr;

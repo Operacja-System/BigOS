@@ -1,12 +1,10 @@
 #ifndef BIGOS_KERNEL_MEMORY_MANAGEMENT_PHYSICAL_MEMORY_MANAGER
 #define BIGOS_KERNEL_MEMORY_MANAGEMENT_PHYSICAL_MEMORY_MANAGER
 
-#include <stdbigos/address.h>
-#include <stdbigos/error.h>
-#include <stdbigos/memory_types.h>
-#include <stdbigos/types.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <libcore/address.h>
+#include <libcore/error.h>
+#include <libcore/memory_types.h>
+#include <libcore/types.h>
 
 /// @addtogroup kmm
 /// @{

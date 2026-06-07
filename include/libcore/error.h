@@ -1,0 +1,28 @@
+#ifndef LIBCORE_ERROR
+#define LIBCORE_ERROR
+
+/// @addtogroup libcore
+/// @{
+/// @addtogroup error
+/// @{
+typedef enum [[nodiscard]] {
+	ERR_NONE = 0,
+	ERR_NOT_IMPLEMENTED,
+	ERR_NOT_VALID,
+	ERR_BAD_ARG,
+	ERR_PHYSICAL_MEMORY_FULL,
+	ERR_OUT_OF_BOUNDS,
+	ERR_NOT_INITIALIZED,
+	ERR_NOT_FOUND,
+	ERR_MAX_SIZE_EXCEEDED,
+	ERR_INVALID_MEMORY_REGION,
+	ERR_OUT_OF_MEMORY,
+	ERR_NOT_ENOUGH_MEMORY,
+	ERR_REPEATED_INITIALIZATION,
+	ERR_ALLOCATION_FAILED,
+} error_t;
+
+/// @}
+/// @}
+
+#endif // !LIBCORE_ERROR

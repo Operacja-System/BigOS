@@ -229,7 +229,12 @@
         },
         {
             "name": "tests-unit",
-            "inherits": ["native-host-tests", "compile-commands", "debug-type"],
+            "inherits": [
+				"host-clang",
+				"native-host-tests",
+				"compile-commands",
+				"debug-type"
+			],
             "displayName": "Unit Tests",
             "description": "Native host build for unit tests"
         }

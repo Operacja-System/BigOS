@@ -6,7 +6,7 @@
 
 #include <dt/dt.h>
 #include <stdbigos/buffer.h>
-#include <stdbigos/error.h>
+#include <libcore/error.h>
 
 #include "../../hal_internal.h"
 #include "../../include/memory_regions.h"

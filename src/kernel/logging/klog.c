@@ -1,11 +1,7 @@
 #include "klog.h"
 
-#include <stdarg.h>
-#include <stdbigos/types.h>
-
-// NOTE: In the future this lib should manage logging (formating and outputing to the screen or uart) on its own.
-//  Right now I will leave it as is, will change once the basic kernel at least runs.
-#include "debug/debug_stdio.h"
+#include <debug/debug_stdio.h>
+#include <libcore/types.h>
 
 static u32 g_indent_level = 0;
 static const char* g_prefixes[] = {"[ERROR]", "[WARNING]", "[ ]", "[~]"};

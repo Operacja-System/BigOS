@@ -7,8 +7,8 @@
 #ifndef HAL_MEMORY_REGIONS
 #define HAL_MEMORY_REGIONS
 
-#include <stdbigos/error.h>
-#include <stdbigos/memory_types.h>
+#include <libcore/error.h>
+#include <libcore/memory_types.h>
 
 /// @addtogroup hal_riscv_mem
 /// @{

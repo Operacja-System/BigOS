@@ -1,11 +1,9 @@
 #ifndef BIGOS_KERNEL_MEMORY_MANAGEMENT_PHYSICAL_MEMORY_ALLOCATOR
 #define BIGOS_KERNEL_MEMORY_MANAGEMENT_PHYSICAL_MEMORY_ALLOCATOR
 
-#include <stdbigos/error.h>
-#include <stdbigos/memory_types.h>
-#include <stddef.h>
-
-#include "stdbigos/types.h"
+#include <libcore/error.h>
+#include <libcore/memory_types.h>
+#include <libcore/types.h>
 
 /**
  *
