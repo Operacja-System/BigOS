@@ -6,4 +6,5 @@ Internal kernel APIs
    :maxdepth: 1
     
    mm/index
+   memory_regions
 

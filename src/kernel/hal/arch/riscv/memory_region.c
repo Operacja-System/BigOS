@@ -1,3 +1,9 @@
+/**
+ * @file memory_region.c
+ * @brief RISC-V memory region enumeration implementation
+ * @ingroup hal_riscv_mem
+ */
+
 #include <dt/dt.h>
 #include <stdbigos/buffer.h>
 #include <stdbigos/error.h>

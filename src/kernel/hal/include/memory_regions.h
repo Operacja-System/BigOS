@@ -1,36 +1,7 @@
 /**
  * @file memory_regions.h
  * @brief Memory region enumeration API for HAL
- *
- * This module provides iterators to enumerate memory regions from the device tree:
- *
- * - **Memory Regions**: Physical memory regions available for use (from /memory nodes)
- * - **Reserved Regions**: Memory ranges reserved by the system and must not be allocated
- *   (from /reserved-memory node and memory reservations)
- *
- * ## Usage Pattern
- *
- * Both iterators follow the same init-then-iterate pattern:
- *
- * ```c
- * // Initialize iterator
- * hal_memory_iterator_t iter;
- * if (hal_get_memory_regions_iterator(&iter) != ERR_NONE)
- *     return; // Handle error
- *
- * // Iterate through regions
- * physical_memory_region_t region;
- * while (hal_get_next_memory_region(&iter, &region) == ERR_NONE) {
- *     // Process region
- * }
- * // Loop exits when hal_get_next_memory_region returns ERR_NOT_FOUND (end of iteration)
- * ```
- *
- * ## Return Value Semantics
- *
- * - `ERR_NONE`: Successfully retrieved next region; output parameter is valid
- * - `ERR_NOT_FOUND`: End of iteration reached (normal termination, not an error)
- * - Other error codes: Actual error occurred; output parameters remain unchanged
+ * @ingroup hal_riscv_mem
  */
 
 #ifndef HAL_MEMORY_REGIONS
@@ -38,6 +9,9 @@
 
 #include <stdbigos/error.h>
 #include <stdbigos/memory_types.h>
+
+/// @addtogroup hal_riscv_mem
+/// @{
 
 /**
  * This type is opaque to the caller.
@@ -124,5 +98,7 @@ error_t hal_get_memory_regions_iterator(hal_memory_iterator_t* iterOUT);
  * @note Upon error, @p areaOUT should remain unchanged.
  */
 error_t hal_get_next_memory_region(hal_memory_iterator_t* iter, physical_memory_region_t* areaOUT);
+
+/// @}
 
 #endif // !HAL_MEMORY_REGIONS

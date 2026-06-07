@@ -5,6 +5,7 @@
 		@defgroup palloc Physical memory allocator
 	@defgroup kinit Kernel initialization
 	@defgroup hal Hardware abstraction layer
+		@defgroup hal_riscv_mem RISC-V memory regions
 @defgroup dt Device tree
 @defgroup stdbigos
 	@defgroup sbi
