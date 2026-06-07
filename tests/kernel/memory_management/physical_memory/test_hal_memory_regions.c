@@ -1,4 +1,4 @@
-#include <dt/dt.h>
+#include <libboot/dt/dt.h>
 #include "hal/include/memory_regions.h"
 #include <unity.h>
 
