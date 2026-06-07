@@ -4,8 +4,8 @@
  * @ingroup hal_riscv_mem
  */
 
-#include <dt/dt.h>
-#include <stdbigos/buffer.h>
+#include <libboot/dt/dt.h>
+#include <libcore/buffer.h>
 #include <libcore/error.h>
 
 #include "../../hal_internal.h"
