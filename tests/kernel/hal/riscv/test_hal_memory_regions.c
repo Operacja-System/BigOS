@@ -1,8 +1,8 @@
 #include <libboot/dt/dt.h>
-#include "hal/include/memory_regions.h"
+#include <string.h>
 #include <unity.h>
 
-#include <string.h>
+#include "hal/include/memory_regions.h"
 
 static bool g_hal_initialized = true;
 static int g_fake_dtb;
@@ -45,16 +45,16 @@ static const u8 s_memory_word[] = {'m', 'e', 'm', 'o', 'r', 'y'};
 
 // address_cells=1, size_cells=1 => each entry is 8 bytes (u32 addr + u32 size), big-endian.
 static const u8 s_reg_memory_a[] = {
-	0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x20, 0x00, // [0x1000, 0x2000]
-	0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x10, 0x00, // [0x4000, 0x1000]
+    0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x20, 0x00, // [0x1000, 0x2000]
+    0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x10, 0x00, // [0x4000, 0x1000]
 };
 
 static const u8 s_reg_memory_b[] = {
-	0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x10, 0x00, // [0x8000, 0x1000]
+    0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x10, 0x00, // [0x8000, 0x1000]
 };
 
 static const u8 s_reg_reserved_child[] = {
-	0x00, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x20, 0x00, // [0xA000, 0x2000]
+    0x00, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x20, 0x00, // [0xA000, 0x2000]
 };
 
 error_t dt_init(const void* fdt, fdt_t* obj) {
@@ -66,8 +66,7 @@ error_t dt_init(const void* fdt, fdt_t* obj) {
 	return ERR_NONE;
 }
 
-void dt_reset([[maybe_unused]] fdt_t* obj) {
-}
+void dt_reset([[maybe_unused]] fdt_t* obj) {}
 
 error_t dt_get_node_in_subtree_by_path(const fdt_t* fdt, dt_node_t node, const char* node_path, dt_node_t* nodeOUT) {
 	(void)fdt;
@@ -78,9 +77,7 @@ error_t dt_get_node_in_subtree_by_path(const fdt_t* fdt, dt_node_t node, const c
 }
 
 error_t dt_get_node_by_path(const fdt_t* fdt, const char* node_path, dt_node_t* nodeOUT) {
-	if (fdt == NULL || node_path == NULL || nodeOUT == NULL)
-		return ERR_BAD_ARG;
-
+	(void)fdt;
 	if (strcmp(node_path, "/reserved-memory") == 0) {
 		*nodeOUT = NODE_RESERVED_ROOT;
 		return ERR_NONE;
@@ -90,9 +87,7 @@ error_t dt_get_node_by_path(const fdt_t* fdt, const char* node_path, dt_node_t* 
 }
 
 error_t dt_get_node_child(const fdt_t* fdt, dt_node_t node, dt_node_t* nodeOUT) {
-	if (fdt == NULL || nodeOUT == NULL)
-		return ERR_BAD_ARG;
-
+	(void)fdt;
 	if (node == NODE_ROOT) {
 		*nodeOUT = NODE_NON_MEMORY;
 		return ERR_NONE;
@@ -107,9 +102,7 @@ error_t dt_get_node_child(const fdt_t* fdt, dt_node_t node, dt_node_t* nodeOUT) 
 }
 
 error_t dt_get_node_sibling(const fdt_t* fdt, dt_node_t node, dt_node_t* nodeOUT) {
-	if (fdt == NULL || nodeOUT == NULL)
-		return ERR_BAD_ARG;
-
+	(void)fdt;
 	if (node == NODE_NON_MEMORY) {
 		*nodeOUT = NODE_MEMORY_A;
 		return ERR_NONE;
@@ -138,9 +131,7 @@ error_t dt_get_node_name_ptr(const fdt_t* fdt, dt_node_t node, const char** ptrO
 }
 
 error_t dt_get_prop_by_name(const fdt_t* fdt, dt_node_t node, const char* prop_name, dt_prop_t* propOUT) {
-	if (fdt == NULL || prop_name == NULL || propOUT == NULL)
-		return ERR_BAD_ARG;
-
+	(void)fdt;
 	if (strcmp(prop_name, "device_type") == 0) {
 		if (node == NODE_MEMORY_A) {
 			*propOUT = PROP_DEVICE_TYPE_MEMORY_A;
@@ -201,32 +192,21 @@ error_t dt_get_prop_name_ptr(const fdt_t* fdt, dt_prop_t prop, const char** ptrO
 }
 
 error_t dt_get_prop_buffer(const fdt_t* fdt, dt_prop_t prop, buffer_t* bufOUT) {
-	if (fdt == NULL || bufOUT == NULL)
-		return ERR_BAD_ARG;
-
+	(void)fdt;
 	switch (prop) {
 	case PROP_DEVICE_TYPE_MEMORY_A:
-	case PROP_DEVICE_TYPE_MEMORY_B:
-		*bufOUT = make_buffer((void*)s_memory_word, sizeof(s_memory_word));
-		return ERR_NONE;
-	case PROP_REG_MEMORY_A:
-		*bufOUT = make_buffer((void*)s_reg_memory_a, sizeof(s_reg_memory_a));
-		return ERR_NONE;
-	case PROP_REG_MEMORY_B:
-		*bufOUT = make_buffer((void*)s_reg_memory_b, sizeof(s_reg_memory_b));
-		return ERR_NONE;
+	case PROP_DEVICE_TYPE_MEMORY_B: *bufOUT = make_buffer((void*)s_memory_word, sizeof(s_memory_word)); return ERR_NONE;
+	case PROP_REG_MEMORY_A:         *bufOUT = make_buffer((void*)s_reg_memory_a, sizeof(s_reg_memory_a)); return ERR_NONE;
+	case PROP_REG_MEMORY_B:         *bufOUT = make_buffer((void*)s_reg_memory_b, sizeof(s_reg_memory_b)); return ERR_NONE;
 	case PROP_REG_RESERVED_CHILD:
 		*bufOUT = make_buffer((void*)s_reg_reserved_child, sizeof(s_reg_reserved_child));
 		return ERR_NONE;
-	default:
-		return ERR_NOT_FOUND;
+	default: return ERR_NOT_FOUND;
 	}
 }
 
 error_t dt_get_rsv_mem_entry(const fdt_t* fdt, u32 index, fdt_rsv_entry* entryOUT) {
-	if (fdt == NULL || entryOUT == NULL)
-		return ERR_BAD_ARG;
-
+	(void)fdt;
 	if (index == 0) {
 		entryOUT->address = 0x9000;
 		entryOUT->size = 0x1000;
@@ -237,9 +217,7 @@ error_t dt_get_rsv_mem_entry(const fdt_t* fdt, u32 index, fdt_rsv_entry* entryOU
 }
 
 error_t dt_get_reg_cell_counts(const fdt_t* fdt, dt_node_t node, u32* address_cellsOUT, u32* size_cellsOUT) {
-	if (fdt == NULL || address_cellsOUT == NULL || size_cellsOUT == NULL)
-		return ERR_BAD_ARG;
-
+	(void)fdt;
 	if (node == NODE_ROOT || node == NODE_RESERVED_ROOT) {
 		*address_cellsOUT = 1;
 		*size_cellsOUT = 1;
@@ -254,8 +232,7 @@ void setUp(void) {
 	g_hal_initialized = true;
 }
 
-void tearDown(void) {
-}
+void tearDown(void) {}
 
 static void test_memory_iterator_returns_not_initialized_when_hal_not_ready(void) {
 	g_hal_initialized = false;
