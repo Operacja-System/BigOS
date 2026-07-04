@@ -1,13 +1,18 @@
 #include "hal/include/trap.h"
 
+#include <address_space/address_space.h>
 #include <debug/debug_stdio.h>
 #include <libcore/error.h>
 #include <libcore/math.h>
 #include <libcore/string.h>
 #include <libcore/types.h>
+#include <logging/klog.h>
 
 #include "csr.h"
 #include "csr_vals.h"
+#include "hal/include/address_space.h"
+#include "pmap.h"
+#include "pagefault.h"
 #include "trap.h"
 
 extern void hal_riscv_trap_entry();
@@ -117,6 +122,37 @@ static void hal_riscv_trap_interrupt_handler(hal_riscv_trap_interrupt_t code) {
 	}
 }
 
+static void hal_riscv_page_fault_handler(hal_riscv_trap_exception_t code, riscv_trap_frame_t *ctx) {
+   bool usermode = ((ctx->sstatus & CSR_SSTATUS_SPP) == 0);
+   uintptr_t vaddr = (uintptr_t)ctx->stval;
+   /* For the timebeing, address of the pagetable is taken directly
+       * from the satp register. */
+   uintptr_t pagetable_addr = (uintptr_t)(satp_to_pa(CSR_READ(satp)));
+   hal_address_region_flag_t fault_prot;
+   switch(code) {
+   case HAL_RISCV_TRAP_EXC_STORE_PAGE_FAULT:
+        fault_prot = HAL_ASR_FLAGS_WRITE;
+        break;
+   case HAL_RISCV_TRAP_EXC_LOAD_PAGE_FAULT:
+        fault_prot = HAL_ASR_FLAGS_READ;
+        break;
+   case HAL_RISCV_TRAP_EXC_INSTR_PAGE_FAULT:
+        fault_prot = HAL_ASR_FLAGS_EXECUTE;
+        break;
+    default:
+        return;
+   }
+   KLOG_TRACE("Pagefault at %p, ", (void*)vaddr);
+   /* If page is present, fix Accessed, Dirty bits */
+   if(pmap_pagefault_fixup(pagetable_addr, vaddr, fault_prot)){
+       return;
+   }
+   if(vm_handle_pagefault(vaddr, pagetable_addr, fault_prot, usermode) == ERR_NONE){
+      return;
+   }
+   //TODO: Oops if in kernel, send SIGSEGV equivalent if in usermode.
+}
+
 static void hal_riscv_trap_exception_handler(hal_riscv_trap_exception_t code, riscv_trap_frame_t* ctx) {
 	switch (code) {
 	case HAL_RISCV_TRAP_EXC_ENV_CALL_U:
@@ -140,6 +176,11 @@ static void hal_riscv_trap_exception_handler(hal_riscv_trap_exception_t code, ri
 			ctx->a1 = result.value;
 		}
 		break;
+	case HAL_RISCV_TRAP_EXC_STORE_ADDRESS_FAULT:
+	case HAL_RISCV_TRAP_EXC_LOAD_ACCESS_FAULT:
+	case HAL_RISCV_TRAP_EXC_INSTR_PAGE_FAULT:
+	    hal_riscv_page_fault_handler(code, ctx);
+	    break;
 	default: hal_riscv_trap_unhandled_exception(code, ctx->stval); break;
 	}
 }
