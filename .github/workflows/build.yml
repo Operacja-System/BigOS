@@ -156,6 +156,10 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # I swear if there is an easier way please help
+          curl -L https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v14.2.0-2/xpack-riscv-none-elf-gcc-14.2.0-2-darwin-arm64.tar.gz -o riscv-toolchain.tar.gz
+          tar -xvf riscv-toolchain.tar.gz
+          echo "$GITHUB_WORKSPACE/xpack-riscv-none-elf-gcc-14.2.0-2/bin" >> $GITHUB_PATH
           brew install llvm lld cmake qemu dosfstools e2fsprogs mtools include-what-you-use
 
       - name: Generate and build
@@ -184,6 +188,10 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # I swear if there is an easier way please help
+          curl -L https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v14.2.0-2/xpack-riscv-none-elf-gcc-14.2.0-2-darwin-arm64.tar.gz -o riscv-toolchain.tar.gz
+          tar -xvf riscv-toolchain.tar.gz
+          echo "$GITHUB_WORKSPACE/xpack-riscv-none-elf-gcc-14.2.0-2/bin" >> $GITHUB_PATH
           brew install llvm lld cmake qemu dosfstools e2fsprogs mtools include-what-you-use
 
       - name: Generate and build

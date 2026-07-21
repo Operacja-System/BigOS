@@ -1,5 +1,5 @@
-#ifndef _DEBUG_STDIO_
-#define _DEBUG_STDIO_
+#ifndef DEBUG_STDIO
+#define DEBUG_STDIO
 
 #include <stdarg.h>
 

@@ -27,7 +27,7 @@ CheckOptions:
   - key:             readability-braces-around-statements.ShortStatementLines
     value:           '2'
 
-# use int names from stdbigos/types.h
+# use int names from libcore/types.h
   - key:             google-runtime-int.UnsignedTypePrefix
     value:           'u'
   - key:             google-runtime-int.SignedTypePrefix
